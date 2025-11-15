@@ -1,0 +1,62 @@
+# VitePress Build Output
+.vitepress/dist/
+.vitepress/cache/
+.vitepress/.temp/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+
+# Source Tree Generation
+src.txt
+sourcetree.json.txt
+exclude.txt
+
+# Backup Files
+*.backup
+*.bak
+*~
+
+# Build Scripts (optional - auskommentieren falls du die im Repo haben willst)
+# generate-vitepress-docs.sh
+# create-vitepress-structure.sh
+
+# Coverage und Tests (falls später hinzugefügt)
+coverage/
+.nyc_output/
+
+# VitePress Debug
+.vitepress/debug.log
+

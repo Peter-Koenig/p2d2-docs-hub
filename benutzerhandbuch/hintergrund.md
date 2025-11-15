@@ -1,0 +1,33 @@
+# Historischer Hintergrund
+
+## Entstehungsgeschichte
+
+p2d2 entstand aus der Erkenntnis, dass Verwaltungsdaten und Bürgerdaten oft parallel existieren, ohne dass ein systematischer Austausch stattfindet. Behörden pflegen ihre Fachdaten, während Bürger:innen dieselben Informationen in OpenStreetMap oder WikiData eintragen.
+
+## Das Problem
+
+- **Doppelarbeit**: Dieselben Daten werden mehrfach erfasst
+- **Inkonsistenzen**: Behördendaten und Community-Daten widersprechen sich
+- **Fehlende Aktualität**: Änderungen in einem System erreichen das andere nicht
+- **Ressourcenverschwendung**: Verwaltung und Community arbeiten getrennt
+
+## Die Vision
+
+p2d2 schließt diese Lücke durch einen **bidirektionalen Datenfluss**:
+
+- Verwaltungsdaten werden als OpenData bereitgestellt
+- Bürger:innen können diese Daten überprüfen und korrigieren
+- Verbesserungen fließen zurück in die Verwaltungssysteme
+- Öffentliche Plattformen profitieren von qualitätsgesicherten Daten
+
+## Pilotprojekt: Friedhöfe in Köln
+
+Das erste Anwendungsszenario war die Erfassung von Friedhofsdaten in Köln:
+
+- **Ausgangslage**: Friedhofsdaten lagen in Fachverfahren vor, waren aber nicht in OSM
+- **Herausforderung**: Komplexe Geometrien, viele Attribute, ständige Änderungen
+- **Erfolg**: Systematische Überführung und kontinuierliche Synchronisation
+
+## Weiterentwicklung
+
+Aus dem Pilotprojekt entwickelte sich eine generische Geodateninfrastruktur, die für verschiedene Datenkategorien und geografische Räume skaliert werden kann.
