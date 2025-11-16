@@ -1,6 +1,7 @@
 import DefaultTheme from "vitepress/theme";
 import "./custom.css";
 import { h } from "vue";
+import DNAViewer from "../../components/DNAViewer.vue";
 
 export default {
   extends: DefaultTheme,
@@ -19,6 +20,11 @@ export default {
             "Feedback willkommen!",
           ),
         ]),
+      "home-hero-image": () =>
+        h("div", { class: "custom-hero-image" }, [h(DNAViewer)]),
     });
+  },
+  enhanceApp({ app }) {
+    app.component("DNAViewer", DNAViewer);
   },
 };
