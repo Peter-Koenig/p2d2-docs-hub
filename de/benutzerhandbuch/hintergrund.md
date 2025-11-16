@@ -25,7 +25,7 @@ p2d2 schließt diese Lücke durch einen **bidirektionalen Datenfluss**:
 Das erste Anwendungsszenario war die Erfassung von Friedhofsdaten in Köln:
 
 - **Ausgangslage**: Friedhofsdaten lagen in Fachverfahren vor, waren aber nicht in OSM
-- **Herausforderung**: Komplexe Geometrien, viele Attribute, ständige Änderungen
+- **Herausforderung**: Auch wenn der Kölner Stadtrat 2010 und 2012 _"alle Daten als grundsätzlich öffentlich"_ definiert hat, liegen Daten zu Fachanwendungen oft in Datensilos und sind von der Öffentlichkeit abgeschirmt.  
 - **Erfolg**: Systematische Überführung und kontinuierliche Synchronisation
 
 ## Weiterentwicklung
