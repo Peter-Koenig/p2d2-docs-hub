@@ -3,32 +3,32 @@ layout: home
 
 hero:
   name: "p2d2"
-  text: "Public-Public<br />Data-DNA"
-  tagline: Open administrative data linked with<br />public data
+  text: "Public-Public Data-DNA"
+  tagline: Spatial Data Infrastructure for Open Government Data
   actions:
     - theme: brand
       text: User Guide
-      link: /benutzerhandbuch/
+      link: /en/benutzerhandbuch/
     - theme: alt
       text: Administration
-      link: /administrationshandbuch/
+      link: /en/administrationshandbuch/
     - theme: alt
       text: Strategy
-      link: /entwicklungsstrategie/
+      link: /en/entwicklungsstrategie/
 
 features:
   - icon: 📚
     title: User Guide
-    details: Learn how to use p2d2, collect spatial data, and contribute to quality assurance.
-    link: /benutzerhandbuch/
+    details: Learn how to use p2d2, capture geodata, and contribute to quality assurance.
+    link: /en/benutzerhandbuch/
   - icon: ⚙️
-    title: Administration Guide
-    details: Technical documentation on server architecture, GDI components, and deployment processes.
-    link: /administrationshandbuch/
+    title: Administration Handbook
+    details: Technical documentation on server architecture, SDI components, and deployment processes.
+    link: /en/administrationshandbuch/
   - icon: 🚀
     title: Development Strategy
-    details: Vision, scaling plans, and the Open Source philosophy behind p2d2.
-    link: /entwicklungsstrategie/
+    details: Vision, scaling plans, and the open-source philosophy behind p2d2.
+    link: /en/entwicklungsstrategie/
 ---
 
 ## What is p2d2?
