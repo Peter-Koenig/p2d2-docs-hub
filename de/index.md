@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: "p2d2"
-  text: "Public-Public Data-DNA"
-  tagline: Geodateninfrastruktur für offene Verwaltungsdaten
+  text: "Public-Public<br />Data-DNA"
+  tagline: Daten der Öffentlichkeit mit<br />offenen Verwaltungsdaten verzahnen!
   actions:
     - theme: brand
       text: Benutzerhandbuch

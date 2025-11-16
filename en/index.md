@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: "p2d2"
-  text: "Public-Public Data-DNA"
-  tagline: Spatial Data Infrastructure for Open Government Data
+  text: "Public-Public<br />Data-DNA"
+  tagline: Interlock public data<br />with open government data!﻿
   actions:
     - theme: brand
       text: User Guide
