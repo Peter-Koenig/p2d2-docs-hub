@@ -1,118 +1,113 @@
+// .vitepress/config.ts
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'p2d2 Dokumentation',
-  description: 'Public-Public Data-DNA - Geodateninfrastruktur für offene Verwaltungsdaten',
-  lang: 'de-DE',
-  base: '/',
+  title: 'p2d2 Documentation',
+  description: 'Public-Public Data-DNA',
   
-  themeConfig: {
-    nav: [
-      { text: 'Start', link: '/' },
-      { text: 'Benutzerhandbuch', link: '/benutzerhandbuch/' },
-      { text: 'Administration', link: '/administrationshandbuch/' },
-      { text: 'Strategie', link: '/entwicklungsstrategie/' }
-    ],
-    
-    sidebar: {
-      '/benutzerhandbuch/': [
-        {
-          text: 'Einführung',
-          items: [
-            { text: 'Übersicht', link: '/benutzerhandbuch/' },
-            { text: 'Historischer Hintergrund', link: '/benutzerhandbuch/hintergrund' },
-            { text: 'OpenData-Ansätze', link: '/benutzerhandbuch/opendata-ansaetze' },
-            { text: 'Der p2d2-Zyklus', link: '/benutzerhandbuch/p2d2-zyklus' }
-          ]
-        },
-        {
-          text: 'Die Anwendung',
-          items: [
-            { text: 'Hauptfenster', link: '/benutzerhandbuch/anwendung/hauptfenster' },
-            { text: 'Feature-Editor', link: '/benutzerhandbuch/anwendung/feature-editor' },
-            { text: 'Editieren', link: '/benutzerhandbuch/anwendung/editieren' },
-            { text: 'Speichern', link: '/benutzerhandbuch/anwendung/speichern' },
-            { text: 'Qualitätssicherung', link: '/benutzerhandbuch/anwendung/qualitaetssicherung' }
-          ]
-        }
-      ],
+  locales: {
+    root: {
+      label: 'Deutsch',
+      lang: 'de-DE',
+      link: '/de/',
       
-      '/administrationshandbuch/': [
-        {
-          text: 'Server-Infrastruktur',
-          items: [
-            { text: 'Übersicht', link: '/administrationshandbuch/' },
-            { text: 'Proxmox VE', link: '/administrationshandbuch/server-architektur/proxmox' },
-            { text: 'Proxmox Backup Server', link: '/administrationshandbuch/server-architektur/pbs-backup' },
-            { text: 'OPNsense Firewall', link: '/administrationshandbuch/server-architektur/opnsense' }
-          ]
-        },
-        {
-          text: 'Geodateninfrastruktur',
-          items: [
-            { text: 'Übersicht GDI', link: '/administrationshandbuch/geodateninfrastruktur/' },
-            { text: 'PostgreSQL/PostGIS', link: '/administrationshandbuch/geodateninfrastruktur/postgresql-postgis' },
-            { text: 'GeoServer', link: '/administrationshandbuch/geodateninfrastruktur/geoserver' },
-            { text: 'MapProxy', link: '/administrationshandbuch/geodateninfrastruktur/mapproxy' },
-            { text: 'OSM-Tileserver', link: '/administrationshandbuch/geodateninfrastruktur/osm-tileserver' },
-            { text: 'uMap-Server (geplant)', link: '/administrationshandbuch/geodateninfrastruktur/umap-server' }
-          ]
-        },
-        {
-          text: 'Software & Deployment',
-          items: [
-            { text: 'Frontend-Architektur', link: '/administrationshandbuch/frontend-architektur' },
-            { text: 'Software-Architektur', link: '/administrationshandbuch/software-architektur' },
-            { text: 'Staging-Umgebung', link: '/administrationshandbuch/deployment/staging' },
-            { text: 'Production-Deployment', link: '/administrationshandbuch/deployment/production' },
-            { text: 'CI/CD Pipeline', link: '/administrationshandbuch/deployment/cicd-pipeline' },
-            { text: 'Backup-Strategie', link: '/administrationshandbuch/backup-strategie' }
-          ]
-        }
-      ],
-      
-      '/entwicklungsstrategie/': [
-        {
-          text: 'Vision & Philosophie',
-          items: [
-            { text: 'Übersicht', link: '/entwicklungsstrategie/' },
-            { text: 'Vision 2030', link: '/entwicklungsstrategie/vision' },
-            { text: 'OpenSource-Philosophie', link: '/entwicklungsstrategie/opensource-philosophie' }
-          ]
-        },
-        {
-          text: 'Skalierung',
-          items: [
-            { text: 'Kategorien-Ausdehnung', link: '/entwicklungsstrategie/skalierung/kategorien' },
-            { text: 'Kommunale Ebene', link: '/entwicklungsstrategie/skalierung/kommunen' },
-            { text: 'Bundesländer', link: '/entwicklungsstrategie/skalierung/bundeslaender' },
-            { text: 'Europa & Global', link: '/entwicklungsstrategie/skalierung/europa-global' }
-          ]
-        },
-        {
-          text: 'Roadmap',
-          items: [
-            { text: 'Entwicklungs-Roadmap', link: '/entwicklungsstrategie/roadmap' }
+      themeConfig: {
+        nav: [
+          { text: 'Start', link: '/de/' },
+          { text: 'Benutzerhandbuch', link: '/de/benutzerhandbuch/' },
+          { text: 'Administration', link: '/de/administrationshandbuch/' },
+          { text: 'Strategie', link: '/de/entwicklungsstrategie/' }
+        ],
+        
+        sidebar: {
+          '/de/entwicklungsstrategie/': [
+            {
+              text: 'Vision & Philosophie',
+              items: [
+                { text: 'Übersicht', link: '/de/entwicklungsstrategie/' },
+                { text: 'Vision 2030', link: '/de/entwicklungsstrategie/vision' },
+                { text: 'OpenSource-Philosophie', link: '/de/entwicklungsstrategie/opensource-philosophie' }
+              ]
+            },
+            {
+              text: 'Skalierung',
+              items: [
+                { text: 'Kategorien', link: '/de/entwicklungsstrategie/skalierung/kategorien' },
+                { text: 'Kommunen', link: '/de/entwicklungsstrategie/skalierung/kommunen' },
+                { text: 'Bundesländer', link: '/de/entwicklungsstrategie/skalierung/bundeslaender' },
+                { text: 'Europa & Global', link: '/de/entwicklungsstrategie/skalierung/europa-global' }
+              ]
+            },
+            {
+              text: 'Roadmap',
+              items: [
+                { text: 'Roadmap', link: '/de/entwicklungsstrategie/roadmap' }
+              ]
+            }
           ]
         }
-      ]
+      }
     },
     
+    en: {
+      label: 'English',
+      lang: 'en-US',
+      link: '/en/',
+      
+      themeConfig: {
+        nav: [
+          { text: 'Home', link: '/en/' },
+          { text: 'User Guide', link: '/en/benutzerhandbuch/' },
+          { text: 'Administration', link: '/en/administrationshandbuch/' },
+          { text: 'Strategy', link: '/en/entwicklungsstrategie/' }  // ← Gleiche URL!
+        ],
+        
+        sidebar: {
+          '/en/entwicklungsstrategie/': [  // ← Gleicher Pfad!
+            {
+              text: 'Vision & Philosophy',
+              items: [
+                { text: 'Overview', link: '/en/entwicklungsstrategie/' },
+                { text: 'Vision 2030', link: '/en/entwicklungsstrategie/vision' },
+                { text: 'Open Source Philosophy', link: '/en/entwicklungsstrategie/opensource-philosophie' }
+              ]
+            },
+            {
+              text: 'Scaling',
+              items: [
+                { text: 'Categories', link: '/en/entwicklungsstrategie/skalierung/kategorien' },
+                { text: 'Municipalities', link: '/en/entwicklungsstrategie/skalierung/kommunen' },
+                { text: 'Federal States', link: '/en/entwicklungsstrategie/skalierung/bundeslaender' },
+                { text: 'Europe & Global', link: '/en/entwicklungsstrategie/skalierung/europa-global' }
+              ]
+            },
+            {
+              text: 'Roadmap',
+              items: [
+                { text: 'Roadmap', link: '/en/entwicklungsstrategie/roadmap' }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  
+  // Gemeinsame Konfiguration
+  themeConfig: {
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Peter-Koenig/p2d2-hub' }
     ],
     
-    footer: {
-      message: 'Veröffentlicht unter GPLv3 (Code) & ODbL (Daten)',
-      copyright: 'Copyright © 2025 p2d2 Projekt'
-    },
-    
     search: {
       provider: 'local'
-    },
-    
-    outline: {
-      level: [2, 3]
     }
+  },
+    rewrites: {
+    'entwicklungsstrategie/:path*': 'de/entwicklungsstrategie/:path*',
+    'benutzerhandbuch/:path*': 'de/benutzerhandbuch/:path*',
+    'administrationshandbuch/:path*': 'de/administrationshandbuch/:path*'
   }
 })
+
+
