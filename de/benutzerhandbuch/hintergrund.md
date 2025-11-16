@@ -16,9 +16,9 @@ p2d2 entstand aus der Erkenntnis, dass Verwaltungsdaten und Bürgerdaten oft par
 p2d2 schließt diese Lücke durch einen **bidirektionalen Datenfluss**:
 
 - Verwaltungsdaten werden als OpenData bereitgestellt
-- Bürger:innen können diese Daten überprüfen und korrigieren
+- Bürger:innen können diese Daten überprüfen, korrigieren und nutzen
 - Verbesserungen fließen zurück in die Verwaltungssysteme
-- Öffentliche Plattformen profitieren von qualitätsgesicherten Daten
+- Wir alle profitieren von qualitätsgesicherten Daten: Datensouveräne Bürgerinnen und Bürger, unsere Verwaltungen und unsere Wirtschaft, weil wir unsere Entscheidungen auf Fakten aufbauen, die jeder selber überprüfen kann.
 
 ## Pilotprojekt: Friedhöfe in Köln
 
