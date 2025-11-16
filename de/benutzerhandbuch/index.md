@@ -6,7 +6,7 @@ Willkommen im Benutzerhandbuch von p2d2. Hier erfahren Sie, wie Sie die Anwendun
 
 p2d2 ist eine Web-Anwendung um die offenen und freien Daten von Bürgerinnen und Bürgern mit denen aus offenen Daten unserer Verwaltungsdaten zu synchronisieren.
 
-Wir starten mit Geodaten, da diese von hohem praktischen Nutzen __und__ anschaulich sind. Die Anwendung ermöglicht es Bürger:innen, die offenen Daten der Verwaltung zu überprüfen, sie zu korrigieren, zu ergänzen, bevor sie in öffentliche Plattformen wie OpenStreetMap oder WikiData übertragen werden und dort von uns allen genutzt und in Beziehung zu anderen Daten gesetzt werden können.
+Wir starten mit Geodaten, da diese von hohem praktischen Nutzen _und_ anschaulich sind. Die Anwendung ermöglicht es Bürger:innen, die offenen Daten der Verwaltung zu überprüfen, sie zu korrigieren, zu ergänzen, bevor sie in öffentliche Plattformen wie OpenStreetMap oder WikiData übertragen werden und dort von uns allen genutzt und in Beziehung zu anderen Daten gesetzt werden können.
 
 ## Zielgruppe
 
