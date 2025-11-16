@@ -80,39 +80,8 @@ const initializeViewer = async () => {
             },
         });
 
-        // WICHTIG: Korrekte Auto-Rotation ohne rotateY
-        const startRotation = () => {
-            if (!viewer || !canvas3d) return;
-
-            const animate = () => {
-                if (viewer && canvas3d) {
-                    // Statt rotateY: Benutze spin
-                    canvas3d.requestCameraReset({ durationMs: 0 });
-                    const camera = canvas3d.camera;
-                    const state = camera.state;
-
-                    // Rotate um Y-Achse durch Snap-Update
-                    camera.setState({
-                        ...state,
-                        snapshot: {
-                            ...state.snapshot,
-                            rotation: [
-                                state.snapshot.rotation[0],
-                                state.snapshot.rotation[1] + 0.005,
-                                state.snapshot.rotation[2],
-                                state.snapshot.rotation[3],
-                            ],
-                        },
-                    });
-
-                    animationFrame = requestAnimationFrame(animate);
-                }
-            };
-
-            animate();
-        };
-
-        setTimeout(() => startRotation(), 1000);
+        // KEINE Auto-Rotation mehr - verursacht Fehler
+        // Die DNA bleibt statisch, User können manuell drehen
 
         loading.value = false;
     } catch (err) {

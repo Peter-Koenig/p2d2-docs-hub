@@ -202,7 +202,7 @@
 
 /* ============================================
    DNA-Legende via CSS Pseudo-Elemente
-   Transform-basiert für präzise Kontrolle
+   FINALER FIX
    ============================================ */
 
 .custom-hero-image {
@@ -214,45 +214,50 @@
     content: "";
     position: absolute;
 
-    /* Box-Dimensionen VOR Rotation (horizontal gedacht) */
-    width: 140px;
-    height: 60px;
+    /* Box-Dimensionen */
+    width: 130px; /* Breiter für mehr Text */
+    height: 60px; /* Höher nach Rotation */
 
     /* Text-Styling */
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 14px; /* Größere Schrift */
+    font-weight: 600; /* Fetter */
     line-height: 1.3;
     color: white;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
     z-index: 100;
-    padding: 0 8px;
-    letter-spacing: 0.5px;
+    padding: 6px 8px;
+    letter-spacing: 0.3px;
     pointer-events: none;
+
+    /* WICHTIG: Zeilenumbruch aktivieren */
     white-space: pre-line;
 
-    /* Rotation: 90° im Uhrzeigersinn = Grundlinie rechts */
-    transform: rotate(90deg);
-    transform-origin: left bottom;
+    /* KRITISCH: -90deg = gegen Uhrzeigersinn = Grundlinie rechts */
+    transform: rotate(-90deg);
+    transform-origin: left top;
+
+    /* Styling */
+    opacity: 0.95;
+    border-radius: 4px;
 }
 
 /* Öffentliche Daten - Oben links */
 .custom-hero-image::before {
-    content: "Öffentliche\ADaten";
-    left: 30px;
-    top: 20px;
+    content: "Öffentliche Daten"; /* Zeilenumbruch mit \A funktioniert im Browser */
+    left: 20px; /* Näher am Rand */
+    top: 150px; /* Tiefer, damit sichtbar */
     background: #1a8f6c;
 }
 
 /* Offene Verwaltungsdaten - Darunter */
 .custom-hero-image::after {
-    content: "Offene\AVerwaltungsdaten";
-    left: 30px;
-    top: 180px;
+    content: "Offene Verwaltungs-daten"; /* Mit Bindestrich für Umbruch */
+    left: 20px;
+    top: 290px; /* 125px + 120px (width) + 15px Abstand */
     background: #ab4c03;
 }
 
@@ -262,10 +267,11 @@
     .custom-hero-image::after {
         transform: none;
         width: auto;
-        height: 32px;
-        padding: 0 12px;
+        height: auto;
+        padding: 8px 14px;
         left: 50%;
         transform: translateX(-50%);
+        font-size: 12px;
     }
 
     .custom-hero-image::before {
