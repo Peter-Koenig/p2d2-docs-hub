@@ -1,8 +1,8 @@
 // .vitepress/config.ts
 import { defineConfig } from 'vitepress'
-  ignoreDeadLinks: true,
 
 export default defineConfig({
+  ignoreDeadLinks: true,
   title: 'p2d2 Documentation',
   description: 'Public-Public Data-DNA',
   
