@@ -1,6 +1,6 @@
 # Vision 2030
 
-Bis 2030 soll p2d2 die **führende Plattform für bidirektionalen Geodatenaustausch** zwischen Verwaltung und Öffentlichkeit in Europa sein.
+Bis 2030 soll p2d2 die **Standardplattform für bidirektionalen Datenaustausch** zwischen Verwaltung und Öffentlichkeit in Europa sein.
 
 ## Langfristige Ziele
 
@@ -8,7 +8,8 @@ Bis 2030 soll p2d2 die **führende Plattform für bidirektionalen Geodatenaustau
 
 - **50+ Kommunen** in Deutschland
 - **Alle 16 Bundesländer** mit mindestens einer Pilotkommune
-- **10+ europäische Länder** mit eigenen Instanzen
+- **Kommunen bilden Communities** und stärken sich gegenseitig
+- **Kommunen, Länder, der Bund** intgegrieren p2d2-Server in ihre Infrastruktur
 
 ### Daten-Kategorien
 
@@ -28,7 +29,7 @@ Bis 2030 soll p2d2 die **führende Plattform für bidirektionalen Geodatenaustau
 
 - **INSPIRE-konform**: Vollständige EU-Konformität
 - **Föderiert**: Instanzen können miteinander kommunizieren
-- **AI-gestützt**: Automatische Qualitätsprüfung und Duplikat-Erkennung
+- **Cluster**: Instanzen können Cluster bilden
 - **Real-time**: Live-Synchronisation mit OSM/WikiData
 
 ## Gesellschaftlicher Impact
@@ -51,41 +52,17 @@ Offene Daten und transparente Prozesse stärken das Vertrauen in Verwaltung und 
 
 ## Technologie-Vision
 
-### Dezentralisierung
+### AI-Integration (_nur wo es den Menschen hilft!_)
 
-```
-┌──────────────┐     ┌──────────────┐
-│  p2d2 Köln   │◄───►│  p2d2 Bonn   │
-└──────┬───────┘     └──────┬───────┘
-       │                    │
-       └────────┬───────────┘
-                │
-         ┌──────▼───────┐
-         │ Federation   │
-         │   Protocol   │
-         └──────────────┘
-```
-
-### AI-Integration
-
-- **Automatische Attribut-Vervollständigung**
-- **Bilderkennungbasierte Geometrie-Korrektur**
-- **Intelligente Duplikat-Erkennung**
-- **Predictive Maintenance**: Hinweise auf veraltete Daten
-
-### Mobile-First
-
-- **Progressive Web App**
-- **Offline-Editing** auf Smartphones
-- **GPS-gestützte Erfassung**
-- **Foto-Upload** vor Ort
+- ggf. Unterstützung durch **Automatische Attribut-Vervollständigung**
+- ggf. **Bilderkennungsunterstützte Objekterkennung**
+- ggf. **Bilderkennungsunterstützte Geometrie-Korrektur**
 
 ## Nachhaltigkeit
 
 ### Ökologisch
 
 - **Energieeffiziente Infrastruktur**
-- **Grünes Hosting**
 - **Minimaler Traffic** durch intelligentes Caching
 
 ### Ökonomisch
@@ -96,10 +73,5 @@ Offene Daten und transparente Prozesse stärken das Vertrauen in Verwaltung und 
 
 ### Sozial
 
-- **Barrierefrei**: WCAG 2.1 Level AA
 - **Mehrsprachig**: Mindestens DE, EN, FR
 - **Inklusiv**: Niedrigschwellige Teilhabe für alle
-
-::: tip Vision verwirklichen
-Diese Vision ist ambitioniert, aber erreichbar - mit Ihrer Unterstützung!
-:::
