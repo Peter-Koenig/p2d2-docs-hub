@@ -80,8 +80,28 @@ const initializeViewer = async () => {
             },
         });
 
-        // KEINE Auto-Rotation mehr - verursacht Fehler
-        // Die DNA bleibt statisch, User können manuell drehen
+        // WICHTIG: Initiale Kamera-Ausrichtung setzen
+        // Warte kurz, bis Mol* die initiale Position berechnet hat
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Speichere die aktuelle Kamera-Position
+        const camera = canvas3d.camera;
+        const currentState = camera.getSnapshot();
+
+        // Rotiere die Kamera um 90° um die Y-Achse für Längsansicht
+        // Das gibt uns die Seitenansicht der Helix
+        // camera.setState(
+        //     {
+        //         ...currentState,
+        //         position: [0, 0, currentState.radius * 4], // Z-Achse
+        //         target: [0, 0, 0],
+        //         up: [-1, -0, -1], // Y bleibt oben
+        //     },
+        //     0,
+        //  ); // 0 = keine Transition-Duration
+
+        // Alternative: Rotiere um vorhandene Achse
+        // camera.rotate(Math.PI / 2, [0, 1, 0]); // 90° um Y-Achse
 
         loading.value = false;
     } catch (err) {
