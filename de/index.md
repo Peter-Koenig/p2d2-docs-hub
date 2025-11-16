@@ -58,5 +58,5 @@ features:
 ---
 
 ::: tip 📖 Erste Schritte
-Beginnen Sie mit dem [Benutzerhandbuch](/de/benutzerhandbuch/), um die Anwendung kennenzulernen, oder konsultieren Sie das [Administrationshandbuch](/de/administrationshandbuch/) für technische Details zur Installation und Konfiguration.
+Beginnen Sie mit dem [Benutzerhandbuch](/benutzerhandbuch/), um die Anwendung kennenzulernen, oder konsultieren Sie das [Administrationshandbuch](/administrationshandbuch/) für technische Details zur Installation und Konfiguration.
 :::

@@ -58,5 +58,5 @@ features:
 ---
 
 ::: tip 📖 Getting Started
-Start with the [User Guide](/en/benutzerhandbuch/) to learn the application, or consult the [Administration Guide](/en/administrationshandbuch/) for technical details on installation and configuration.
+Start with the [User Guide](/benutzerhandbuch/) to learn the application, or consult the [Administration Guide](/administrationshandbuch/) for technical details on installation and configuration.
 :::
