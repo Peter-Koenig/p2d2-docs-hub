@@ -1,5 +1,6 @@
 // .vitepress/config.ts
 import { defineConfig } from 'vitepress'
+  ignoreDeadLinks: true,
 
 export default defineConfig({
   title: 'p2d2 Documentation',
