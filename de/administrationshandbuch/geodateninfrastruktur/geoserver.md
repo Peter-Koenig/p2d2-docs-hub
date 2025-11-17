@@ -1,10 +1,10 @@
 ---
 quality:
-  completeness: 50
-  accuracy: 70
-  reviewed: false
-  reviewer: null
-  reviewDate: null
+  completeness: 90
+  accuracy: 80
+  reviewed: true
+  reviewer: "Peer Kaiser"
+  reviewDate: "2025-11-17"
 ---
 
 # GeoServer

@@ -5,11 +5,11 @@ status: migrated
 lastUpdated: 2025-11-17
 lang: de
 quality:
-  completeness: 50
-  accuracy: 70
-  reviewed: false
-  reviewer: null
-  reviewDate: null
+  completeness: 75
+  accuracy: 65
+  reviewed: true
+  reviewer: "Peer Kaiser"
+  reviewDate: "2025-11-17"
 ---
 
 # Geodateninfrastruktur (GDI) - p2d2 Architektur
