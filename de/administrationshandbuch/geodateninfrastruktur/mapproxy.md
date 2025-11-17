@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # MapProxy
 
 MapProxy ist der Tile-Cache und Proxy für p2d2. Er cached WMS-Kacheln und stellt sie als WMTS/TMS bereit.

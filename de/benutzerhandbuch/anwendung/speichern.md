@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Speichern
 
 Das Speichern von Änderungen in p2d2 folgt einem strukturierten Prozess, um Datenverlust zu vermeiden und Qualitätssicherung zu ermöglichen.

@@ -4,6 +4,12 @@ description: "Richtlinien für Beiträge zum p2d2-Projekt: Git-Workflow, Code-St
 status: migrated
 lastUpdated: 2025-11-17
 lang: de
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Beitrag leisten zu **p2d2**

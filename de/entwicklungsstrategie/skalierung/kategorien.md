@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Kategorien-Ausdehnung
 
 Die schrittweise Ausdehnung auf weitere Datenkategorien ist zentral für die Skalierung von p2d2.

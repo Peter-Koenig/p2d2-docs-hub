@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Software-Architektur
 
 Die Software-Architektur von p2d2 folgt einer **Microservices-ähnlichen Struktur** mit klarer Trennung zwischen Frontend, Backend-Services und Geodateninfrastruktur.

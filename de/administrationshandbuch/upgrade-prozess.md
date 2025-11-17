@@ -1,9 +1,15 @@
 ---
 title: Upgrade-Prozess
-description: "Workflow für Dependency-Updates und Version-Upgrades im Multi-Team-Setup"
+description: Workflow für Dependency-Updates und Version-Upgrades im Multi-Team-Setup
 status: migrated
 lastUpdated: 2025-11-17
 lang: de
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Dependency Update Workflow – p2d2 Projekt

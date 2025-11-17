@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # OpenSource-Philosophie
 
 p2d2 ist aus Überzeugung Open Source. Diese Entscheidung basiert auf technischen, gesellschaftlichen und ethischen Überlegungen.

@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # CI/CD Pipeline
 
 Die CI/CD-Pipeline automatisiert Build, Test und Deployment von p2d2.

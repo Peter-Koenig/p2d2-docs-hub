@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Der p2d2-Zyklus
 
 Der p2d2-Zyklus beschreibt den bidirektionalen Datenfluss zwischen Verwaltung, OpenData-Portal, p2d2-Community und öffentlichen Datenplattformen. Der Prozess besteht aus **9 Schritten**:

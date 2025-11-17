@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Feature-Editor
 
 Der Feature-Editor ermöglicht die Bearbeitung von Geometrien und Attributen eines ausgewählten Features.

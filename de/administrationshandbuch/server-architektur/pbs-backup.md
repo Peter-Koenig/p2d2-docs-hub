@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Proxmox Backup Server
 
 Proxmox Backup Server (PBS) ist die Backup-Lösung für p2d2-VMs und Container. PBS bietet deduplizierte, inkrementelle Backups.

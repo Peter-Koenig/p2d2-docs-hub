@@ -1,9 +1,15 @@
 ---
 title: Multi-Branch Deployment
-description: "Automatisiertes Deployment-System für multiple Branches mit Caddy und Systemd"
+description: Automatisiertes Deployment-System für multiple Branches mit Caddy und Systemd
 status: migrated
 lastUpdated: 2025-11-17
 lang: de
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # p2d2: Multi-Branch Deployment – Technische Dokumentation
@@ -729,5 +735,3 @@ df -h
 - Caddy: https://caddyserver.com/docs/quick-start
 - GitLab Webhooks: https://docs.gitlab.com/user/project/integrations/webhooks
 - systemd: https://www.freedesktop.org/software/systemd/man/systemd.service.html
-
-

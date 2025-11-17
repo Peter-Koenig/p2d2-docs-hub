@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Development Strategy
 
 The development strategy of p2d2 describes the long-term vision and step-by-step scaling of the project.

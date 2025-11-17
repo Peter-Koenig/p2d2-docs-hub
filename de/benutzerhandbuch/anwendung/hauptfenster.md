@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Hauptfenster
 
 Das Hauptfenster von p2d2 ist die zentrale Arbeitsoberfläche. Es basiert auf **OpenLayers** und bietet eine interaktive Kartenansicht mit verschiedenen Werkzeugen.

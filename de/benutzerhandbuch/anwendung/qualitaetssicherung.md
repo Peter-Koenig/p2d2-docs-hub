@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Qualitätssicherung
 
 Die Qualitätssicherung (QS) ist ein zentraler Bestandteil von p2d2. Sie stellt sicher, dass nur korrekte und vollständige Daten in öffentliche Plattformen übertragen werden.

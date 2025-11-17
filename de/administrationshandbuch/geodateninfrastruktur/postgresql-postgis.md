@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # PostgreSQL/PostGIS
 
 PostgreSQL mit PostGIS-Erweiterung ist die zentrale Geodatenbank von p2d2.

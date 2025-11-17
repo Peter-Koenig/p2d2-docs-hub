@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Backup-Strategie
 
 Eine umfassende Backup-Strategie sichert p2d2 gegen Datenverlust ab.

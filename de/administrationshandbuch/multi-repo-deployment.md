@@ -1,9 +1,15 @@
 ---
 title: Multi-Repo Deployment
-description: "Deployment-Strategie für verteilte Team-Entwicklung mit GitLab, GitHub und Webhook-Server"
+description: Deployment-Strategie für verteilte Team-Entwicklung mit GitLab, GitHub und Webhook-Server
 status: migrated
 lastUpdated: 2025-11-17
 lang: de
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # p2d2 Multi-Repo Deployment – Komplette Dokumentation
@@ -1034,4 +1040,3 @@ systemctl status astro-*
 8. **You merge** → `develop` → `main`
 9. **Automatic deployment** to **www** → LIVE in production
 ```
-

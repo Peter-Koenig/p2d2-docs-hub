@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Bundesländer
 
 Die Skalierung auf Bundesland-Ebene ermöglicht landesweite Geodateninfrastrukturen.

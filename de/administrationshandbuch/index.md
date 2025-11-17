@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Administrationshandbuch
 
 Willkommen im Administrationshandbuch von p2d2. Hier finden Sie technische Dokumentation zur Installation, Konfiguration und zum Betrieb der Geodateninfrastruktur.

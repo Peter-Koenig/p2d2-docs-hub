@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Federal States
 
 Scaling to the federal state level enables state-wide Spatial Data Infrastructures.

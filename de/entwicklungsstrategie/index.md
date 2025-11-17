@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Entwicklungsstrategie
 
 Die Entwicklungsstrategie von p2d2 beschreibt die langfristige Vision und die schrittweise Skalierung des Projekts.

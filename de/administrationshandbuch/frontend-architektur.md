@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Frontend-Architektur
 
 Das p2d2-Frontend basiert auf **AstroJS** mit **OpenLayers** für die Kartendarstellung und **TypeScript** für typsichere Entwicklung.

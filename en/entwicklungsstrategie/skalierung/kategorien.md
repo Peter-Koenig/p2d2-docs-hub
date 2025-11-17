@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Category Expansion
 
 The step-by-step expansion to additional data categories is central to scaling p2d2.

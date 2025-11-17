@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Europe & Global
 
 The vision of p2d2 is a worldwide, federated Spatial Data Infrastructure for open data.

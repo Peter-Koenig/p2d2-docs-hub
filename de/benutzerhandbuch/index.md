@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Benutzerhandbuch
 
 Willkommen im Benutzerhandbuch von p2d2. Hier erfahren Sie, wie Sie die Anwendung nutzen, Geodaten erfassen und zur Qualitätssicherung beitragen.

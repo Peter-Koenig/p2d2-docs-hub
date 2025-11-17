@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # GeoServer
 
 GeoServer ist der OGC-konforme Geodienste-Server für p2d2. Er stellt WFS, WFS-T, WMS und WCS bereit.

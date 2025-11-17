@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Editieren
 
 Dieser Abschnitt beschreibt Best Practices für das Editieren von Geodaten in p2d2.

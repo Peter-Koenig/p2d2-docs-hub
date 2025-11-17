@@ -4,6 +4,12 @@ description: "Geodateninfrastruktur-Architektur für p2d2: Mapserver, PostGIS, O
 status: migrated
 lastUpdated: 2025-11-17
 lang: de
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Geodateninfrastruktur (GDI) - p2d2 Architektur

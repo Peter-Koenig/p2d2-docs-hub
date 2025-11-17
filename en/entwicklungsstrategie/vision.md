@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Vision 2030
 
 By 2030, p2d2 should be the **leading platform for bidirectional spatial data exchange** between administration and the public in Europe.

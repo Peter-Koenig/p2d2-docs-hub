@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Geodateninfrastruktur (GDI)
 
 Die Geodateninfrastruktur von p2d2 folgt den Prinzipien der **GDI-DE** (Geodateninfrastruktur Deutschland) und setzt auf offene Standards des **Open Geospatial Consortium (OGC)**.

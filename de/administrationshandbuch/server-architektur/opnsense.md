@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # OPNsense Firewall
 
 OPNsense ist die Firewall- und Router-Lösung für p2d2. Sie schützt die Geodateninfrastruktur und routet den Traffic zwischen den Netzwerken.

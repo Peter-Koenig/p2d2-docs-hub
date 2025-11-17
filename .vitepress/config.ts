@@ -18,6 +18,7 @@ export default defineConfig({
           { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
           { text: "Administration", link: "/de/administrationshandbuch/" },
           { text: "Strategie", link: "/de/entwicklungsstrategie/" },
+          { text: "Qualität", link: "/de/quality-overview" },
         ],
 
         sidebar: {
@@ -137,6 +138,17 @@ export default defineConfig({
                 {
                   text: "Polygon Sync Plugin",
                   link: "/de/entwicklung/polygon-sync",
+                },
+              ],
+            },
+          ],
+          "/de/quality-overview": [
+            {
+              text: "Qualitätsübersicht",
+              items: [
+                {
+                  text: "Dokumentations-Qualität",
+                  link: "/de/quality-overview",
                 },
               ],
             },

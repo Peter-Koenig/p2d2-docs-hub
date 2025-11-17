@@ -1,34 +1,22 @@
 ---
 layout: home
-
-hero:
-  name: "p2d2"
-  text: "Public-Public<br />Data-DNA"
-  tagline: Daten der Öffentlichkeit mit<br />offenen Verwaltungsdaten verzahnen!
-  actions:
-    - theme: brand
-      text: Benutzerhandbuch
-      link: /de/benutzerhandbuch/
-    - theme: alt
-      text: Administration
-      link: /de/administrationshandbuch/
-    - theme: alt
-      text: Strategie
-      link: /de/entwicklungsstrategie/
-
-features:
-  - icon: 📚
-    title: Benutzerhandbuch
-    details: Erfahren Sie, wie Sie p2d2 nutzen, Geodaten erfassen und zur Qualitätssicherung beitragen.
-    link: /de/benutzerhandbuch/
-  - icon: ⚙️
-    title: Administrationshandbuch
-    details: Technische Dokumentation zur Server-Architektur, GDI-Komponenten und Deployment-Prozessen.
-    link: /de/administrationshandbuch/
-  - icon: 🚀
-    title: Entwicklungsstrategie
-    details: Vision, Skalierungspläne und die OpenSource-Philosophie hinter p2d2.
-    link: /de/entwicklungsstrategie/
+hero: 
+name: p2d2
+text: Strategie
+tagline: Daten der Öffentlichkeit mit<br />offenen Verwaltungsdaten verzahnen!
+actions: 
+- theme: alt
+link: /de/entwicklungsstrategie/
+features: 
+- icon: 🚀
+title: Entwicklungsstrategie
+details: Vision, Skalierungspläne und die OpenSource-Philosophie hinter p2d2.
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 ## Was ist p2d2?

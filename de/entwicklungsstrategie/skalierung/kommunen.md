@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Kommunale Ebene
 
 Die Ausdehnung auf weitere Kommunen folgt einem strukturierten Ansatz.

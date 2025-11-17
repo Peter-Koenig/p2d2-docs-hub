@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Open Source Philosophy
 
 p2d2 is Open Source by conviction. This decision is based on technical, societal, and ethical considerations.

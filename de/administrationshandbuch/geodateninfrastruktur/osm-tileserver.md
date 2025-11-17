@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # OSM-Tileserver
 
 Ein eigener OpenStreetMap-Tileserver für p2d2 ermöglicht unabhängige Hintergrundkarten und reduziert die Last auf öffentlichen Tile-Servern.

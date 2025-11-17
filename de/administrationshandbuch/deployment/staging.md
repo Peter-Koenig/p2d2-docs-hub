@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Staging-Umgebung
 
 Die Staging-Umgebung ist eine produktionsnahe Testumgebung für p2d2.

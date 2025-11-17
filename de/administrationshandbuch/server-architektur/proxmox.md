@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Proxmox VE
 
 Proxmox Virtual Environment (Proxmox VE) ist die Virtualisierungsplattform für p2d2. Sie bietet KVM-basierte Virtualisierung und LXC-Container.

@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # User Guide
 
 Welcome to the p2d2 User Guide. Here you'll learn how to use the application, capture geodata, and contribute to quality assurance.

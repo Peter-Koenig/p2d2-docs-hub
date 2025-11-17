@@ -1,3 +1,12 @@
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
+---
+
 # Europa & Global
 
 Die Vision von p2d2 ist eine weltweite, föderierte Geodateninfrastruktur für offene Daten.

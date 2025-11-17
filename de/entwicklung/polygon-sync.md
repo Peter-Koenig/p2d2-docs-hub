@@ -1,9 +1,15 @@
 ---
 title: Polygon Sync Plugin
-description: "AstroJS-Plugin für automatische Synchronisation von Admin-Polygonen via WFS-T"
+description: AstroJS-Plugin für automatische Synchronisation von Admin-Polygonen via WFS-T
 status: migrated
 lastUpdated: 2025-11-17
 lang: de
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Polygon Sync Plugin for AstroJS
