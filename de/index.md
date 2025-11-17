@@ -1,22 +1,41 @@
 ---
 layout: home
-hero: 
-name: p2d2
-text: Strategie
-tagline: Daten der Öffentlichkeit mit<br />offenen Verwaltungsdaten verzahnen!
-actions: 
-- theme: alt
-link: /de/entwicklungsstrategie/
-features: 
-- icon: 🚀
-title: Entwicklungsstrategie
-details: Vision, Skalierungspläne und die OpenSource-Philosophie hinter p2d2.
+
+hero:
+  name: "p2d2"
+  text: "Public-Public<br />Data-DNA"
+  tagline: Daten der Öffentlichkeit mit<br />offenen Verwaltungsdaten verzahnen!
+  actions:
+    - theme: brand
+      text: Benutzerhandbuch
+      link: /de/benutzerhandbuch/
+    - theme: alt
+      text: Administration
+      link: /de/administrationshandbuch/
+    - theme: alt
+      text: Strategie
+      link: /de/entwicklungsstrategie/
+
+features:
+  - icon: 📚
+    title: Benutzerhandbuch
+    details: Erfahren Sie, wie Sie p2d2 nutzen, Geodaten erfassen und zur Qualitätssicherung beitragen.
+    link: /de/benutzerhandbuch/
+  - icon: ⚙️
+    title: Administrationshandbuch
+    details: Technische Dokumentation zur Server-Architektur, GDI-Komponenten und Deployment-Prozessen.
+    link: /de/administrationshandbuch/
+  - icon: 🚀
+    title: Entwicklungsstrategie
+    details: Vision, Skalierungspläne und die OpenSource-Philosophie hinter p2d2.
+    link: /de/entwicklungsstrategie/
+
 quality:
-  completeness: 50
-  accuracy: 70
-  reviewed: false
-  reviewer: null
-  reviewDate: null
+  completeness: 90
+  accuracy: 85
+  reviewed: true
+  reviewer: "system"
+  reviewDate: "2025-11-17"
 ---
 
 ## Was ist p2d2?
@@ -42,6 +61,14 @@ quality:
 - **Origin**: [gitlab.opencode.de/OC000028072444/p2d2](https://gitlab.opencode.de/OC000028072444/p2d2)
 - **Mirror**: [gitlab.opencode.de/unbox-cologne/p2d2/p2d2-mirror](https://gitlab.opencode.de/unbox-cologne/p2d2/p2d2-mirror)
 - **Hub**: [github.com/Peter-Koenig/p2d2-hub](https://github.com/Peter-Koenig/p2d2-hub)
+
+### KI-Hinweis
+- Die Arbeit und auch die Erstellung Dokumentation wurde mit KI-Werkzeugen unterstützt
+- Insbesondere in der Dokumentation finden sich Stellen, an denen die KI über das Ziel hinaus geschossen ist und phantasiert.
+- Um eine Übersicht zu schaffen wurde QS/QM installiert, das es erlaubt, für jede Seite Qualitätsparameter anzugeben, so dass die Zuverlässigkeit der Seite abgeschätzt werden kann. Im Laufe der Zeit sollen alle Seiten durchgesehen und bewertet werden.
+- Frühere Markdown-Dokumente aus dem Projektverzeichnis wurden am 17.11.2025 integriert
+- Frühere Durchführungsprotokolle, z.B. zur Proxmox-, MapServer- oder Geoserver Einrichtung, müssen noch ausgewertet werden und dann die "blumig-unkonkreten" Beschreibungen vieler Dokumentationsseiten ersetzen.
+- Das System wurde am 17.11. in Betrieb genommen
 
 ---
 
