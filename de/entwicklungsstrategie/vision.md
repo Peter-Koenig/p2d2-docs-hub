@@ -1,3 +1,8 @@
+---
+status: review-needed
+review_reason: Spekulative Inhalte - auf Realitätsnähe prüfen
+---
+
 # Vision 2030
 
 Bis 2030 soll p2d2 die **Standardplattform für bidirektionalen Datenaustausch** zwischen Verwaltung und Öffentlichkeit in Europa sein.

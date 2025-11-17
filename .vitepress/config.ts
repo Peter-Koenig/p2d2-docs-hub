@@ -21,6 +21,126 @@ export default defineConfig({
         ],
 
         sidebar: {
+          "/de/administrationshandbuch/": [
+            {
+              text: "Übersicht",
+              items: [
+                {
+                  text: "Administrationshandbuch",
+                  link: "/de/administrationshandbuch/",
+                },
+              ],
+            },
+            {
+              text: "Server-Architektur",
+              items: [
+                {
+                  text: "Proxmox VE",
+                  link: "/de/administrationshandbuch/server-architektur/proxmox",
+                },
+                {
+                  text: "Proxmox Backup Server",
+                  link: "/de/administrationshandbuch/server-architektur/pbs-backup",
+                },
+                {
+                  text: "OPNsense",
+                  link: "/de/administrationshandbuch/server-architektur/opnsense",
+                },
+              ],
+            },
+            {
+              text: "Geodateninfrastruktur",
+              items: [
+                {
+                  text: "Übersicht GDI",
+                  link: "/de/administrationshandbuch/geodateninfrastruktur/",
+                },
+                {
+                  text: "GDI-Architektur",
+                  link: "/de/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+                },
+                {
+                  text: "PostgreSQL/PostGIS",
+                  link: "/de/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+                },
+                {
+                  text: "GeoServer",
+                  link: "/de/administrationshandbuch/geodateninfrastruktur/geoserver",
+                },
+                {
+                  text: "MapProxy",
+                  link: "/de/administrationshandbuch/geodateninfrastruktur/mapproxy",
+                },
+                {
+                  text: "OSM-Tileserver",
+                  link: "/de/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+                },
+              ],
+            },
+            {
+              text: "Software-Architektur",
+              items: [
+                {
+                  text: "Software-Architektur",
+                  link: "/de/administrationshandbuch/software-architektur",
+                },
+                {
+                  text: "Frontend-Architektur",
+                  link: "/de/administrationshandbuch/frontend-architektur",
+                },
+              ],
+            },
+            {
+              text: "Deployment",
+              items: [
+                {
+                  text: "CI/CD Pipeline",
+                  link: "/de/administrationshandbuch/deployment/cicd-pipeline",
+                },
+                {
+                  text: "Staging",
+                  link: "/de/administrationshandbuch/deployment/staging",
+                },
+                {
+                  text: "Production",
+                  link: "/de/administrationshandbuch/deployment/production",
+                },
+                {
+                  text: "Multi-Branch Deployment",
+                  link: "/de/administrationshandbuch/deployment/multi-branch-deployment",
+                },
+                {
+                  text: "Multi-Repo Setup",
+                  link: "/de/administrationshandbuch/multi-repo-deployment",
+                },
+                {
+                  text: "Upgrade-Prozess",
+                  link: "/de/administrationshandbuch/upgrade-prozess",
+                },
+              ],
+            },
+            {
+              text: "Sicherheit & Backup",
+              items: [
+                {
+                  text: "Backup-Strategie",
+                  link: "/de/administrationshandbuch/backup-strategie",
+                },
+              ],
+            },
+          ],
+          "/de/entwicklung/": [
+            {
+              text: "Entwicklung",
+              items: [
+                { text: "Contributing", link: "/de/entwicklung/contributing" },
+                {
+                  text: "Polygon Sync Plugin",
+                  link: "/de/entwicklung/polygon-sync",
+                },
+              ],
+            },
+          ],
           "/de/entwicklungsstrategie/": [
             {
               text: "Vision & Philosophie",
