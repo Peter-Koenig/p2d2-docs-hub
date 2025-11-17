@@ -211,6 +211,7 @@ export default defineConfig({
           { text: "User Guide", link: "/en/benutzerhandbuch/" },
           { text: "Administration", link: "/en/administrationshandbuch/" },
           { text: "Strategy", link: "/en/entwicklungsstrategie/" },
+          { text: "Quality", link: "/en/quality-overview" },
         ],
 
         sidebar: {
