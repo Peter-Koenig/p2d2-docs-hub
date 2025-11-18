@@ -37,6 +37,8 @@ features:
     details: Technical documentation for developers on architecture, modules, and development workflows.
     link: /en/entwicklerhandbuch/
 
+title: "Landing Page"
+
 quality:
   completeness: 90
   accuracy: 85
