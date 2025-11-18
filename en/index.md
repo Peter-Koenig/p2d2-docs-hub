@@ -15,6 +15,9 @@ hero:
     - theme: alt
       text: Strategy
       link: /en/entwicklungsstrategie/
+    - theme: alt
+      text: Developer Handbook
+      link: /en/entwicklerhandbuch/
 
 features:
   - icon: 📚
@@ -29,6 +32,10 @@ features:
     title: Development Strategy
     details: Vision, scaling plans, and the open source philosophy behind p2d2.
     link: /en/entwicklungsstrategie/
+  - icon: 💻
+    title: Developer Handbook
+    details: Technical documentation for developers on architecture, modules, and development workflows.
+    link: /en/entwicklerhandbuch/
 
 quality:
   completeness: 90
