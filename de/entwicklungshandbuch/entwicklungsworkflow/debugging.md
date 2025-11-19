@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Debugging
+description: Dokumentation für Debugging
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Debugging
 
 > **Status:** 🚧 Dokumentation in Arbeit
 

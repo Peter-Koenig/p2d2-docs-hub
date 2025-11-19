@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Systemd Services
+description: Dokumentation für Systemd Services
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Systemd Services
 
 > **Status:** 🚧 Dokumentation in Arbeit
 

@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Webhook Automation
+description: Dokumentation für Webhook Automation
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Webhook Automation
 
 > **Status:** 🚧 Dokumentation in Arbeit
 

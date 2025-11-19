@@ -1,113 +1,166 @@
 ---
-title: Map Config
-description: Konfiguration der Karten-Einstellungen und Layer-Definitionen
+title: Map Configuration
+description: Zentrale Konfiguration für OpenLayers-Karteninstanzen und Layer-Hierarchie
 quality:
-  completeness: 0
-  accuracy: 0
+  completeness: 80
+  accuracy: 75
   reviewed: false
   reviewer: null
   reviewDate: null
 ---
 
-# Map Config
-
-> **Status:** 🚧 Dokumentation in Arbeit
+# Map Configuration
 
 ## Übersicht
 
-Die Map-Konfiguration definiert das Verhalten und Erscheinungsbild der Karten in p2d2. Sie umfasst Layer-Definitionen, Projektionseinstellungen, Zoom-Level und Interaktionsoptionen.
+Das `map-config.ts` Modul stellt eine zentrale Konfiguration für alle Kartenkomponenten in p2d2 bereit. Es definiert Projektionseinstellungen, Initialisierungs-Parameter und eine konsistente Z-Index-Hierarchie für die Layer-Schichtung.
 
-## Konfigurationsstruktur
+## Konfigurationsobjekte
 
-### Basis-Konfiguration
-- **Projektion**: Standardmäßig EPSG:3857 (Web Mercator)
-- **Zoom-Level**: Bereich und Standard-Zoom
-- **Center-Koordinaten**: Standard-Kartenmittelpunkt
-- **Extent**: Begrenzter Kartenbereich (optional)
-
-### Layer-Konfiguration
-- **Hintergrund-Layer**: Basiskarten (OSM, etc.)
-- **Overlay-Layer**: Thematische Daten-Layer
-- **Layer-Reihenfolge**: Z-Index und Darstellungspriorität
-- **Layer-Styling**: Symbologie und Farbgebung
-
-## Beispiel-Konfiguration
+### Z-Index Hierarchie
 
 ```typescript
-// Beispiel für eine grundlegende Karten-Konfiguration
-const mapConfig = {
-  projection: 'EPSG:3857',
-  center: [1234567, 6543210],
-  zoom: 10,
-  minZoom: 5,
-  maxZoom: 18,
-  layers: [
-    {
-      type: 'tile',
-      source: 'osm',
-      visible: true,
-      title: 'OpenStreetMap'
-    },
-    {
-      type: 'wms',
-      url: 'https://geodienste.example.com/wms',
-      layers: 'themenlayer',
-      visible: true,
-      title: 'Thematische Daten'
-    }
-  ]
-};
+Z_INDEX: {
+  BASE: 5,        // OSM base layer
+  LUFTBILD: 7,    // Kölner Luftbild 2024
+  CEMETERY_BG: 10, // Cemetery background polygon
+  GEOTIFF: 12,    // Future: GeoTIFF layer
+  ORTHOPHOTO: 13, // Future: Orthophoto layer
+  BASEMAP: 15,    // basemap.de Layer
+  GRABFLUR: 20,   // Grabflur polygons
+  GRAVES: 25,     // Future: Individual graves
+  LABELS: 30,     // Future: Text labels
+  CONTROLS: 40,   // UI elements/overlays
+}
 ```
 
-## Wichtige Einstellungen
+**Bedeutung der Layer-Reihenfolge:**
+- `BASE` (5): OpenStreetMap Basis-Layer
+- `LUFTBILD` (7): Kölner Luftbilder 2024 WMS-Service
+- `CEMETERY_BG` (10): Hintergrund-Polygone für Friedhofsbereiche
+- `GEOTIFF` (12): Platzhalter für zukünftige GeoTIFF-Layer
+- `ORTHOPHOTO` (13): Platzhalter für zukünftige Orthophoto-Layer
+- `BASEMAP` (15): basemap.de WMS-Service (über Luftbildern)
+- `GRABFLUR` (20): Grabflur-Polygone (Features)
+- `GRAVES` (25): Platzhalter für individuelle Grabstätten
+- `LABELS` (30): Platzhalter für Text-Labels
+- `CONTROLS` (40): UI-Elemente und Overlays (höchste Ebene)
 
-### Projektion
-- **EPSG:3857**: Standard für Web-Karten (Web Mercator)
-- **EPSG:4326**: Geographische Koordinaten (WGS84)
-- **Projektions-Transformation**: Automatische Koordinaten-Umrechnung
+### Initialisierungsparameter
 
-### Zoom-Verhalten
-- **Zoom-Level**: Diskrete Zoom-Stufen
-- **Zoom-Animation**: Smooth Zoom-Übergänge
-- **Zoom-Einschränkungen**: Min/Max-Zoom für bestimmte Layer
+```typescript
+MAP_INIT: {
+  projection: 'EPSG:3857',
+  center: fromLonLat([6.9603, 50.9375]), // Köln coordinates
+  zoom: 14,
+  minZoom: 10,
+  maxZoom: 20,
+  controls: defaultControls({ zoom: false }).extend([
+    new Zoom(),
+    new FullScreen(),
+  ]),
+}
+```
 
-### Interaktions-Optionen
-- **Mouse-Wheel Zoom**: Mausrad-Zoom aktivieren/deaktivieren
-- **Keyboard Navigation**: Tastatur-Steuerung
-- **Touch-Gesten**: Mobile Interaktionen
+**Parameter-Erklärung:**
+- `projection`: Web Mercator (EPSG:3857) als Standard-Projektion
+- `center`: Zentriert auf Köln-Koordinaten (transformiert von WGS84)
+- `zoom`: Standard-Zoom-Level für Friedhofs-Darstellung
+- `minZoom/maxZoom`: Begrenzung des Zoom-Bereichs für optimale Performance
+- `controls`: Angepasste Steuerungselemente (Zoom + Vollbild)
 
-## Layer-Typen
+### Layer-Konfiguration
 
-### Tile-Layer
-- **OSM**: OpenStreetMap als Hintergrund
-- **WMTS**: Kachel-basierte Geodienste
-- **Custom Tiles**: Eigene Kachel-Quellen
+```typescript
+LAYERS: {
+  OSM: new TileLayer({
+    source: new OSM(),
+    zIndex: Z_INDEX.BASE,
+    visible: true,
+  }),
+  
+  LUFTBILD: new TileLayer({
+    source: new TileWMS({
+      url: 'https://geodienste.stadt-koeln.de/wms/geobasis/luftbild_2024',
+      params: {
+        'LAYERS': 'luftbild_2024_rgb',
+        'TILED': true,
+      },
+      serverType: 'geoserver',
+    }),
+    zIndex: Z_INDEX.LUFTBILD,
+    visible: false,
+  }),
+  
+  BASEMAP: new TileLayer({
+    source: new TileWMS({
+      url: 'https://sgx.geodatenzentrum.de/wms_basemapde',
+      params: {
+        'LAYERS': 'de_basemapde_web_raster_farbe',
+        'TILED': true,
+      },
+      serverType: 'geoserver',
+    }),
+    zIndex: Z_INDEX.BASEMAP,
+    visible: false,
+  }),
+}
+```
 
-### WMS-Layer
-- **Dynamische Raster-Daten**: On-demand gerenderte Karten
-- **GetMap Requests**: Standardisierte WMS-Abfragen
-- **Layer-Styling**: SLD-basierte Darstellung
+## Verwendung
 
-### Vector-Layer
-- **GeoJSON**: Vektor-Geometrien
-- **Feature-Overlays**: Interaktive Vektor-Daten
-- **Client-seitiges Rendering**: Performance-optimiert
+### Karten-Initialisierung
 
-## Performance-Optimierung
+```typescript
+import { MAP_INIT, LAYERS } from '../utils/map-config';
 
-### Caching-Strategien
-- **Tile-Cache**: Browser-Caching für Kacheln
-- **Layer-Cache**: Zwischenspeicherung von Layer-Daten
-- **Preloading**: Vorausschauendes Laden von Daten
+// Karte erstellen
+const map = new Map({
+  ...MAP_INIT,
+  layers: [
+    LAYERS.OSM,
+    LAYERS.LUFTBILD,
+    LAYERS.BASEMAP,
+  ],
+  target: 'map-container',
+});
+```
 
-### Lazy-Loading
-- **Layer-Lazy-Loading**: Layer erst bei Bedarf laden
-- **Feature-Lazy-Loading**: Vektor-Features on-demand
-- **Viewport-Optimierung**: Nur sichtbare Daten laden
+### Layer-Steuerung
+
+```typescript
+// Layer ein-/ausblenden
+function toggleLayer(layerName: string, visible: boolean) {
+  const layer = LAYERS[layerName];
+  if (layer) {
+    layer.setVisible(visible);
+  }
+}
+
+// Z-Index anpassen
+function setLayerZIndex(layerName: string, zIndex: number) {
+  const layer = LAYERS[layerName];
+  if (layer) {
+    layer.setZIndex(zIndex);
+  }
+}
+```
+
+## Performance-Optimierungen
+
+### Tile-Caching
+- WMS-Layer verwenden `TILED: true` für optimierte Kachel-Ladung
+- Browser-Caching für wiederholte Tile-Requests
+- Viewport-begrenztes Laden nur sichtbarer Bereiche
+
+### Memory-Management
+- Layer werden nur bei Bedarf erstellt
+- Unused Layer können zerstört werden
+- Event-Listener werden sauber entfernt
 
 ## Nächste Schritte
 
-- [ ] Detaillierte Konfigurationsoptionen dokumentieren
-- [ ] Layer-Typen vollständig beschreiben
-- [ ] Performance-Optimierungen ergänzen
-- [ ] Beispiel-Konfigurationen erweitern
+- [ ] Dynamische Layer-Konfiguration für verschiedene Kommunen
+- [ ] Vector-Layer für Feature-Daten implementieren
+- [ ] Performance-Monitoring für Layer-Loading
+- [ ] Mobile-Optimierung für Touch-Interaktionen

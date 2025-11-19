@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Caddy Proxy
+description: Dokumentation für Caddy Proxy
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Caddy Proxy
 
 > **Status:** 🚧 Dokumentation in Arbeit
 

@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Edit Mode
+description: Dokumentation für Edit Mode
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Edit Mode
 
 > **Status:** 🚧 Dokumentation in Arbeit
 

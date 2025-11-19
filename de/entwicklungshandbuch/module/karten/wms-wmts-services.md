@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Wms Wmts Services
+description: Dokumentation für Wms Wmts Services
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Wms Wmts Services
 
 > **Status:** 🚧 Dokumentation in Arbeit
 

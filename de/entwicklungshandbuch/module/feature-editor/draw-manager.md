@@ -1,6 +1,6 @@
 ---
-title: Typescript Modules
-description: Dokumentation für Typescript Modules
+title: Draw Manager
+description: Dokumentation für Draw Manager
 quality:
   completeness: 0
   accuracy: 0
@@ -9,7 +9,7 @@ quality:
   reviewDate: null
 ---
 
-# Typescript Modules
+# Draw Manager
 
 > **Status:** 🚧 Dokumentation in Arbeit
 
