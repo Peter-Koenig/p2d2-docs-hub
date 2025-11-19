@@ -456,7 +456,7 @@ export default defineConfig({
           { text: "Home", link: "/en/" },
           { text: "User Guide", link: "/en/benutzerhandbuch/" },
           { text: "Administration", link: "/en/administrationshandbuch/" },
-          { text: "Developer Handbook", link: "/en/entwicklerhandbuch/" },
+          { text: "Development Handbook", link: "/en/entwicklungshandbuch/" },
           { text: "Strategy", link: "/en/entwicklungsstrategie/" },
           { text: "Quality", link: "/en/quality-overview" },
         ],

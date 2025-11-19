@@ -175,7 +175,7 @@ function main() {
   const baseDir = process.cwd();
 
   // Process German documentation
-  const germanDir = path.join(baseDir, "de", "entwicklerhandbuch");
+  const germanDir = path.join(baseDir, "de", "entwicklungshandbuch");
   if (fs.existsSync(germanDir)) {
     console.log("📁 Processing German documentation...");
     processDirectory(germanDir, true);
@@ -184,7 +184,7 @@ function main() {
   }
 
   // Process English documentation
-  const englishDir = path.join(baseDir, "en", "entwicklerhandbuch");
+  const englishDir = path.join(baseDir, "en", "entwicklungshandbuch");
   if (fs.existsSync(englishDir)) {
     console.log("\n📁 Processing English documentation...");
     processDirectory(englishDir, false);
