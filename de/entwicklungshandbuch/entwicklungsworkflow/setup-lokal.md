@@ -1,131 +1,242 @@
 ---
-title: Lokales Setup
+title: Lokales Development Setup
 description: Einrichtung der lokalen Entwicklungsumgebung für p2d2
 quality:
-  completeness: 0
-  accuracy: 0
+  completeness: 90
+  accuracy: 95
   reviewed: false
   reviewer: null
   reviewDate: null
 ---
 
-# Lokales Setup
-
-> **Status:** 🚧 Dokumentation in Arbeit
-
-## Übersicht
-
-Dieses Dokument beschreibt die Einrichtung einer lokalen Entwicklungsumgebung für die p2d2-Plattform. Die Entwicklungsumgebung ermöglicht das lokale Testen, Debuggen und Entwickeln aller p2d2-Komponenten.
+# Lokales Development Setup
 
 ## Voraussetzungen
 
-### Systemanforderungen
-- **Node.js**: Version 18 oder höher
-- **npm**: Version 8 oder höher
-- **Git**: Für Versionskontrolle
-- **Text-Editor/IDE**: VS Code, WebStorm oder vergleichbar
+### Software
 
-### Empfohlene Entwicklungsumgebung
-- **Betriebssystem**: Linux, macOS oder Windows mit WSL2
-- **Browser**: Chrome, Firefox oder Safari (aktuelle Version)
-- **RAM**: Mindestens 8 GB empfohlen
-- **Speicherplatz**: 2 GB freier Speicher
+- **Node.js:** >= 18.x (empfohlen: 20.x LTS)
+- **npm:** >= 9.x
+- **Git:** >= 2.x
+- **Editor:** VS Code (empfohlen) mit Astro Extension
 
-## Installation
+### Empfohlene VS Code Extensions
 
-### 1. Repository klonen
+```json
+{
+  "recommendations": [
+    "astro-build.astro-vscode",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode"
+  ]
+}
+```
+
+## Repository klonen
+
+### GitLab (Haupt-Repository)
+
 ```bash
-git clone https://gitlab.opencode.de/OC000028072444/p2d2.git
+git clone git@gitlab.opencode.de:OC000028072444/p2d2.git
 cd p2d2
 ```
 
-### 2. Abhängigkeiten installieren
+### GitHub (Hub-Mirror)
+
+```bash
+git clone git@github.com:Peter-Koenig/p2d2-hub.git
+cd p2d2-hub
+```
+
+## Dependencies installieren
+
 ```bash
 npm install
 ```
 
-### 3. Entwicklungsumgebung starten
+## Development Server starten
+
+### Standard-Methode
+
 ```bash
 npm run dev
 ```
 
-Die Anwendung ist anschließend unter `http://localhost:4321` erreichbar.
+Der Server läuft dann auf `http://localhost:4321`
 
-## Projektstruktur verstehen
+### Mit Cache-Clearing (empfohlen für stabiles Development)
 
-### Wichtige Verzeichnisse
+Vermeidet Probleme mit Astro- und Vite-Caches:
+
+```bash
+rm -rf .astro/ && \
+rm -rf .astro node_modules/.astro && \
+rm -rf node_modules/.vite && \
+DEBUG=astro:* npm run dev -- --host 0.0.0.0
+```
+
+**Vorteile:**
+- ✅ Zugriff von mobilen Geräten im LAN (`--host 0.0.0.0`)
+- ✅ Minimale Cache-Probleme
+- ✅ Debug-Output für Troubleshooting
+
+### LAN-Zugriff
+
+Wenn mit `--host 0.0.0.0` gestartet:
+
+```bash
+# Finde deine lokale IP
+ip addr show | grep "inet "
+
+# Beispiel-Zugriff von Mobilgerät
+http://192.168.1.100:4321
+```
+
+## Projekt-Struktur
+
 ```
 p2d2/
-├── src/                    # Quellcode
-│   ├── components/         # UI-Komponenten
-│   ├── layouts/           # Seitenlayouts
-│   ├── pages/             # Routen und Seiten
-│   ├── content/           # Content Collections
-│   └── utils/             # Hilfsfunktionen
-├── public/                # Statische Assets
-└── package.json           # Projektkonfiguration
+├── src/
+│   ├── pages/
+│   │   ├── index.astro           # Hauptseite
+│   │   ├── [kommune].astro       # Kommune-Detail-Seite
+│   │   └── feature-editor/
+│   │       └── [featureId].astro # Feature-Editor (40kB, monolithisch)
+│   ├── content/
+│   │   └── kommunen/             # Kommunen-Daten (MDX)
+│   ├── components/
+│   │   ├── Map.astro             # OpenLayers Karte
+│   │   └── FeatureEditor/        # Editor-Komponenten
+│   ├── layouts/
+│   │   └── Layout.astro          # Haupt-Layout
+│   └── utils/
+│       ├── map/                  # Karten-Utilities
+│       ├── osm/                  # OSM-Integration
+│       └── storage/              # LocalStorage-Utils
+├── public/                       # Statische Assets
+├── astro.config.mjs              # Astro-Konfiguration
+└── package.json
 ```
 
-### Content Collections
-- **Kommunen-Daten**: Strukturierte Informationen in `src/content/kommunen/`
-- **Konfigurationen**: Systemeinstellungen und Layer-Definitionen
+## Environment-Variablen
 
-## Entwicklungswerkzeuge
+### Development (.env.development)
 
-### Browser-Entwicklertools
-- **Console**: Debugging und Logging
-- **Network**: Überwachung von HTTP-Requests
-- **Elements**: DOM-Inspection
-- **Sources**: JavaScript-Debugging
-
-### VS Code Erweiterungen (empfohlen)
-- **TypeScript**: Sprachunterstützung
-- **Astro**: Framework-Unterstützung
-- **Tailwind CSS**: CSS-Framework
-- **ESLint**: Code-Linting
-- **Prettier**: Code-Formatierung
-
-## Häufige Probleme
-
-### Port-Konflikte
-Falls Port 4321 bereits belegt ist:
 ```bash
-npm run dev -- --port 3000
+# Optional für lokale Tests
+# PUBLIC_* Variablen sind im Client verfügbar
+PUBLIC_MAP_DEFAULT_CENTER="[7.0, 51.0]"
+PUBLIC_MAP_DEFAULT_ZOOM="8"
 ```
 
-### Node.js Version
-Bei Inkompatibilitäten mit der Node.js-Version:
+### Production (.env.production)
+
+Wird auf dem Server vom Deploy-Script verwaltet.
+
+## Häufige Aufgaben
+
+### Build testen
+
 ```bash
-nvm use 18  # Falls nvm installiert ist
+npm run build
 ```
 
-### Abhängigkeitsprobleme
-Bei Problemen mit npm-Paketen:
+Output in `dist/` - kann mit statischem Server getestet werden:
+
 ```bash
+npx serve dist
+```
+
+### Type-Checking
+
+```bash
+npm run astro check
+```
+
+### Code-Formatierung
+
+```bash
+npm run format
+```
+
+## Troubleshooting
+
+### Problem: Port 4321 bereits belegt
+
+```bash
+# Finde Prozess
+lsof -i :4321
+
+# Oder anderen Port nutzen
+npm run dev -- --port 3333
+```
+
+### Problem: Module nicht gefunden
+
+```bash
+# Cache leeren und neu installieren
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-## Testing
+### Problem: Astro build schlägt fehl
 
-### Entwicklungsserver testen
-1. Entwicklungsserver starten: `npm run dev`
-2. Browser öffnen: `http://localhost:4321`
-3. Funktionen testen:
-   - Karten-Loading
-   - Layer-Switching
-   - Feature-Editor
-   - Responsive Design
-
-### Build-Prozess testen
 ```bash
+# Astro-Cache löschen
+rm -rf .astro
+rm -rf node_modules/.astro
+rm -rf node_modules/.vite
+
 npm run build
-npm run preview
 ```
 
-## Nächste Schritte
+### Problem: Hot Module Replacement (HMR) funktioniert nicht
 
-- [ ] Detaillierte Debugging-Anleitung
-- [ ] Performance-Optimierungen dokumentieren
-- [ ] Testing-Strategie erweitern
-- [ ] CI/CD-Integration beschreiben
+Neustart mit Cache-Clearing (siehe oben).
+
+## Development-Workflow
+
+### Typischer Ablauf
+
+1. Branch erstellen: `git checkout -b feature/mein-feature`
+2. Dev-Server starten mit Cache-Clearing
+3. Änderungen vornehmen
+4. Testen im Browser + mobile Geräte
+5. Commit: `git commit -m "feat: beschreibung"`
+6. Push: `git push origin feature/mein-feature`
+7. Merge Request auf GitLab erstellen
+
+### Branch-Naming
+
+Siehe [Git Workflow](./git-workflow.md) für Details.
+
+## Kommunen-Daten lokal bearbeiten
+
+Kommunen-Daten liegen in `src/content/kommunen/`:
+
+```bash
+# Neue Kommune anlegen
+cp src/content/kommunen/_template.mdx src/content/kommunen/meine-kommune.mdx
+
+# Bearbeiten
+vim src/content/kommunen/meine-kommune.mdx
+```
+
+Daten werden automatisch vom Content-Collection-System geladen.
+
+## OpenLayers Karte debuggen
+
+Browser DevTools öffnen:
+
+```javascript
+// Im Browser-Console
+window.map  // Zugriff auf OpenLayers-Map-Instanz
+window.map.getLayers()  // Layers inspizieren
+```
+
+## Siehe auch
+
+- [Git Workflow](./git-workflow.md)
+- [Testing](./testing.md)
+- [Debugging](./debugging.md)
+- [Multi-Branch Deployment](../deployment/multi-branch-system.md)

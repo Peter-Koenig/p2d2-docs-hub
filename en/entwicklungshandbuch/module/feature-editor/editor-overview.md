@@ -1,264 +1,158 @@
 ---
-title: Feature Editor Overview
-description: Overview of the Feature Editor module - drawing, editing and synchronizing geodata
+title: Feature Editor - Overview
+description: Current state and planned refactoring of the feature editor
 quality:
-  completeness: 60
-  accuracy: 85
+  completeness: 75
+  accuracy: 90
   reviewed: false
   reviewer: null
   reviewDate: null
 ---
 
-# Feature Editor Overview
+# Feature Editor - Overview
 
-## Overview
+## Current State (Status Quo)
 
-The Feature Editor is the central module for creating and editing geodata in p2d2. It enables interactive drawing of new features, editing of existing geometries, and synchronization with various backend systems.
+### Implementation
 
-## Architecture Overview
+The feature editor is currently implemented as a **monolithic file**:
+
+**File:** `src/pages/feature-editor/[featureId].astro`  
+**Size:** ~40 kB  
+**Status:** ⚠️ **Refactoring required**
+
+### Feature Set (current)
+
+The editor already provides basic functionality:
+
+- ✅ Display features on OpenLayers map
+- ✅ Feature selection via `[featureId]` parameter
+- ✅ Basic interaction with geometries
+- ⚠️ No modular draw/edit system yet
+
+### Architecture Problem
 
 ```
-┌─────────────────────────────────────┐
-│      Feature-Editor UI              │
-│  (Buttons, Panels, Toolbars)        │
-└──────────────┬──────────────────────┘
-               │
-       ┌───────┴───────┐
-       │               │
-┌──────▼─────┐  ┌─────▼────────┐
-│Draw Manager│  │  Edit Mode   │
-│  🚧 TODO   │  │  🚧 TODO     │
-└──────┬─────┘  └─────┬────────┘
-       │              │
-       └──────┬───────┘
-              │
-      ┌───────▼────────┐
-      │ Feature Sync   │
-      │  ✅ Partial    │
-      └───────┬────────┘
-              │
-      ┌───────▼────────┐
-      │OSM Integration │
-      │  ✅ Basics     │
-      └────────────────┘
+src/pages/feature-editor/[featureId].astro (40 kB)
+├── Map initialization
+├── Feature loading
+├── UI components
+├── Event handlers
+├── Style definitions
+└── OpenLayers configuration
 ```
 
-## Module Overview
+**Problems:**
+- Difficult to maintain
+- No reusability
+- Testing difficult
+- Code duplication
 
-| Module | Status | Purpose | Main Functions |
-|--------|--------|---------|----------------|
-| **Draw Manager** | 🚧 Not implemented | Drawing new features | Polygon, Point, LineString drawing |
-| **Edit Mode** | 🚧 Not implemented | Editing features | Vertex editing, Move, Resize, Delete |
-| **Feature Sync** | ✅ Partially implemented | Persistence and synchronization | Polygon-Sync-Plugin, File-Watcher |
-| **OSM Integration** | ✅ Basics available | OpenStreetMap integration | OSM interfaces, Overpass-API structures |
+## Planned Refactoring
 
-## Implementation Status
+### Goal
 
-### ✅ Implemented Components
+Split into **modular structure** with clear responsibilities.
 
-#### Polygon-Sync-Plugin
-- **File**: `src/integrations/polygon-sync-plugin.mjs`
-- **Function**: Automatic synchronization of markdown files
-- **Features**:
-  - File-Watcher for `src/content/kommunen`
-  - Debounced processing (2000ms)
-  - Development/Production mode
+### Proposed Structure
 
-#### Kommune-Watcher
-- **File**: `src/scripts/kommune-watcher.mjs`
-- **Function**: Monitors changes to municipality markdown files
-- **Features**:
-  - Chokidar-based file watcher
-  - Debounce mechanism
-  - Manual sync triggers
+See [GitLab Issue #9](https://gitlab.opencode.de/OC000028072444/p2d2/-/issues/9)
 
-#### OSM Basic Structures
-- **Files**: `src/types/admin-polygon.ts`, `src/content.config.ts`
-- **Function**: Data structures for OSM integration
-- **Features**:
-  - OSM polygon interfaces
-  - Overpass-API response types
-  - OSM admin level management
-
-### 🚧 Not Yet Implemented
-
-#### Draw Manager
-- OpenLayers Draw interaction
-- UI buttons for different geometry types
-- Draw style configuration
-- Event handlers for drawstart/drawend
-
-#### Edit Mode
-- OpenLayers Modify interaction
-- Select interaction for feature selection
-- Snap interaction for precise editing
-- Vertex editing (Move, Delete, Add)
-
-#### Complete Feature Sync
-- WFS-T (Transactional Web Feature Service)
-- Bidirectional synchronization
-- Conflict resolution
-- Undo/Redo functionality
-
-#### Complete OSM Integration
-- Feature-to-OSM tag mapping
-- OSM-XML export
-- Overpass-API queries
-- OSM authentication
-
-## Data Flow
-
-### Current Workflow (Partially Implemented)
-
-1. **Content Change**: Markdown file in `src/content/kommunen` is modified
-2. **File-Watcher**: Kommune-Watcher detects change
-3. **Debounce**: 2000ms wait time for stable changes
-4. **Sync Trigger**: Polygon-Sync-Plugin is activated
-5. **Processing**: Municipality data is processed
-
-### Planned Workflow (Complete)
-
-1. **Draw/Edit**: User draws/edits feature on map
-2. **Feature Creation**: Draw/Edit creates OpenLayers feature
-3. **Property Setting**: Feature receives metadata and OSM tags
-4. **Persistence**: Feature is saved to markdown
-5. **Sync**: Polygon-Sync-Plugin synchronizes with backend
-6. **OSM Export**: Feature is prepared for OSM
-
-## Technical Foundations
-
-### OpenLayers Integration
-
-The Feature Editor builds on the existing OpenLayers integration:
-
-- **Map Configuration**: `src/config/map-config.ts`
-- **Projection Management**: `src/utils/crs.ts`
-- **Layer Management**: `src/utils/layer-manager.ts`
-
-### Content Collections
-
-Municipality data is managed via Astro Content Collections:
-
-```typescript
-// src/content.config.ts
-const kommunen = defineCollection({
-  type: 'content',
-  schema: z.object({
-    title: z.string(),
-    wp_name: z.string(),
-    osmAdminLevels: z.array(z.number()).optional(),
-    // ... additional properties
-  })
-});
+```
+src/
+├── pages/
+│   └── feature-editor/
+│       └── [featureId].astro          # Only routing + integration
+│
+├── components/
+│   └── FeatureEditor/
+│       ├── EditorContainer.astro      # Main container
+│       ├── EditorToolbar.astro        # Toolbar
+│       ├── EditorMap.astro            # Map component
+│       ├── EditorSidebar.astro        # Properties panel
+│       └── EditorStatusBar.astro      # Status display
+│
+└── utils/
+    └── feature-editor/
+        ├── draw/
+        │   ├── DrawManager.ts         # Draw mode management
+        │   ├── DrawTools.ts           # Drawing tools
+        │   └── DrawStyles.ts          # Style definitions
+        ├── edit/
+        │   ├── EditManager.ts         # Edit mode management
+        │   ├── GeometryEditor.ts      # Geometry editing
+        │   └── VertexEditor.ts        # Vertex editing
+        ├── sync/
+        │   ├── FeatureSync.ts         # Synchronization
+        │   └── ConflictResolver.ts    # Conflict resolution
+        └── core/
+            ├── EditorState.ts         # State management
+            ├── EditorEvents.ts        # Event system
+            └── EditorConfig.ts        # Configuration
 ```
 
-### OSM Data Structures
+### Refactoring Phases
 
-```typescript
-// src/types/admin-polygon.ts
-export interface OSMPolygonFeature extends GeoJSON.Feature {
-  id: number;
-  properties: {
-    name: string;
-    admin_level: number;
-    wikipedia?: string;
-    // ... OSM-specific properties
-  };
-}
-```
+#### Phase 1: Component Extraction (planned)
+- [ ] Extract map component
+- [ ] Extract toolbar
+- [ ] Create sidebar panel
+- [ ] Extract status bar
 
-## Usage Example (Planned)
+#### Phase 2: Utils Modules (planned)
+- [ ] Implement DrawManager
+- [ ] Implement EditManager
+- [ ] Extract feature sync
+- [ ] Build event system
 
-```typescript
-// Create, edit, save, export feature
-// 1. Activate Draw Manager
-activateDrawMode('polygon');
+#### Phase 3: State Management (planned)
+- [ ] Central EditorState
+- [ ] Introduce event bus
+- [ ] Config system
 
-// 2. Draw feature (user interaction)
-// 3. Feature automatically receives properties
-feature.setProperties({
-  name: 'Playground Example Street',
-  type: 'playground',
-  osm_tags: { leisure: 'playground' }
-});
+#### Phase 4: Integration & Tests (planned)
+- [ ] Integrate all modules
+- [ ] Write unit tests
+- [ ] E2E tests for editor workflows
 
-// 4. Automatic persistence to markdown
-// 5. Sync to backend systems
-// 6. Prepare OSM export
-```
+### Discussion
 
-## Dependencies
+Refactoring details are being discussed in:  
+[GitLab Issue #9: Feature Editor Refactoring](https://gitlab.opencode.de/OC000028072444/p2d2/-/issues/9)
 
-### Internal Dependencies
+**Current discussion status:**
+- Module structure proposed
+- Event system design open
+- State management approach under discussion
 
-- **Map Configuration**: `src/config/map-config.ts`
-- **Projection Utils**: `src/utils/crs.ts`
-- **Layer Management**: `src/utils/layer-manager.ts`
-- **Content Collections**: `src/content.config.ts`
-- **Event System**: `src/utils/events.ts`
+## Contributing
 
-### External Dependencies
+### Feedback Wanted
 
-- **OpenLayers**: `ol/interaction/Draw`, `ol/interaction/Modify`, `ol/interaction/Select`
-- **Chokidar**: File watching for sync plugin
-- **proj4**: Projection transformations
+If you have ideas for the refactoring:
 
-## Next Development Steps
+1. Comment in [GitLab Issue #9](https://gitlab.opencode.de/OC000028072444/p2d2/-/issues/9)
+2. Create a draft merge request with proof-of-concept
+3. Discuss in Matrix channel (if available)
 
-### Phase 1: Draw Manager (High Priority)
-1. Implement OpenLayers Draw interaction
-2. Create UI buttons for geometry types
-3. Configure draw styles
-4. Event handlers for feature creation
+### Development
 
-### Phase 2: Edit Mode (High Priority)
-1. Modify interaction for editing
-2. Select interaction for feature selection
-3. Snap interaction for precision
-4. Implement vertex editing
+**Currently:** Work directly in `src/pages/feature-editor/[featureId].astro`
 
-### Phase 3: Complete Sync (Medium Priority)
-1. Implement WFS-T synchronization
-2. Bidirectional sync logic
-3. Conflict resolution
-4. Undo/Redo functionality
+**After refactoring:** Use the modular structure
 
-### Phase 4: OSM Integration (Low Priority)
-1. Feature-to-OSM tag mapping
-2. OSM-XML export
-3. Overpass-API integration
-4. OSM authentication
+## See Also
 
-## Best Practices
+- [GitLab Issue #9](https://gitlab.opencode.de/OC000028072444/p2d2/-/issues/9) - Refactoring discussion
+- [OSM Integration](./osm-integration.md) - Related feature editor functions
+- [Map Config](../karten/map-config.md) - Map configuration
 
-### Code Organization
-- Feature Editor components in `src/components/feature-editor/`
-- Editor logic in `src/utils/feature-editor/`
-- Sync functionality in `src/integrations/` and `src/scripts/`
+## Note
 
-### Error Handling
-- Wrap all sync operations with try-catch
-- User feedback for errors
-- Fallback mechanisms for offline operation
+📢 **This documentation describes the transitional state.**
 
-### Performance
-- Debounce for frequent operations
-- Lazy loading of heavy components
-- Memory management for many features
-
-## Quality Assurance
-
-### Testing Strategy
-- Unit tests for utility functions
-- Integration tests for sync processes
-- E2E tests for user interactions
-
-### Documentation
-- Document each module separately
-- Code examples from real code
-- Complete API reference
-
-### Code Review
-- Review all Feature Editor changes
-- Ensure OSM compliance
-- Performance checks for geometry operations
+After refactoring is complete, this page will be updated with:
+- DrawManager API
+- EditManager API
+- Event system documentation
+- Example code for editor extensions

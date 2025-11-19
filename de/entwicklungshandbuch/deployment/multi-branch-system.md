@@ -1,183 +1,263 @@
 ---
-title: Multi-Branch System
-description: Branch-basierte Deployment-Strategie für Staging und Production
+title: Multi-Branch Deployment System
+description: Automatisches Branch-basiertes Deployment über Webhooks
 quality:
-  completeness: 0
-  accuracy: 0
+  completeness: 85
+  accuracy: 90
   reviewed: false
   reviewer: null
   reviewDate: null
 ---
 
-# Multi-Branch System
-
-> **Status:** 🚧 Dokumentation in Arbeit
+# Multi-Branch Deployment System
 
 ## Übersicht
 
-Das Multi-Branch-System von p2d2 ermöglicht eine strukturierte Deployment-Strategie mit separaten Umgebungen für Entwicklung, Staging und Produktion. Jeder Git-Branch wird automatisch auf einer eigenen Subdomain deployed.
+Das p2d2-Projekt nutzt ein automatisches Deployment-System, das auf Git-Webhooks basiert. Jeder konfigurierte Branch wird automatisch auf eine eigene Subdomain deployed.
 
-## Branch-Struktur
+## Aktuelle Deployment-Konfiguration
 
-### Haupt-Branches
+### Produktive Branches
 
-| Branch | Umgebung | URL | Zweck |
-|--------|----------|-----|-------|
-| `main` | Production | `p2d2.de` | Live-System für Endnutzer |
-| `staging` | Staging | `staging.p2d2.de` | Testing und Qualitätssicherung |
-| `develop` | Development | `dev.p2d2.de` | Feature-Entwicklung und Integration |
+| Branch | Domain | Port | Repository | Status |
+|--------|--------|------|------------|--------|
+| `main` | `www.data-dna.eu` | 3000 | gitlab.opencode.de/OC000028072444/p2d2 | ✅ Aktiv |
+| `develop` | `dev.data-dna.eu` | 3001 | gitlab.opencode.de/OC000028072444/p2d2 | ✅ Aktiv |
 
-### Feature-Branches
+### Feature-Branches (Team-basiert)
 
-- **Naming**: `feature/feature-name` oder `fix/bug-description`
-- **Deployment**: Automatisch auf Preview-Umgebungen
-- **Lifetime**: Temporär, werden nach Merge gelöscht
+| Branch-Pattern | Domain | Port | Repository | Team |
+|----------------|--------|------|------------|------|
+| `feature/team-de1/*` | `f-de1.data-dna.eu` | 3002 | github.com/Peter-Koenig/p2d2-hub | DE1 |
+| `feature/team-de2/*` | `f-de2.data-dna.eu` | 3003 | github.com/Peter-Koenig/p2d2-hub | DE2 |
+| `feature/team-fv/*` | `f-fv.data-dna.eu` | 3004 | github.com/Peter-Koenig/p2d2-hub | FV |
 
-## Deployment-Architektur
+### Dokumentation
 
-### Server-Infrastruktur
-- **Caddy Web Server**: Reverse-Proxy und SSL-Terminierung
-- **Systemd Services**: Prozess-Management und Auto-Restart
-- **Git Hooks**: Automatische Deployment-Trigger
+| Branch | Domain | Repository | Typ |
+|--------|--------|------------|-----|
+| `main` | `doc.data-dna.eu` | gitlab.opencode.de/OC000028072444/p2d2-docs | VitePress |
 
-### Directory-Struktur
+## Architektur
+
+### Komponenten
+
 ```
-/var/www/p2d2/
-├── main/          # Production Deployment
-├── staging/       # Staging Deployment  
-├── dev/           # Development Deployment
-└── preview/       # Feature-Branch Deployments
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Git Push      │────▶│  Webhook Server  │────▶│  Deploy Script  │
+│   (GitLab/Hub)  │     │  (Node.js/9321)  │     │  (Bash)         │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                                │                          │
+                                │                          ▼
+                                │                  ┌─────────────────┐
+                                │                  │  systemd Service│
+                                │                  │  (Astro SSR)    │
+                                │                  └─────────────────┘
+                                ▼                          │
+                        ┌──────────────────┐              │
+                        │  Secret-Validate │              │
+                        │  GitLab: Token   │              │
+                        │  GitHub: HMAC    │              │
+                        └──────────────────┘              │
+                                                           ▼
+                                                   ┌─────────────────┐
+                                                   │   nginx Proxy   │
+                                                   │   (SSL/Domain)  │
+                                                   └─────────────────┘
+```
+
+## Webhook-Server
+
+**Technologie:** Node.js/Express  
+**Port:** 9321  
+**Konfiguration:** `/var/www/astro/webhook-server/index.js`
+
+### Branch-Konfiguration
+
+```javascript
+const branchConfig = {
+  'main': {
+    domain: 'www.data-dna.eu',
+    deployPath: '/var/www/astro/deployments/main',
+    port: 3000,
+    repo: 'https://gitlab.opencode.de/OC000028072444/p2d2.git',
+    secret: process.env.SECRET_MAIN,
+    provider: 'gitlab'
+  },
+  // ... weitere Branches
+};
+```
+
+### Sicherheit
+
+- **GitLab Webhooks:** Plaintext Token-Validierung (`X-GitLab-Token`)
+- **GitHub Webhooks:** HMAC-SHA256 Signature-Validierung (`X-Hub-Signature-256`)
+- Secrets werden über `.env` geladen
+
+## Deploy-Script
+
+**Pfad:** `/var/www/astro/scripts/deploy-branch.sh`
+
+### Ablauf
+
+1. **Clone:** Repository + Branch in timestamped Directory
+2. **Kommunen-Collection:** Symlink zu `/var/www/astro/shared/src/content/kommunen`
+3. **Environment:** `.env.production` mit PORT und HOST
+4. **Build:** `npm ci --omit=dev && npm run build`
+5. **Service-Update:** systemd Service stoppen/starten
+6. **Symlink:** `/var/www/astro/deployments/<branch>/live` → neue Version
+7. **Cleanup:** Behalte nur 5 letzte Deployments
+
+### Beispiel-Aufruf
+
+```bash
+/var/www/astro/scripts/deploy-branch.sh \
+  "main" \
+  "/var/www/astro/deployments/main" \
+  "3000" \
+  "https://gitlab.opencode.de/OC000028072444/p2d2.git"
+```
+
+## systemd Services
+
+Jeder Branch läuft als eigenständiger systemd-Service:
+
+```bash
+# Service-Namen
+astro-main.service       # main Branch (Port 3000)
+astro-develop.service    # develop Branch (Port 3001)
+astro-feature-team-de1.service  # Feature-Branch (Port 3002)
+```
+
+### Service-Management
+
+```bash
+# Status prüfen
+sudo systemctl status astro-main
+
+# Logs anzeigen
+sudo journalctl -u astro-main -f
+
+# Neu starten
+sudo systemctl restart astro-main
+```
+
+## nginx Reverse Proxy
+
+**Konfiguration:** `/etc/nginx/sites-available/`
+
+### Beispiel: main Branch
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name www.data-dna.eu;
+
+    ssl_certificate /etc/letsencrypt/live/data-dna.eu/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/data-dna.eu/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 
 ## Automatisierung
 
-### Webhook-Integration
-- **GitLab Webhooks**: Automatische Build-Trigger
-- **Status-Updates**: Deployment-Status in Merge Requests
-- **Notification**: Teams-Benachrichtigungen bei Fehlern
+### Webhook einrichten
 
-### CI/CD Pipeline
-```yaml
-# Beispiel GitLab CI Konfiguration
-stages:
-  - build
-  - deploy
+**GitLab:**
+1. Repository → Settings → Webhooks
+2. URL: `https://www.data-dna.eu:9321/webhook`
+3. Secret Token: Aus `.env` (SECRET_MAIN, SECRET_DEVELOP)
+4. Trigger: Push events
+5. Branch: Entsprechenden Branch auswählen
 
-build:
-  stage: build
-  script:
-    - npm install
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
+**GitHub:**
+1. Repository → Settings → Webhooks → Add webhook
+2. Payload URL: `https://www.data-dna.eu:9321/webhook`
+3. Content type: `application/json`
+4. Secret: Aus `.env` (SECRET_TEAM_HUB)
+5. Events: Just the push event
 
-deploy:
-  stage: deploy
-  script:
-    - ./scripts/deploy.sh
-  only:
-    - main
-    - staging
-    - develop
-```
+### Manuelles Deployment
 
-## Deployment-Prozess
-
-### 1. Code-Änderungen
-- Entwickler pushen Code zu Feature-Branches
-- Code-Review und Testing im Staging
-- Merge zu `develop` für Integration
-
-### 2. Staging-Deployment
-- Automatisches Deployment nach Push zu `staging`
-- Manuelle Testing und Qualitätssicherung
-- Performance- und Regression-Tests
-
-### 3. Production-Deployment
-- Manueller Merge von `staging` zu `main`
-- Automatisches Production-Deployment
-- Health-Checks und Monitoring
-
-## Konfigurations-Management
-
-### Environment-spezifische Konfiguration
-```typescript
-// Beispiel für Umgebungs-Konfiguration
-const environments = {
-  development: {
-    apiUrl: 'https://dev-api.p2d2.de',
-    mapServices: 'https://dev-geoservices.example.com'
-  },
-  staging: {
-    apiUrl: 'https://staging-api.p2d2.de', 
-    mapServices: 'https://staging-geoservices.example.com'
-  },
-  production: {
-    apiUrl: 'https://api.p2d2.de',
-    mapServices: 'https://geoservices.example.com'
-  }
-};
-```
-
-### Build-Time Configuration
-- Environment-Variablen während des Build-Prozesses
-- Feature-Flags für graduelle Rollouts
-- A/B Testing Konfiguration
-
-## Monitoring und Logging
-
-### Health-Checks
-- **Endpoint Monitoring**: `/health` Endpoints pro Umgebung
-- **Performance-Metriken**: Ladezeiten und Response-Times
-- **Error-Tracking**: Sentry Integration für Fehler-Reporting
-
-### Logging-Strategie
-- **Structured Logging**: JSON-Formatierte Logs
-- **Log-Aggregation**: Zentrale Log-Sammlung
-- **Alerting**: Automatische Benachrichtigungen bei Problemen
-
-## Rollback-Strategie
-
-### Automatisches Rollback
-- Health-Check Fehler trigger Rollback
-- Automatische Re-Deployment der vorherigen Version
-- Notification an Entwicklungsteam
-
-### Manuelles Rollback
 ```bash
-# Zur vorherigen Version zurückkehren
-git checkout HEAD~1
-./scripts/deploy.sh
+# Via Webhook-Server-Endpunkt
+curl -X POST https://www.data-dna.eu:9321/webhook \
+  -H "X-GitLab-Token: YOUR_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"ref": "refs/heads/main"}'
+
+# Oder direkt Deploy-Script
+sudo -u astro /var/www/astro/scripts/deploy-branch.sh \
+  main /var/www/astro/deployments/main 3000
 ```
 
-## Best Practices
+## Debugging
 
-### Branch-Management
-- **Feature-Branches**: Kurzlebig und fokussiert
-- **Regular Merges**: Häufige Integration in `develop`
-- **Clean History**: Squash-Merges für saubere Historie
+### Health-Check
 
-### Deployment-Sicherheit
-- **Testing**: Umfassende Tests vor Production-Deployment
-- **Backup**: Automatische Backups vor großen Änderungen
-- **Communication**: Team-Benachrichtigungen bei Deployments
+```bash
+# Webhook-Server Status
+curl http://localhost:9321/health
+# → "Webhook-Server läuft"
+```
 
-## Troubleshooting
+### Logs
+
+```bash
+# Webhook-Server Logs
+pm2 logs webhook-server
+
+# Deployment Logs
+ls -lh /var/www/astro/deployments/main/logs/
+
+# systemd Service Logs
+sudo journalctl -u astro-main -n 100 --no-pager
+```
 
 ### Häufige Probleme
-- **Build-Fehler**: Abhängigkeits-Konflikte oder Compiler-Fehler
-- **Deployment-Fehler**: Permission-Probleme oder Netzwerk-Issues
-- **Runtime-Fehler**: Konfigurations-Probleme oder Environment-Variablen
 
-### Debugging-Tools
-- **Server-Logs**: `journalctl -u p2d2-service`
-- **Build-Logs**: GitLab CI Pipeline Logs
-- **Network-Monitoring**: Caddy Access Logs
+**Problem:** Service startet nicht nach Deployment
 
-## Nächste Schritte
+```bash
+# Prüfe Build-Logs
+cat /var/www/astro/deployments/main/logs/npm-build-*.log
 
-- [ ] Detaillierte Deployment-Scripts dokumentieren
-- [ ] Monitoring-Dashboards einrichten
-- [ ] Disaster-Recovery-Prozeduren definieren
-- [ ] Performance-Benchmarks etablieren
+# Prüfe systemd-Fehler
+sudo systemctl status astro-main -l
+```
+
+**Problem:** Webhook wird nicht empfangen
+
+```bash
+# Prüfe Webhook-Server
+pm2 status webhook-server
+
+# Prüfe Firewall
+sudo ufw status | grep 9321
+
+# Teste Webhook manuell
+curl -X POST http://localhost:9321/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"ref": "refs/heads/main"}'
+```
+
+## Geplante Verbesserungen
+
+- [ ] Automatische Rollback-Funktion bei fehlgeschlagenem Build
+- [ ] Health-Checks mit automatischem Restart
+- [ ] Deployment-Notifications (Matrix/Email)
+- [ ] Branch-Protection für automatische Deployments
+
+## Siehe auch
+
+- [Webhook Automation](./webhook-automation.md)
+- [systemd Services](./systemd-services.md)
+- [Git Workflow](../entwicklungsworkflow/git-workflow.md)
