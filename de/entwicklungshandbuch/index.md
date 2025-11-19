@@ -2,8 +2,8 @@
 title: Entwicklungs-Handbuch
 description: Umfassende technische Dokumentation für p2d2-Entwickler
 quality:
-  completeness: 0
-  accuracy: 0
+  completeness: 75
+  accuracy: 70
   reviewed: false
   reviewer: null
   reviewDate: null

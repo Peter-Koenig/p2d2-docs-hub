@@ -2,8 +2,8 @@
 title: Developer Handbook
 description: Comprehensive technical documentation for p2d2 developers
 quality:
-  completeness: 0
-  accuracy: 0
+  completeness: 75
+  accuracy: 70
   reviewed: false
   reviewer: null
   reviewDate: null
