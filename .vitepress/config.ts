@@ -18,6 +18,7 @@ export default defineConfig({
           { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
           { text: "Administration", link: "/de/administrationshandbuch/" },
           { text: "Entwicklerhandbuch", link: "/de/entwicklerhandbuch/" },
+          { text: "Entwicklungs-Handbuch", link: "/de/entwicklungshandbuch/" },
           { text: "Strategie", link: "/de/entwicklungsstrategie/" },
           { text: "Qualität", link: "/de/quality-overview" },
         ],
@@ -150,6 +151,249 @@ export default defineConfig({
                 {
                   text: "Dokumentations-Qualität",
                   link: "/de/quality-overview",
+                },
+              ],
+            },
+          ],
+          "/de/entwicklungshandbuch/": [
+            {
+              text: "Übersicht",
+              items: [
+                {
+                  text: "Entwicklungs-Handbuch",
+                  link: "/de/entwicklungshandbuch/",
+                },
+              ],
+            },
+            {
+              text: "Architektur",
+              collapsed: false,
+              items: [
+                {
+                  text: "Systemüberblick",
+                  link: "/de/entwicklungshandbuch/architektur/systemueberblick",
+                },
+                {
+                  text: "Technologie-Stack",
+                  link: "/de/entwicklungshandbuch/architektur/technologie-stack",
+                },
+                {
+                  text: "Projektstruktur",
+                  link: "/de/entwicklungshandbuch/architektur/projektstruktur",
+                },
+                {
+                  text: "Datenfluss",
+                  link: "/de/entwicklungshandbuch/architektur/datenfluss",
+                },
+              ],
+            },
+            {
+              text: "Module",
+              collapsed: false,
+              items: [
+                {
+                  text: "Karten",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Map Config",
+                      link: "/de/entwicklungshandbuch/module/karten/map-config",
+                    },
+                    {
+                      text: "Layer Management",
+                      link: "/de/entwicklungshandbuch/module/karten/layer-management",
+                    },
+                    {
+                      text: "OpenLayers Integration",
+                      link: "/de/entwicklungshandbuch/module/karten/openlayers-integration",
+                    },
+                    {
+                      text: "WMS/WMTS Services",
+                      link: "/de/entwicklungshandbuch/module/karten/wms-wmts-services",
+                    },
+                  ],
+                },
+                {
+                  text: "Feature Editor",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Editor Overview",
+                      link: "/de/entwicklungshandbuch/module/feature-editor/editor-overview",
+                    },
+                    {
+                      text: "Draw Manager",
+                      link: "/de/entwicklungshandbuch/module/feature-editor/draw-manager",
+                    },
+                    {
+                      text: "Edit Mode",
+                      link: "/de/entwicklungshandbuch/module/feature-editor/edit-mode",
+                    },
+                    {
+                      text: "Feature Sync",
+                      link: "/de/entwicklungshandbuch/module/feature-editor/feature-sync",
+                    },
+                    {
+                      text: "OSM Integration",
+                      link: "/de/entwicklungshandbuch/module/feature-editor/osm-integration",
+                    },
+                  ],
+                },
+                {
+                  text: "Kommunen",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Content Collections",
+                      link: "/de/entwicklungshandbuch/module/kommunen/content-collections",
+                    },
+                    {
+                      text: "Datenstruktur",
+                      link: "/de/entwicklungshandbuch/module/kommunen/datenstruktur",
+                    },
+                    {
+                      text: "Routing",
+                      link: "/de/entwicklungshandbuch/module/kommunen/routing",
+                    },
+                  ],
+                },
+                {
+                  text: "UI-Komponenten",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Astro Components",
+                      link: "/de/entwicklungshandbuch/module/ui-komponenten/astro-components",
+                    },
+                    {
+                      text: "TailwindCSS Styling",
+                      link: "/de/entwicklungshandbuch/module/ui-komponenten/tailwind-styling",
+                    },
+                    {
+                      text: "Responsive Design",
+                      link: "/de/entwicklungshandbuch/module/ui-komponenten/responsive-design",
+                    },
+                  ],
+                },
+                {
+                  text: "Utilities",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Layer Interaction",
+                      link: "/de/entwicklungshandbuch/module/utilities/layer-interaction",
+                    },
+                    {
+                      text: "Coordinate Utils",
+                      link: "/de/entwicklungshandbuch/module/utilities/coordinate-utils",
+                    },
+                    {
+                      text: "Storage Management",
+                      link: "/de/entwicklungshandbuch/module/utilities/storage-management",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              text: "Entwicklungsworkflow",
+              collapsed: true,
+              items: [
+                {
+                  text: "Lokales Setup",
+                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/setup-lokal",
+                },
+                {
+                  text: "Git Workflow",
+                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/git-workflow",
+                },
+                {
+                  text: "Code Style",
+                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/code-style",
+                },
+                {
+                  text: "Testing",
+                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/testing",
+                },
+                {
+                  text: "Debugging",
+                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/debugging",
+                },
+              ],
+            },
+            {
+              text: "Deployment",
+              collapsed: true,
+              items: [
+                {
+                  text: "Multi-Branch System",
+                  link: "/de/entwicklungshandbuch/deployment/multi-branch-system",
+                },
+                {
+                  text: "Webhook Automation",
+                  link: "/de/entwicklungshandbuch/deployment/webhook-automation",
+                },
+                {
+                  text: "Systemd Services",
+                  link: "/de/entwicklungshandbuch/deployment/systemd-services",
+                },
+                {
+                  text: "Caddy Proxy",
+                  link: "/de/entwicklungshandbuch/deployment/caddy-proxy",
+                },
+              ],
+            },
+            {
+              text: "Datenverwaltung",
+              collapsed: true,
+              items: [
+                {
+                  text: "Kommunen Collection",
+                  link: "/de/entwicklungshandbuch/datenverwaltung/kommunen-collection",
+                },
+                {
+                  text: "Geodaten-Quellen",
+                  link: "/de/entwicklungshandbuch/datenverwaltung/geodaten-quellen",
+                },
+                {
+                  text: "Daten-Synchronisation",
+                  link: "/de/entwicklungshandbuch/datenverwaltung/daten-synchronisation",
+                },
+              ],
+            },
+            {
+              text: "API-Referenz",
+              collapsed: true,
+              items: [
+                {
+                  text: "TypeScript Modules",
+                  link: "/de/entwicklungshandbuch/api-referenz/typescript-modules",
+                },
+                {
+                  text: "Astro Endpoints",
+                  link: "/de/entwicklungshandbuch/api-referenz/astro-endpoints",
+                },
+                {
+                  text: "Config-Optionen",
+                  link: "/de/entwicklungshandbuch/api-referenz/config-optionen",
+                },
+              ],
+            },
+            {
+              text: "Contrib",
+              collapsed: true,
+              items: [
+                {
+                  text: "Contributing",
+                  link: "/de/entwicklungshandbuch/contrib/contributing",
+                },
+                {
+                  text: "Code Review Guide",
+                  link: "/de/entwicklungshandbuch/contrib/code-review-guide",
+                },
+                {
+                  text: "Merge Policy",
+                  link: "/de/entwicklungshandbuch/contrib/merge-policy",
                 },
               ],
             },
@@ -846,6 +1090,7 @@ export default defineConfig({
     "benutzerhandbuch/:path*": "de/benutzerhandbuch/:path*",
     "administrationshandbuch/:path*": "de/administrationshandbuch/:path*",
     "entwicklerhandbuch/:path*": "de/entwicklerhandbuch/:path*",
+    "entwicklungshandbuch/:path*": "de/entwicklungshandbuch/:path*",
   },
 
   head: [
