@@ -530,6 +530,249 @@ export default defineConfig({
               ],
             },
           ],
+          "/en/entwicklungshandbuch/": [
+            {
+              text: "Overview",
+              items: [
+                {
+                  text: "Development Handbook",
+                  link: "/en/entwicklungshandbuch/",
+                },
+              ],
+            },
+            {
+              text: "Architecture",
+              collapsed: false,
+              items: [
+                {
+                  text: "System Overview",
+                  link: "/en/entwicklungshandbuch/architektur/systemueberblick",
+                },
+                {
+                  text: "Technology Stack",
+                  link: "/en/entwicklungshandbuch/architektur/technologie-stack",
+                },
+                {
+                  text: "Project Structure",
+                  link: "/en/entwicklungshandbuch/architektur/projektstruktur",
+                },
+                {
+                  text: "Data Flow",
+                  link: "/en/entwicklungshandbuch/architektur/datenfluss",
+                },
+              ],
+            },
+            {
+              text: "Modules",
+              collapsed: false,
+              items: [
+                {
+                  text: "Maps",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Map Config",
+                      link: "/en/entwicklungshandbuch/module/karten/map-config",
+                    },
+                    {
+                      text: "Layer Management",
+                      link: "/en/entwicklungshandbuch/module/karten/layer-management",
+                    },
+                    {
+                      text: "OpenLayers Integration",
+                      link: "/en/entwicklungshandbuch/module/karten/openlayers-integration",
+                    },
+                    {
+                      text: "WMS/WMTS Services",
+                      link: "/en/entwicklungshandbuch/module/karten/wms-wmts-services",
+                    },
+                  ],
+                },
+                {
+                  text: "Feature Editor",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Editor Overview",
+                      link: "/en/entwicklungshandbuch/module/feature-editor/editor-overview",
+                    },
+                    {
+                      text: "Draw Manager",
+                      link: "/en/entwicklungshandbuch/module/feature-editor/draw-manager",
+                    },
+                    {
+                      text: "Edit Mode",
+                      link: "/en/entwicklungshandbuch/module/feature-editor/edit-mode",
+                    },
+                    {
+                      text: "Feature Sync",
+                      link: "/en/entwicklungshandbuch/module/feature-editor/feature-sync",
+                    },
+                    {
+                      text: "OSM Integration",
+                      link: "/en/entwicklungshandbuch/module/feature-editor/osm-integration",
+                    },
+                  ],
+                },
+                {
+                  text: "Municipalities",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Content Collections",
+                      link: "/en/entwicklungshandbuch/module/kommunen/content-collections",
+                    },
+                    {
+                      text: "Data Structure",
+                      link: "/en/entwicklungshandbuch/module/kommunen/datenstruktur",
+                    },
+                    {
+                      text: "Routing",
+                      link: "/en/entwicklungshandbuch/module/kommunen/routing",
+                    },
+                  ],
+                },
+                {
+                  text: "UI Components",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Astro Components",
+                      link: "/en/entwicklungshandbuch/module/ui-komponenten/astro-components",
+                    },
+                    {
+                      text: "TailwindCSS Styling",
+                      link: "/en/entwicklungshandbuch/module/ui-komponenten/tailwind-styling",
+                    },
+                    {
+                      text: "Responsive Design",
+                      link: "/en/entwicklungshandbuch/module/ui-komponenten/responsive-design",
+                    },
+                  ],
+                },
+                {
+                  text: "Utilities",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "Layer Interaction",
+                      link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
+                    },
+                    {
+                      text: "Coordinate Utils",
+                      link: "/en/entwicklungshandbuch/module/utilities/coordinate-utils",
+                    },
+                    {
+                      text: "Storage Management",
+                      link: "/en/entwicklungshandbuch/module/utilities/storage-management",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              text: "Development Workflow",
+              collapsed: true,
+              items: [
+                {
+                  text: "Local Setup",
+                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/setup-lokal",
+                },
+                {
+                  text: "Git Workflow",
+                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/git-workflow",
+                },
+                {
+                  text: "Code Style",
+                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/code-style",
+                },
+                {
+                  text: "Testing",
+                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/testing",
+                },
+                {
+                  text: "Debugging",
+                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/debugging",
+                },
+              ],
+            },
+            {
+              text: "Deployment",
+              collapsed: true,
+              items: [
+                {
+                  text: "Multi-Branch System",
+                  link: "/en/entwicklungshandbuch/deployment/multi-branch-system",
+                },
+                {
+                  text: "Webhook Automation",
+                  link: "/en/entwicklungshandbuch/deployment/webhook-automation",
+                },
+                {
+                  text: "Systemd Services",
+                  link: "/en/entwicklungshandbuch/deployment/systemd-services",
+                },
+                {
+                  text: "Caddy Proxy",
+                  link: "/en/entwicklungshandbuch/deployment/caddy-proxy",
+                },
+              ],
+            },
+            {
+              text: "Data Management",
+              collapsed: true,
+              items: [
+                {
+                  text: "Municipalities Collection",
+                  link: "/en/entwicklungshandbuch/datenverwaltung/kommunen-collection",
+                },
+                {
+                  text: "Geodata Sources",
+                  link: "/en/entwicklungshandbuch/datenverwaltung/geodaten-quellen",
+                },
+                {
+                  text: "Data Synchronization",
+                  link: "/en/entwicklungshandbuch/datenverwaltung/daten-synchronisation",
+                },
+              ],
+            },
+            {
+              text: "API Reference",
+              collapsed: true,
+              items: [
+                {
+                  text: "TypeScript Modules",
+                  link: "/en/entwicklungshandbuch/api-referenz/typescript-modules",
+                },
+                {
+                  text: "Astro Endpoints",
+                  link: "/en/entwicklungshandbuch/api-referenz/astro-endpoints",
+                },
+                {
+                  text: "Config Options",
+                  link: "/en/entwicklungshandbuch/api-referenz/config-optionen",
+                },
+              ],
+            },
+            {
+              text: "Contrib",
+              collapsed: true,
+              items: [
+                {
+                  text: "Contributing",
+                  link: "/en/entwicklungshandbuch/contrib/contributing",
+                },
+                {
+                  text: "Code Review Guide",
+                  link: "/en/entwicklungshandbuch/contrib/code-review-guide",
+                },
+                {
+                  text: "Merge Policy",
+                  link: "/en/entwicklungshandbuch/contrib/merge-policy",
+                },
+              ],
+            },
+          ],
           "/en/entwicklungsstrategie/": [
             {
               text: "Vision & Philosophy",
@@ -577,6 +820,7 @@ export default defineConfig({
       },
     },
   },
+
 
   // Gemeinsame Konfiguration
   themeConfig: {
