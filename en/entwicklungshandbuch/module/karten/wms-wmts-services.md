@@ -1,28 +1,34 @@
 ---
-title: WMS/WMTS Services
-description: Web Map Service and Web Map Tile Service integration in p2d2
-completeness: 0
-accuracy: 0
-reviewed: false
-reviewer: null
-reviewDate: null
+title: Wms Wmts Services
+description: Documentation for Wms Wmts Services
+quality:
+  completeness: 0
+  accuracy: 0
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
-# WMS/WMTS Services
+# Wms Wmts Services
 
-**Status:** Documentation stub - content pending
+> **Status:** 🚧 Documentation in progress
 
 ## Overview
-Placeholder for module description.
+
+[Placeholder for module description]
 
 ## Functionality
-Placeholder for technical details.
+
+[Placeholder for technical details]
 
 ## Usage
-Placeholder for code examples.
+
+[Placeholder for code examples]
 
 ## Configuration
-Placeholder for configuration options.
+
+[Placeholder for configuration options]
 
 ## Dependencies
-Placeholder for modules/libraries.
+
+[Placeholder for modules/libraries]

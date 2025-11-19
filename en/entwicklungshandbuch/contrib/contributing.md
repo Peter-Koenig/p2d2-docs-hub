@@ -1,28 +1,34 @@
 ---
 title: Contributing
-description: Guidelines and processes for contributing to p2d2 project
-completeness: 0
-accuracy: 0
-reviewed: false
-reviewer: null
-reviewDate: null
+description: Documentation for Contributing
+quality:
+  completeness: 0
+  accuracy: 0
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Contributing
 
-**Status:** Documentation stub - content pending
+> **Status:** 🚧 Documentation in progress
 
 ## Overview
-Placeholder for module description.
+
+[Placeholder for module description]
 
 ## Functionality
-Placeholder for technical details.
+
+[Placeholder for technical details]
 
 ## Usage
-Placeholder for code examples.
+
+[Placeholder for code examples]
 
 ## Configuration
-Placeholder for configuration options.
+
+[Placeholder for configuration options]
 
 ## Dependencies
-Placeholder for modules/libraries.
+
+[Placeholder for modules/libraries]

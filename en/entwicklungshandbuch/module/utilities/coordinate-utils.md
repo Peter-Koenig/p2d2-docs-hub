@@ -1,28 +1,34 @@
 ---
 title: Coordinate Utils
-description: Coordinate transformation and utility functions in p2d2
-completeness: 0
-accuracy: 0
-reviewed: false
-reviewer: null
-reviewDate: null
+description: Documentation for Coordinate Utils
+quality:
+  completeness: 0
+  accuracy: 0
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Coordinate Utils
 
-**Status:** Documentation stub - content pending
+> **Status:** 🚧 Documentation in progress
 
 ## Overview
-Placeholder for module description.
+
+[Placeholder for module description]
 
 ## Functionality
-Placeholder for technical details.
+
+[Placeholder for technical details]
 
 ## Usage
-Placeholder for code examples.
+
+[Placeholder for code examples]
 
 ## Configuration
-Placeholder for configuration options.
+
+[Placeholder for configuration options]
 
 ## Dependencies
-Placeholder for modules/libraries.
+
+[Placeholder for modules/libraries]
