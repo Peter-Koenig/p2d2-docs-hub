@@ -49,7 +49,11 @@ quality:
 
 ## Was ist p2d2?
 
-**p2d2** (Public-Public Data-DNA) ist eine moderne Geodateninfrastruktur, die Verwaltungsdaten mit Bürgerdaten verzahnt. Das Projekt verfolgt das Ziel, offene Verwaltungsdaten mit OpenStreetMap, WikiData und anderen öffentlichen Datenplattformen zu synchronisieren.
+**p2d2** (Public-Public Data-DNA) ist eine moderne Geodateninfrastruktur, die Verwaltungsdaten mit Bürgerdaten verzahnt. Das Projekt verfolgt das Ziel, offene Verwaltungsdaten mit OpenStreetMap, WikiData und anderen öffentlichen Datenplattformen zu synchronisieren:
+
+- [web](https://www.data-dna-eu)
+- [dev](https://dev.data-dna-eu)
+- [doc](https://doc.data-dna-eu)
 
 ### Kernprinzipien
 

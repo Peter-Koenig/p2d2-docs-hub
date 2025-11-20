@@ -51,6 +51,10 @@ quality:
 
 **p2d2** (Public-Public Data-DNA) is a modern geospatial data infrastructure that interconnects administrative data with citizen data. The project aims to synchronize open administrative data with OpenStreetMap, WikiData, and other public data platforms.
 
+- [web](https://www.data-dna-eu)
+- [dev](https://dev.data-dna-eu)
+- [doc](https://doc.data-dna-eu)
+
 ### Core Principles
 
 - **🔓 Open Source**: Fully open source under GPLv3
