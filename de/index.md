@@ -53,7 +53,7 @@ quality:
 
 - [Webseite: https://www.data-dna-eu](https://www.data-dna-eu)
 - [Entwicklungsseite zum testen: https://dev.data-dna-eu](https://dev.data-dna-eu)
-- [dokumentations-Webseite: https://doc.data-dna-eu](https://doc.data-dna-eu)
+- [Dokumentations-Webseite: https://doc.data-dna-eu](https://doc.data-dna-eu)
 
 ### Kernprinzipien
 
