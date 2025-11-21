@@ -3,10 +3,6 @@ title: Feature Backlog
 description: Unpriorisierte Feature-Ideen für p2d2
 ---
 
-### Long-term Vision
-- Internationalization
-- Cloud Deployment Options
-
 # Feature Backlog
 - Eigener OSM UMap-Server
 - Eigener OSM Tile Server
