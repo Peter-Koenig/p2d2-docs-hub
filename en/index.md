@@ -49,9 +49,11 @@ quality:
 
 ## What is p2d2?
 
-**p2d2** can be understood as middleware between citizens' data and the open data of their public administrations. The application enables the integration, quality assurance, and collaborative use of data from both spheres – citizen data and administrative data. Metaphorically, the two spheres can be understood as the two strands of a DNA molecule. The base pairing in the DNA metaphor then corresponds to the synchronicity of individual data objects.
+**p2d2** can be understood as middleware between citizens' data and the open data of their public administrations.
 
-The project begins with geodata, as its complexity and visualizability provide accessible entry points into this complex topic. However, the underlying architecture is deliberately not limited to geodata: The Data-DNA metaphor encompasses the totality of data from citizens on one hand and the data of their public administrations on the other.
+The application enables the integration, quality assurance, and collaborative use of data from both spheres – citizen data and administrative data. Metaphorically, the two spheres can be understood as the two strands of a DNA molecule. The base pairing in the DNA metaphor then corresponds to the synchronicity of individual data objects.
+
+The project begins with geodata, as its visualizability and recognizability provide accessible entry points into this complex topic. However, the underlying architecture is deliberately not limited to geodata: The Data-DNA metaphor encompasses the totality of data from citizens on one hand and the data of their public administrations on the other.
 
 p2d2 synchronizes open government data with public data platforms such as OpenStreetMap, WikiData, and other community-driven data sources. To manage the spatial data, an open-source and OGC-compliant spatial data infrastructure (SDI) is an integral component of the project.
 
