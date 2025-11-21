@@ -18,6 +18,9 @@ hero:
     - theme: alt
       text: Entwicklungs-Handbuch
       link: /de/entwicklungshandbuch/
+    - theme: alt
+      text: Release
+      link: /de/planning/
 
 features:
   - icon: 📚

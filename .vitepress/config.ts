@@ -15,6 +15,8 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: "Start", link: "/de/" },
+          { text: "Release", link: "/de/planning/" },
+          { text: "Dokumentation", link: "https://doc.data-dna.eu" },
           { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
           { text: "Administration", link: "/de/administrationshandbuch/" },
           { text: "Entwicklungs-Handbuch", link: "/de/entwicklungshandbuch/" },
@@ -23,6 +25,70 @@ export default defineConfig({
         ],
 
         sidebar: {
+          "/de/planning/": [
+            {
+              text: "Release",
+              items: [
+                {
+                  text: "Roadmap",
+                  collapsed: true,
+                  items: [{ text: "Übersicht", link: "/de/planning/" }],
+                },
+                {
+                  text: "Planung",
+                  collapsed: true,
+                  items: [
+                    { text: "v0.2.0 Planung", link: "/de/planning/v0.2.0" },
+                  ],
+                },
+                {
+                  text: "Releases",
+                  collapsed: true,
+                  items: [
+                    { text: "Übersicht", link: "/de/releases/" },
+                    { text: "v0.1.0", link: "/de/releases/v0.1.0" },
+                  ],
+                },
+                {
+                  text: "Feature Backlog",
+                  collapsed: true,
+                  items: [{ text: "Übersicht", link: "/de/planning/backlog" }],
+                },
+              ],
+            },
+          ],
+          "/de/releases/": [
+            {
+              text: "Release",
+              items: [
+                {
+                  text: "Roadmap",
+                  collapsed: true,
+                  items: [{ text: "Übersicht", link: "/de/planning/" }],
+                },
+                {
+                  text: "Planung",
+                  collapsed: true,
+                  items: [
+                    { text: "v0.2.0 Planung", link: "/de/planning/v0.2.0" },
+                  ],
+                },
+                {
+                  text: "Releases",
+                  collapsed: true,
+                  items: [
+                    { text: "Übersicht", link: "/de/releases/" },
+                    { text: "v0.1.0", link: "/de/releases/v0.1.0" },
+                  ],
+                },
+                {
+                  text: "Feature Backlog",
+                  collapsed: true,
+                  items: [{ text: "Übersicht", link: "/de/planning/backlog" }],
+                },
+              ],
+            },
+          ],
           "/de/administrationshandbuch/": [
             {
               text: "Übersicht",
@@ -440,8 +506,6 @@ export default defineConfig({
               ],
             },
           ],
-
-
         },
       },
     },
@@ -453,15 +517,81 @@ export default defineConfig({
 
       themeConfig: {
         nav: [
-          { text: "Home", link: "/en/" },
-          { text: "User Guide", link: "/en/benutzerhandbuch/" },
+          { text: "Start", link: "/en/" },
+          { text: "Release", link: "/en/planning/" },
+          { text: "Documentation", link: "https://doc.data-dna.eu" },
+          { text: "User Manual", link: "/en/benutzerhandbuch/" },
           { text: "Administration", link: "/en/administrationshandbuch/" },
-          { text: "Development Handbook", link: "/en/entwicklungshandbuch/" },
+          { text: "Developer Handbook", link: "/en/entwicklungshandbuch/" },
           { text: "Strategy", link: "/en/entwicklungsstrategie/" },
           { text: "Quality", link: "/en/quality-overview" },
         ],
 
         sidebar: {
+          "/en/planning/": [
+            {
+              text: "Release",
+              items: [
+                {
+                  text: "Roadmap",
+                  collapsed: true,
+                  items: [{ text: "Overview", link: "/en/planning/" }],
+                },
+                {
+                  text: "Planning",
+                  collapsed: true,
+                  items: [
+                    { text: "v0.2.0 Planning", link: "/en/planning/v0.2.0" },
+                  ],
+                },
+                {
+                  text: "Releases",
+                  collapsed: true,
+                  items: [
+                    { text: "Overview", link: "/en/releases/" },
+                    { text: "v0.1.0", link: "/en/releases/v0.1.0" },
+                  ],
+                },
+                {
+                  text: "Feature Backlog",
+                  collapsed: true,
+                  items: [{ text: "Overview", link: "/en/planning/backlog" }],
+                },
+              ],
+            },
+          ],
+          "/en/releases/": [
+            {
+              text: "Release",
+              items: [
+                {
+                  text: "Roadmap",
+                  collapsed: true,
+                  items: [{ text: "Overview", link: "/en/planning/" }],
+                },
+                {
+                  text: "Planning",
+                  collapsed: true,
+                  items: [
+                    { text: "v0.2.0 Planning", link: "/en/planning/v0.2.0" },
+                  ],
+                },
+                {
+                  text: "Releases",
+                  collapsed: true,
+                  items: [
+                    { text: "Overview", link: "/en/releases/" },
+                    { text: "v0.1.0", link: "/en/releases/v0.1.0" },
+                  ],
+                },
+                {
+                  text: "Feature Backlog",
+                  collapsed: true,
+                  items: [{ text: "Overview", link: "/en/planning/backlog" }],
+                },
+              ],
+            },
+          ],
           "/en/administrationshandbuch/": [
             {
               text: "Overview",
@@ -820,7 +950,6 @@ export default defineConfig({
       },
     },
   },
-
 
   // Gemeinsame Konfiguration
   themeConfig: {
