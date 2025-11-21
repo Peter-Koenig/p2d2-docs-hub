@@ -15,13 +15,13 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: "Start", link: "/de/" },
-          { text: "Release", link: "/de/planning/" },
           { text: "Dokumentation", link: "https://doc.data-dna.eu" },
           { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
-          { text: "Administration", link: "/de/administrationshandbuch/" },
+          { text: "Admin Handbuch", link: "/de/administrationshandbuch/" },
           { text: "Entwicklungs-Handbuch", link: "/de/entwicklungshandbuch/" },
+          { text: "Release", link: "/de/planning/" },
           { text: "Strategie", link: "/de/entwicklungsstrategie/" },
-          { text: "Qualität", link: "/de/quality-overview" },
+          { text: "Doku QS", link: "/de/quality-overview" },
         ],
 
         sidebar: {
@@ -518,13 +518,13 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: "Start", link: "/en/" },
-          { text: "Release", link: "/en/planning/" },
           { text: "Documentation", link: "https://doc.data-dna.eu" },
           { text: "User Manual", link: "/en/benutzerhandbuch/" },
-          { text: "Administration", link: "/en/administrationshandbuch/" },
+          { text: "Admin Manual", link: "/en/administrationshandbuch/" },
           { text: "Developer Handbook", link: "/en/entwicklungshandbuch/" },
+          { text: "Release", link: "/en/planning/" },
           { text: "Strategy", link: "/en/entwicklungsstrategie/" },
-          { text: "Quality", link: "/en/quality-overview" },
+          { text: "Docu QA", link: "/en/quality-overview" },
         ],
 
         sidebar: {
