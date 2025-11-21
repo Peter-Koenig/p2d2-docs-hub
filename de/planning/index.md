@@ -1,6 +1,12 @@
 ---
 title: Roadmap
 description: Entwicklungsphasen für p2d2
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Roadmap

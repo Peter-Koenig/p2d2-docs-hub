@@ -1,6 +1,12 @@
 ---
 title: Feature Backlog
 description: Unprioritized feature ideas for p2d2
+quality:
+  completeness: 90
+  accuracy: 100
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-21
 ---
 
 # Feature Backlog

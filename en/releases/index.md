@@ -1,6 +1,12 @@
 ---
 title: Releases
 description: Overview of all p2d2 releases
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Releases
