@@ -62,6 +62,7 @@ p2d2 synchronizes open government data with public data platforms such as OpenSt
 
 - [Web Site: https://www.data-dna.eu](https://www.data-dna.eu)
 - [Develeopment-Version of the web site for testing: https://dev.data-dna.eu](https://dev.data-dna.eu)
+- [Releeases and Releaseplanning: https://release.data-dna.eu](https://release.data-dna.eu)
 - [Documentation Web Site: https://doc.data-dna.eu](https://doc.data-dna.eu)
 
 ### Core Principles

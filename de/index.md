@@ -64,6 +64,7 @@ p2d2 synchronisiert offene Verwaltungsdaten mit öffentlichen Datenplattformen w
 
 - [Webseite: https://www.data-dna.eu](https://www.data-dna.eu)
 - [Entwicklungsseite zum testen: https://dev.data-dna.eu](https://dev.data-dna.eu)
+- [Releeases und Releaseplanung: https://release.data-dna.eu](https://release.data-dna.eu)
 - [Dokumentations-Webseite: https://doc.data-dna.eu](https://doc.data-dna.eu)
 
 ### Kernprinzipien
