@@ -282,3 +282,49 @@
         top: 56px;
     }
 }
+
+.mermaid {
+    /* Größer darstellen */
+    min-height: 400px;
+    width: 100%;
+    overflow-x: auto;
+    margin: 2rem 0;
+}
+
+.mermaid svg {
+    /* Mindestbreite für Gantt-Charts */
+    min-width: 800px !important;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 400px !important;
+}
+
+/* Gantt-spezifische Anpassungen */
+.mermaid .section0,
+.mermaid .section1,
+.mermaid .section2 {
+    font-size: 16px !important;
+}
+
+/* Task-Text größer */
+.mermaid .taskText {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+}
+
+/* Achsen-Text größer */
+.mermaid .tick text {
+    font-size: 14px !important;
+}
+
+/* Titel größer */
+.mermaid .titleText {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+}
+
+/* Section-Labels größer */
+.mermaid .sectionTitle {
+    font-size: 17px !important;
+    font-weight: 600 !important;
+}

@@ -1,962 +1,1010 @@
 // .vitepress/config.ts
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
-export default defineConfig({
-  ignoreDeadLinks: true,
-  title: "p2d2 Documentation",
-  description: "Public-Public Data-DNA",
+export default withMermaid(
+  defineConfig({
+    title: "p2d2 Documentation",
+    description: "Public-Public Data-DNA",
 
-  locales: {
-    root: {
-      label: "Deutsch",
-      lang: "de-DE",
-      link: "/de/",
+    // Optional: Mermaid-Konfiguration
+    vite: {
+      optimizeDeps: {
+        include: ["@braintree/sanitize-url", "mermaid"],
+      },
+      resolve: {
+        alias: {
+          dayjs: "dayjs/",
+        },
+      },
+      ssr: {
+        noExternal: ["mermaid"],
+      },
+    },
 
-      themeConfig: {
-        nav: [
-          { text: "Start", link: "/de/" },
-          { text: "Dokumentation", link: "https://doc.data-dna.eu" },
-          { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
-          { text: "Admin Handbuch", link: "/de/administrationshandbuch/" },
-          { text: "Entwicklungs-Handbuch", link: "/de/entwicklungshandbuch/" },
-          { text: "Release", link: "/de/planning/" },
-          { text: "Strategie", link: "/de/entwicklungsstrategie/" },
-          { text: "Doku QS", link: "/de/quality-overview" },
-        ],
+    mermaid: {
+      theme: "default",
+      themeVariables: {
+        fontSize: "16px",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+      },
+      gantt: {
+        titleTopMargin: 25,
+        barHeight: 35,
+        barGap: 8,
+        topPadding: 75,
+        sidePadding: 75,
+      },
+    },
+    ignoreDeadLinks: true,
 
-        sidebar: {
-          "/de/planning/": [
+    locales: {
+      root: {
+        label: "Deutsch",
+        lang: "de-DE",
+        link: "/de/",
+
+        themeConfig: {
+          nav: [
+            { text: "Start", link: "/de/" },
+            { text: "Dokumentation", link: "https://doc.data-dna.eu" },
+            { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
+            { text: "Admin Handbuch", link: "/de/administrationshandbuch/" },
             {
-              text: "Release",
-              items: [
-                {
-                  text: "Roadmap",
-                  collapsed: true,
-                  items: [{ text: "Übersicht", link: "/de/planning/" }],
-                },
-                {
-                  text: "Planung",
-                  collapsed: true,
-                  items: [
-                    { text: "v0.2.0 Planung", link: "/de/planning/v0.2.0" },
-                  ],
-                },
-                {
-                  text: "Releases",
-                  collapsed: true,
-                  items: [
-                    { text: "Übersicht", link: "/de/releases/" },
-                    { text: "v0.1.0", link: "/de/releases/v0.1.0" },
-                  ],
-                },
-                {
-                  text: "Feature Backlog",
-                  collapsed: true,
-                  items: [{ text: "Übersicht", link: "/de/planning/backlog" }],
-                },
-              ],
+              text: "Entwicklungs-Handbuch",
+              link: "/de/entwicklungshandbuch/",
             },
+            { text: "Release", link: "/de/planning/" },
+            { text: "Strategie", link: "/de/entwicklungsstrategie/" },
+            { text: "Doku QS", link: "/de/quality-overview" },
           ],
-          "/de/releases/": [
-            {
-              text: "Release",
-              items: [
-                {
-                  text: "Roadmap",
-                  collapsed: true,
-                  items: [{ text: "Übersicht", link: "/de/planning/" }],
-                },
-                {
-                  text: "Planung",
-                  collapsed: true,
-                  items: [
-                    { text: "v0.2.0 Planung", link: "/de/planning/v0.2.0" },
-                  ],
-                },
-                {
-                  text: "Releases",
-                  collapsed: true,
-                  items: [
-                    { text: "Übersicht", link: "/de/releases/" },
-                    { text: "v0.1.0", link: "/de/releases/v0.1.0" },
-                  ],
-                },
-                {
-                  text: "Feature Backlog",
-                  collapsed: true,
-                  items: [{ text: "Übersicht", link: "/de/planning/backlog" }],
-                },
-              ],
-            },
+
+          sidebar: {
+            "/de/planning/": [
+              {
+                text: "Release",
+                items: [
+                  {
+                    text: "Roadmap",
+                    collapsed: true,
+                    items: [{ text: "Übersicht", link: "/de/planning/" }],
+                  },
+                  {
+                    text: "Planung",
+                    collapsed: true,
+                    items: [
+                      { text: "v0.2.0 Planung", link: "/de/planning/v0.2.0" },
+                    ],
+                  },
+                  {
+                    text: "Releases",
+                    collapsed: true,
+                    items: [
+                      { text: "Übersicht", link: "/de/releases/" },
+                      { text: "v0.1.0", link: "/de/releases/v0.1.0" },
+                    ],
+                  },
+                  {
+                    text: "Feature Backlog",
+                    collapsed: true,
+                    items: [
+                      { text: "Übersicht", link: "/de/planning/backlog" },
+                    ],
+                  },
+                ],
+              },
+            ],
+            "/de/releases/": [
+              {
+                text: "Release",
+                items: [
+                  {
+                    text: "Roadmap",
+                    collapsed: true,
+                    items: [{ text: "Übersicht", link: "/de/planning/" }],
+                  },
+                  {
+                    text: "Planung",
+                    collapsed: true,
+                    items: [
+                      { text: "v0.2.0 Planung", link: "/de/planning/v0.2.0" },
+                    ],
+                  },
+                  {
+                    text: "Releases",
+                    collapsed: true,
+                    items: [
+                      { text: "Übersicht", link: "/de/releases/" },
+                      { text: "v0.1.0", link: "/de/releases/v0.1.0" },
+                    ],
+                  },
+                  {
+                    text: "Feature Backlog",
+                    collapsed: true,
+                    items: [
+                      { text: "Übersicht", link: "/de/planning/backlog" },
+                    ],
+                  },
+                ],
+              },
+            ],
+            "/de/administrationshandbuch/": [
+              {
+                text: "Übersicht",
+                items: [
+                  {
+                    text: "Administrationshandbuch",
+                    link: "/de/administrationshandbuch/",
+                  },
+                ],
+              },
+              {
+                text: "Server-Architektur",
+                items: [
+                  {
+                    text: "Proxmox VE",
+                    link: "/de/administrationshandbuch/server-architektur/proxmox",
+                  },
+                  {
+                    text: "Proxmox Backup Server",
+                    link: "/de/administrationshandbuch/server-architektur/pbs-backup",
+                  },
+                  {
+                    text: "OPNsense",
+                    link: "/de/administrationshandbuch/server-architektur/opnsense",
+                  },
+                ],
+              },
+              {
+                text: "Geodateninfrastruktur",
+                items: [
+                  {
+                    text: "Übersicht GDI",
+                    link: "/de/administrationshandbuch/geodateninfrastruktur/",
+                  },
+                  {
+                    text: "GDI-Architektur",
+                    link: "/de/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+                  },
+                  {
+                    text: "PostgreSQL/PostGIS",
+                    link: "/de/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+                  },
+                  {
+                    text: "GeoServer",
+                    link: "/de/administrationshandbuch/geodateninfrastruktur/geoserver",
+                  },
+                  {
+                    text: "MapProxy",
+                    link: "/de/administrationshandbuch/geodateninfrastruktur/mapproxy",
+                  },
+                  {
+                    text: "OSM-Tileserver",
+                    link: "/de/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+                  },
+                ],
+              },
+              {
+                text: "Software-Architektur",
+                items: [
+                  {
+                    text: "Software-Architektur",
+                    link: "/de/administrationshandbuch/software-architektur",
+                  },
+                  {
+                    text: "Frontend-Architektur",
+                    link: "/de/administrationshandbuch/frontend-architektur",
+                  },
+                ],
+              },
+              {
+                text: "Deployment",
+                items: [
+                  {
+                    text: "CI/CD Pipeline",
+                    link: "/de/administrationshandbuch/deployment/cicd-pipeline",
+                  },
+                  {
+                    text: "Staging",
+                    link: "/de/administrationshandbuch/deployment/staging",
+                  },
+                  {
+                    text: "Production",
+                    link: "/de/administrationshandbuch/deployment/production",
+                  },
+                  {
+                    text: "Multi-Branch Deployment",
+                    link: "/de/administrationshandbuch/deployment/multi-branch-deployment",
+                  },
+                  {
+                    text: "Multi-Repo Setup",
+                    link: "/de/administrationshandbuch/multi-repo-deployment",
+                  },
+                  {
+                    text: "Upgrade-Prozess",
+                    link: "/de/administrationshandbuch/upgrade-prozess",
+                  },
+                ],
+              },
+              {
+                text: "Sicherheit & Backup",
+                items: [
+                  {
+                    text: "Backup-Strategie",
+                    link: "/de/administrationshandbuch/backup-strategie",
+                  },
+                ],
+              },
+            ],
+            "/de/entwicklung/": [
+              {
+                text: "Entwicklung",
+                items: [
+                  {
+                    text: "Contributing",
+                    link: "/de/entwicklung/contributing",
+                  },
+                  {
+                    text: "Polygon Sync Plugin",
+                    link: "/de/entwicklung/polygon-sync",
+                  },
+                ],
+              },
+            ],
+            "/de/quality-overview": [
+              {
+                text: "Qualitätsübersicht",
+                items: [
+                  {
+                    text: "Dokumentations-Qualität",
+                    link: "/de/quality-overview",
+                  },
+                ],
+              },
+            ],
+            "/de/entwicklungshandbuch/": [
+              {
+                text: "Übersicht",
+                items: [
+                  {
+                    text: "Entwicklungs-Handbuch",
+                    link: "/de/entwicklungshandbuch/",
+                  },
+                ],
+              },
+              {
+                text: "Architektur",
+                collapsed: false,
+                items: [
+                  {
+                    text: "Systemüberblick",
+                    link: "/de/entwicklungshandbuch/architektur/systemueberblick",
+                  },
+                  {
+                    text: "Technologie-Stack",
+                    link: "/de/entwicklungshandbuch/architektur/technologie-stack",
+                  },
+                  {
+                    text: "Projektstruktur",
+                    link: "/de/entwicklungshandbuch/architektur/projektstruktur",
+                  },
+                  {
+                    text: "Datenfluss",
+                    link: "/de/entwicklungshandbuch/architektur/datenfluss",
+                  },
+                ],
+              },
+              {
+                text: "Module",
+                collapsed: false,
+                items: [
+                  {
+                    text: "Karten",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Map Config",
+                        link: "/de/entwicklungshandbuch/module/karten/map-config",
+                      },
+                      {
+                        text: "Layer Management",
+                        link: "/de/entwicklungshandbuch/module/karten/layer-management",
+                      },
+                      {
+                        text: "OpenLayers Integration",
+                        link: "/de/entwicklungshandbuch/module/karten/openlayers-integration",
+                      },
+                      {
+                        text: "WMS/WMTS Services",
+                        link: "/de/entwicklungshandbuch/module/karten/wms-wmts-services",
+                      },
+                    ],
+                  },
+                  {
+                    text: "Feature Editor",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Editor Overview",
+                        link: "/de/entwicklungshandbuch/module/feature-editor/editor-overview",
+                      },
+                      {
+                        text: "Draw Manager",
+                        link: "/de/entwicklungshandbuch/module/feature-editor/draw-manager",
+                      },
+                      {
+                        text: "Edit Mode",
+                        link: "/de/entwicklungshandbuch/module/feature-editor/edit-mode",
+                      },
+                      {
+                        text: "Feature Sync",
+                        link: "/de/entwicklungshandbuch/module/feature-editor/feature-sync",
+                      },
+                      {
+                        text: "OSM Integration",
+                        link: "/de/entwicklungshandbuch/module/feature-editor/osm-integration",
+                      },
+                    ],
+                  },
+                  {
+                    text: "Kommunen",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Content Collections",
+                        link: "/de/entwicklungshandbuch/module/kommunen/content-collections",
+                      },
+                      {
+                        text: "Datenstruktur",
+                        link: "/de/entwicklungshandbuch/module/kommunen/datenstruktur",
+                      },
+                      {
+                        text: "Routing",
+                        link: "/de/entwicklungshandbuch/module/kommunen/routing",
+                      },
+                    ],
+                  },
+                  {
+                    text: "UI-Komponenten",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Astro Components",
+                        link: "/de/entwicklungshandbuch/module/ui-komponenten/astro-components",
+                      },
+                      {
+                        text: "TailwindCSS Styling",
+                        link: "/de/entwicklungshandbuch/module/ui-komponenten/tailwind-styling",
+                      },
+                      {
+                        text: "Responsive Design",
+                        link: "/de/entwicklungshandbuch/module/ui-komponenten/responsive-design",
+                      },
+                    ],
+                  },
+                  {
+                    text: "Utilities",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Layer Interaction",
+                        link: "/de/entwicklungshandbuch/module/utilities/layer-interaction",
+                      },
+                      {
+                        text: "Coordinate Utils",
+                        link: "/de/entwicklungshandbuch/module/utilities/coordinate-utils",
+                      },
+                      {
+                        text: "Storage Management",
+                        link: "/de/entwicklungshandbuch/module/utilities/storage-management",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                text: "Entwicklungsworkflow",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Lokales Setup",
+                    link: "/de/entwicklungshandbuch/entwicklungsworkflow/setup-lokal",
+                  },
+                  {
+                    text: "Git Workflow",
+                    link: "/de/entwicklungshandbuch/entwicklungsworkflow/git-workflow",
+                  },
+                  {
+                    text: "Code Style",
+                    link: "/de/entwicklungshandbuch/entwicklungsworkflow/code-style",
+                  },
+                  {
+                    text: "Testing",
+                    link: "/de/entwicklungshandbuch/entwicklungsworkflow/testing",
+                  },
+                  {
+                    text: "Debugging",
+                    link: "/de/entwicklungshandbuch/entwicklungsworkflow/debugging",
+                  },
+                ],
+              },
+              {
+                text: "Deployment",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Multi-Branch System",
+                    link: "/de/entwicklungshandbuch/deployment/multi-branch-system",
+                  },
+                  {
+                    text: "Webhook Automation",
+                    link: "/de/entwicklungshandbuch/deployment/webhook-automation",
+                  },
+                  {
+                    text: "Systemd Services",
+                    link: "/de/entwicklungshandbuch/deployment/systemd-services",
+                  },
+                  {
+                    text: "Caddy Proxy",
+                    link: "/de/entwicklungshandbuch/deployment/caddy-proxy",
+                  },
+                ],
+              },
+              {
+                text: "Datenverwaltung",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Kommunen Collection",
+                    link: "/de/entwicklungshandbuch/datenverwaltung/kommunen-collection",
+                  },
+                  {
+                    text: "Geodaten-Quellen",
+                    link: "/de/entwicklungshandbuch/datenverwaltung/geodaten-quellen",
+                  },
+                  {
+                    text: "Daten-Synchronisation",
+                    link: "/de/entwicklungshandbuch/datenverwaltung/daten-synchronisation",
+                  },
+                ],
+              },
+              {
+                text: "API-Referenz",
+                collapsed: true,
+                items: [
+                  {
+                    text: "TypeScript Modules",
+                    link: "/de/entwicklungshandbuch/api-referenz/typescript-modules",
+                  },
+                  {
+                    text: "Astro Endpoints",
+                    link: "/de/entwicklungshandbuch/api-referenz/astro-endpoints",
+                  },
+                  {
+                    text: "Config-Optionen",
+                    link: "/de/entwicklungshandbuch/api-referenz/config-optionen",
+                  },
+                ],
+              },
+              {
+                text: "Contrib",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Contributing",
+                    link: "/de/entwicklungshandbuch/contrib/contributing",
+                  },
+                  {
+                    text: "Code Review Guide",
+                    link: "/de/entwicklungshandbuch/contrib/code-review-guide",
+                  },
+                  {
+                    text: "Merge Policy",
+                    link: "/de/entwicklungshandbuch/contrib/merge-policy",
+                  },
+                ],
+              },
+            ],
+            "/de/entwicklungsstrategie/": [
+              {
+                text: "Vision & Philosophie",
+                items: [
+                  { text: "Übersicht", link: "/de/entwicklungsstrategie/" },
+                  {
+                    text: "Vision 2030",
+                    link: "/de/entwicklungsstrategie/vision",
+                  },
+                  {
+                    text: "OpenSource-Philosophie",
+                    link: "/de/entwicklungsstrategie/opensource-philosophie",
+                  },
+                ],
+              },
+              {
+                text: "Skalierung",
+                items: [
+                  {
+                    text: "Kategorien",
+                    link: "/de/entwicklungsstrategie/skalierung/kategorien",
+                  },
+                  {
+                    text: "Kommunen",
+                    link: "/de/entwicklungsstrategie/skalierung/kommunen",
+                  },
+                  {
+                    text: "Bundesländer",
+                    link: "/de/entwicklungsstrategie/skalierung/bundeslaender",
+                  },
+                  {
+                    text: "Europa & Global",
+                    link: "/de/entwicklungsstrategie/skalierung/europa-global",
+                  },
+                ],
+              },
+              {
+                text: "Roadmap",
+                items: [
+                  {
+                    text: "Roadmap",
+                    link: "/de/entwicklungsstrategie/roadmap",
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+
+      en: {
+        label: "English",
+        lang: "en-US",
+        link: "/en/",
+
+        themeConfig: {
+          nav: [
+            { text: "Start", link: "/en/" },
+            { text: "Documentation", link: "https://doc.data-dna.eu" },
+            { text: "User Manual", link: "/en/benutzerhandbuch/" },
+            { text: "Admin Manual", link: "/en/administrationshandbuch/" },
+            { text: "Developer Handbook", link: "/en/entwicklungshandbuch/" },
+            { text: "Release", link: "/en/planning/" },
+            { text: "Strategy", link: "/en/entwicklungsstrategie/" },
+            { text: "Docu QA", link: "/en/quality-overview" },
           ],
-          "/de/administrationshandbuch/": [
-            {
-              text: "Übersicht",
-              items: [
-                {
-                  text: "Administrationshandbuch",
-                  link: "/de/administrationshandbuch/",
-                },
-              ],
-            },
-            {
-              text: "Server-Architektur",
-              items: [
-                {
-                  text: "Proxmox VE",
-                  link: "/de/administrationshandbuch/server-architektur/proxmox",
-                },
-                {
-                  text: "Proxmox Backup Server",
-                  link: "/de/administrationshandbuch/server-architektur/pbs-backup",
-                },
-                {
-                  text: "OPNsense",
-                  link: "/de/administrationshandbuch/server-architektur/opnsense",
-                },
-              ],
-            },
-            {
-              text: "Geodateninfrastruktur",
-              items: [
-                {
-                  text: "Übersicht GDI",
-                  link: "/de/administrationshandbuch/geodateninfrastruktur/",
-                },
-                {
-                  text: "GDI-Architektur",
-                  link: "/de/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
-                },
-                {
-                  text: "PostgreSQL/PostGIS",
-                  link: "/de/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-                },
-                {
-                  text: "GeoServer",
-                  link: "/de/administrationshandbuch/geodateninfrastruktur/geoserver",
-                },
-                {
-                  text: "MapProxy",
-                  link: "/de/administrationshandbuch/geodateninfrastruktur/mapproxy",
-                },
-                {
-                  text: "OSM-Tileserver",
-                  link: "/de/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
-                },
-              ],
-            },
-            {
-              text: "Software-Architektur",
-              items: [
-                {
-                  text: "Software-Architektur",
-                  link: "/de/administrationshandbuch/software-architektur",
-                },
-                {
-                  text: "Frontend-Architektur",
-                  link: "/de/administrationshandbuch/frontend-architektur",
-                },
-              ],
-            },
-            {
-              text: "Deployment",
-              items: [
-                {
-                  text: "CI/CD Pipeline",
-                  link: "/de/administrationshandbuch/deployment/cicd-pipeline",
-                },
-                {
-                  text: "Staging",
-                  link: "/de/administrationshandbuch/deployment/staging",
-                },
-                {
-                  text: "Production",
-                  link: "/de/administrationshandbuch/deployment/production",
-                },
-                {
-                  text: "Multi-Branch Deployment",
-                  link: "/de/administrationshandbuch/deployment/multi-branch-deployment",
-                },
-                {
-                  text: "Multi-Repo Setup",
-                  link: "/de/administrationshandbuch/multi-repo-deployment",
-                },
-                {
-                  text: "Upgrade-Prozess",
-                  link: "/de/administrationshandbuch/upgrade-prozess",
-                },
-              ],
-            },
-            {
-              text: "Sicherheit & Backup",
-              items: [
-                {
-                  text: "Backup-Strategie",
-                  link: "/de/administrationshandbuch/backup-strategie",
-                },
-              ],
-            },
-          ],
-          "/de/entwicklung/": [
-            {
-              text: "Entwicklung",
-              items: [
-                { text: "Contributing", link: "/de/entwicklung/contributing" },
-                {
-                  text: "Polygon Sync Plugin",
-                  link: "/de/entwicklung/polygon-sync",
-                },
-              ],
-            },
-          ],
-          "/de/quality-overview": [
-            {
-              text: "Qualitätsübersicht",
-              items: [
-                {
-                  text: "Dokumentations-Qualität",
-                  link: "/de/quality-overview",
-                },
-              ],
-            },
-          ],
-          "/de/entwicklungshandbuch/": [
-            {
-              text: "Übersicht",
-              items: [
-                {
-                  text: "Entwicklungs-Handbuch",
-                  link: "/de/entwicklungshandbuch/",
-                },
-              ],
-            },
-            {
-              text: "Architektur",
-              collapsed: false,
-              items: [
-                {
-                  text: "Systemüberblick",
-                  link: "/de/entwicklungshandbuch/architektur/systemueberblick",
-                },
-                {
-                  text: "Technologie-Stack",
-                  link: "/de/entwicklungshandbuch/architektur/technologie-stack",
-                },
-                {
-                  text: "Projektstruktur",
-                  link: "/de/entwicklungshandbuch/architektur/projektstruktur",
-                },
-                {
-                  text: "Datenfluss",
-                  link: "/de/entwicklungshandbuch/architektur/datenfluss",
-                },
-              ],
-            },
-            {
-              text: "Module",
-              collapsed: false,
-              items: [
-                {
-                  text: "Karten",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Map Config",
-                      link: "/de/entwicklungshandbuch/module/karten/map-config",
-                    },
-                    {
-                      text: "Layer Management",
-                      link: "/de/entwicklungshandbuch/module/karten/layer-management",
-                    },
-                    {
-                      text: "OpenLayers Integration",
-                      link: "/de/entwicklungshandbuch/module/karten/openlayers-integration",
-                    },
-                    {
-                      text: "WMS/WMTS Services",
-                      link: "/de/entwicklungshandbuch/module/karten/wms-wmts-services",
-                    },
-                  ],
-                },
-                {
-                  text: "Feature Editor",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Editor Overview",
-                      link: "/de/entwicklungshandbuch/module/feature-editor/editor-overview",
-                    },
-                    {
-                      text: "Draw Manager",
-                      link: "/de/entwicklungshandbuch/module/feature-editor/draw-manager",
-                    },
-                    {
-                      text: "Edit Mode",
-                      link: "/de/entwicklungshandbuch/module/feature-editor/edit-mode",
-                    },
-                    {
-                      text: "Feature Sync",
-                      link: "/de/entwicklungshandbuch/module/feature-editor/feature-sync",
-                    },
-                    {
-                      text: "OSM Integration",
-                      link: "/de/entwicklungshandbuch/module/feature-editor/osm-integration",
-                    },
-                  ],
-                },
-                {
-                  text: "Kommunen",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Content Collections",
-                      link: "/de/entwicklungshandbuch/module/kommunen/content-collections",
-                    },
-                    {
-                      text: "Datenstruktur",
-                      link: "/de/entwicklungshandbuch/module/kommunen/datenstruktur",
-                    },
-                    {
-                      text: "Routing",
-                      link: "/de/entwicklungshandbuch/module/kommunen/routing",
-                    },
-                  ],
-                },
-                {
-                  text: "UI-Komponenten",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Astro Components",
-                      link: "/de/entwicklungshandbuch/module/ui-komponenten/astro-components",
-                    },
-                    {
-                      text: "TailwindCSS Styling",
-                      link: "/de/entwicklungshandbuch/module/ui-komponenten/tailwind-styling",
-                    },
-                    {
-                      text: "Responsive Design",
-                      link: "/de/entwicklungshandbuch/module/ui-komponenten/responsive-design",
-                    },
-                  ],
-                },
-                {
-                  text: "Utilities",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Layer Interaction",
-                      link: "/de/entwicklungshandbuch/module/utilities/layer-interaction",
-                    },
-                    {
-                      text: "Coordinate Utils",
-                      link: "/de/entwicklungshandbuch/module/utilities/coordinate-utils",
-                    },
-                    {
-                      text: "Storage Management",
-                      link: "/de/entwicklungshandbuch/module/utilities/storage-management",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              text: "Entwicklungsworkflow",
-              collapsed: true,
-              items: [
-                {
-                  text: "Lokales Setup",
-                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/setup-lokal",
-                },
-                {
-                  text: "Git Workflow",
-                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/git-workflow",
-                },
-                {
-                  text: "Code Style",
-                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/code-style",
-                },
-                {
-                  text: "Testing",
-                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/testing",
-                },
-                {
-                  text: "Debugging",
-                  link: "/de/entwicklungshandbuch/entwicklungsworkflow/debugging",
-                },
-              ],
-            },
-            {
-              text: "Deployment",
-              collapsed: true,
-              items: [
-                {
-                  text: "Multi-Branch System",
-                  link: "/de/entwicklungshandbuch/deployment/multi-branch-system",
-                },
-                {
-                  text: "Webhook Automation",
-                  link: "/de/entwicklungshandbuch/deployment/webhook-automation",
-                },
-                {
-                  text: "Systemd Services",
-                  link: "/de/entwicklungshandbuch/deployment/systemd-services",
-                },
-                {
-                  text: "Caddy Proxy",
-                  link: "/de/entwicklungshandbuch/deployment/caddy-proxy",
-                },
-              ],
-            },
-            {
-              text: "Datenverwaltung",
-              collapsed: true,
-              items: [
-                {
-                  text: "Kommunen Collection",
-                  link: "/de/entwicklungshandbuch/datenverwaltung/kommunen-collection",
-                },
-                {
-                  text: "Geodaten-Quellen",
-                  link: "/de/entwicklungshandbuch/datenverwaltung/geodaten-quellen",
-                },
-                {
-                  text: "Daten-Synchronisation",
-                  link: "/de/entwicklungshandbuch/datenverwaltung/daten-synchronisation",
-                },
-              ],
-            },
-            {
-              text: "API-Referenz",
-              collapsed: true,
-              items: [
-                {
-                  text: "TypeScript Modules",
-                  link: "/de/entwicklungshandbuch/api-referenz/typescript-modules",
-                },
-                {
-                  text: "Astro Endpoints",
-                  link: "/de/entwicklungshandbuch/api-referenz/astro-endpoints",
-                },
-                {
-                  text: "Config-Optionen",
-                  link: "/de/entwicklungshandbuch/api-referenz/config-optionen",
-                },
-              ],
-            },
-            {
-              text: "Contrib",
-              collapsed: true,
-              items: [
-                {
-                  text: "Contributing",
-                  link: "/de/entwicklungshandbuch/contrib/contributing",
-                },
-                {
-                  text: "Code Review Guide",
-                  link: "/de/entwicklungshandbuch/contrib/code-review-guide",
-                },
-                {
-                  text: "Merge Policy",
-                  link: "/de/entwicklungshandbuch/contrib/merge-policy",
-                },
-              ],
-            },
-          ],
-          "/de/entwicklungsstrategie/": [
-            {
-              text: "Vision & Philosophie",
-              items: [
-                { text: "Übersicht", link: "/de/entwicklungsstrategie/" },
-                {
-                  text: "Vision 2030",
-                  link: "/de/entwicklungsstrategie/vision",
-                },
-                {
-                  text: "OpenSource-Philosophie",
-                  link: "/de/entwicklungsstrategie/opensource-philosophie",
-                },
-              ],
-            },
-            {
-              text: "Skalierung",
-              items: [
-                {
-                  text: "Kategorien",
-                  link: "/de/entwicklungsstrategie/skalierung/kategorien",
-                },
-                {
-                  text: "Kommunen",
-                  link: "/de/entwicklungsstrategie/skalierung/kommunen",
-                },
-                {
-                  text: "Bundesländer",
-                  link: "/de/entwicklungsstrategie/skalierung/bundeslaender",
-                },
-                {
-                  text: "Europa & Global",
-                  link: "/de/entwicklungsstrategie/skalierung/europa-global",
-                },
-              ],
-            },
-            {
-              text: "Roadmap",
-              items: [
-                { text: "Roadmap", link: "/de/entwicklungsstrategie/roadmap" },
-              ],
-            },
-          ],
+
+          sidebar: {
+            "/en/planning/": [
+              {
+                text: "Release",
+                items: [
+                  {
+                    text: "Roadmap",
+                    collapsed: true,
+                    items: [{ text: "Overview", link: "/en/planning/" }],
+                  },
+                  {
+                    text: "Planning",
+                    collapsed: true,
+                    items: [
+                      { text: "v0.2.0 Planning", link: "/en/planning/v0.2.0" },
+                    ],
+                  },
+                  {
+                    text: "Releases",
+                    collapsed: true,
+                    items: [
+                      { text: "Overview", link: "/en/releases/" },
+                      { text: "v0.1.0", link: "/en/releases/v0.1.0" },
+                    ],
+                  },
+                  {
+                    text: "Feature Backlog",
+                    collapsed: true,
+                    items: [{ text: "Overview", link: "/en/planning/backlog" }],
+                  },
+                ],
+              },
+            ],
+            "/en/releases/": [
+              {
+                text: "Release",
+                items: [
+                  {
+                    text: "Roadmap",
+                    collapsed: true,
+                    items: [{ text: "Overview", link: "/en/planning/" }],
+                  },
+                  {
+                    text: "Planning",
+                    collapsed: true,
+                    items: [
+                      { text: "v0.2.0 Planning", link: "/en/planning/v0.2.0" },
+                    ],
+                  },
+                  {
+                    text: "Releases",
+                    collapsed: true,
+                    items: [
+                      { text: "Overview", link: "/en/releases/" },
+                      { text: "v0.1.0", link: "/en/releases/v0.1.0" },
+                    ],
+                  },
+                  {
+                    text: "Feature Backlog",
+                    collapsed: true,
+                    items: [{ text: "Overview", link: "/en/planning/backlog" }],
+                  },
+                ],
+              },
+            ],
+            "/en/administrationshandbuch/": [
+              {
+                text: "Overview",
+                items: [
+                  {
+                    text: "Administration Handbook",
+                    link: "/en/administrationshandbuch/",
+                  },
+                ],
+              },
+              {
+                text: "Server Architecture",
+                items: [
+                  {
+                    text: "Proxmox VE",
+                    link: "/en/administrationshandbuch/server-architektur/proxmox",
+                  },
+                  {
+                    text: "Proxmox Backup Server",
+                    link: "/en/administrationshandbuch/server-architektur/pbs-backup",
+                  },
+                  {
+                    text: "OPNsense",
+                    link: "/en/administrationshandbuch/server-architektur/opnsense",
+                  },
+                ],
+              },
+              {
+                text: "Geospatial Data Infrastructure",
+                items: [
+                  {
+                    text: "GDI Overview",
+                    link: "/en/administrationshandbuch/geodateninfrastruktur/",
+                  },
+                  {
+                    text: "PostgreSQL/PostGIS",
+                    link: "/en/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+                  },
+                  {
+                    text: "GeoServer",
+                    link: "/en/administrationshandbuch/geodateninfrastruktur/geoserver",
+                  },
+                  {
+                    text: "MapProxy",
+                    link: "/en/administrationshandbuch/geodateninfrastruktur/mapproxy",
+                  },
+                  {
+                    text: "OSM Tileserver",
+                    link: "/en/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+                  },
+                ],
+              },
+            ],
+            "/en/benutzerhandbuch/": [
+              {
+                text: "User Guide",
+                items: [
+                  {
+                    text: "Main Window",
+                    link: "/en/benutzerhandbuch/hauptfenster",
+                  },
+                  {
+                    text: "Feature Editor",
+                    link: "/en/benutzerhandbuch/feature-editor",
+                  },
+                ],
+              },
+            ],
+            "/en/entwicklungshandbuch/": [
+              {
+                text: "Overview",
+                items: [
+                  {
+                    text: "Development Handbook",
+                    link: "/en/entwicklungshandbuch/",
+                  },
+                ],
+              },
+              {
+                text: "Architecture",
+                collapsed: false,
+                items: [
+                  {
+                    text: "System Overview",
+                    link: "/en/entwicklungshandbuch/architektur/systemueberblick",
+                  },
+                  {
+                    text: "Technology Stack",
+                    link: "/en/entwicklungshandbuch/architektur/technologie-stack",
+                  },
+                  {
+                    text: "Project Structure",
+                    link: "/en/entwicklungshandbuch/architektur/projektstruktur",
+                  },
+                  {
+                    text: "Data Flow",
+                    link: "/en/entwicklungshandbuch/architektur/datenfluss",
+                  },
+                ],
+              },
+              {
+                text: "Modules",
+                collapsed: false,
+                items: [
+                  {
+                    text: "Maps",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Map Config",
+                        link: "/en/entwicklungshandbuch/module/karten/map-config",
+                      },
+                      {
+                        text: "Layer Management",
+                        link: "/en/entwicklungshandbuch/module/karten/layer-management",
+                      },
+                      {
+                        text: "OpenLayers Integration",
+                        link: "/en/entwicklungshandbuch/module/karten/openlayers-integration",
+                      },
+                      {
+                        text: "WMS/WMTS Services",
+                        link: "/en/entwicklungshandbuch/module/karten/wms-wmts-services",
+                      },
+                    ],
+                  },
+                  {
+                    text: "Feature Editor",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Editor Overview",
+                        link: "/en/entwicklungshandbuch/module/feature-editor/editor-overview",
+                      },
+                      {
+                        text: "Draw Manager",
+                        link: "/en/entwicklungshandbuch/module/feature-editor/draw-manager",
+                      },
+                      {
+                        text: "Edit Mode",
+                        link: "/en/entwicklungshandbuch/module/feature-editor/edit-mode",
+                      },
+                      {
+                        text: "Feature Sync",
+                        link: "/en/entwicklungshandbuch/module/feature-editor/feature-sync",
+                      },
+                      {
+                        text: "OSM Integration",
+                        link: "/en/entwicklungshandbuch/module/feature-editor/osm-integration",
+                      },
+                    ],
+                  },
+                  {
+                    text: "Municipalities",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Content Collections",
+                        link: "/en/entwicklungshandbuch/module/kommunen/content-collections",
+                      },
+                      {
+                        text: "Data Structure",
+                        link: "/en/entwicklungshandbuch/module/kommunen/datenstruktur",
+                      },
+                      {
+                        text: "Routing",
+                        link: "/en/entwicklungshandbuch/module/kommunen/routing",
+                      },
+                    ],
+                  },
+                  {
+                    text: "UI Components",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Astro Components",
+                        link: "/en/entwicklungshandbuch/module/ui-komponenten/astro-components",
+                      },
+                      {
+                        text: "TailwindCSS Styling",
+                        link: "/en/entwicklungshandbuch/module/ui-komponenten/tailwind-styling",
+                      },
+                      {
+                        text: "Responsive Design",
+                        link: "/en/entwicklungshandbuch/module/ui-komponenten/responsive-design",
+                      },
+                    ],
+                  },
+                  {
+                    text: "Utilities",
+                    collapsed: true,
+                    items: [
+                      {
+                        text: "Layer Interaction",
+                        link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
+                      },
+                      {
+                        text: "Coordinate Utils",
+                        link: "/en/entwicklungshandbuch/module/utilities/coordinate-utils",
+                      },
+                      {
+                        text: "Storage Management",
+                        link: "/en/entwicklungshandbuch/module/utilities/storage-management",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                text: "Development Workflow",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Local Setup",
+                    link: "/en/entwicklungshandbuch/entwicklungsworkflow/setup-lokal",
+                  },
+                  {
+                    text: "Git Workflow",
+                    link: "/en/entwicklungshandbuch/entwicklungsworkflow/git-workflow",
+                  },
+                  {
+                    text: "Code Style",
+                    link: "/en/entwicklungshandbuch/entwicklungsworkflow/code-style",
+                  },
+                  {
+                    text: "Testing",
+                    link: "/en/entwicklungshandbuch/entwicklungsworkflow/testing",
+                  },
+                  {
+                    text: "Debugging",
+                    link: "/en/entwicklungshandbuch/entwicklungsworkflow/debugging",
+                  },
+                ],
+              },
+              {
+                text: "Deployment",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Multi-Branch System",
+                    link: "/en/entwicklungshandbuch/deployment/multi-branch-system",
+                  },
+                  {
+                    text: "Webhook Automation",
+                    link: "/en/entwicklungshandbuch/deployment/webhook-automation",
+                  },
+                  {
+                    text: "Systemd Services",
+                    link: "/en/entwicklungshandbuch/deployment/systemd-services",
+                  },
+                  {
+                    text: "Caddy Proxy",
+                    link: "/en/entwicklungshandbuch/deployment/caddy-proxy",
+                  },
+                ],
+              },
+              {
+                text: "Data Management",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Municipalities Collection",
+                    link: "/en/entwicklungshandbuch/datenverwaltung/kommunen-collection",
+                  },
+                  {
+                    text: "Geodata Sources",
+                    link: "/en/entwicklungshandbuch/datenverwaltung/geodaten-quellen",
+                  },
+                  {
+                    text: "Data Synchronization",
+                    link: "/en/entwicklungshandbuch/datenverwaltung/daten-synchronisation",
+                  },
+                ],
+              },
+              {
+                text: "API Reference",
+                collapsed: true,
+                items: [
+                  {
+                    text: "TypeScript Modules",
+                    link: "/en/entwicklungshandbuch/api-referenz/typescript-modules",
+                  },
+                  {
+                    text: "Astro Endpoints",
+                    link: "/en/entwicklungshandbuch/api-referenz/astro-endpoints",
+                  },
+                  {
+                    text: "Config Options",
+                    link: "/en/entwicklungshandbuch/api-referenz/config-optionen",
+                  },
+                ],
+              },
+              {
+                text: "Contrib",
+                collapsed: true,
+                items: [
+                  {
+                    text: "Contributing",
+                    link: "/en/entwicklungshandbuch/contrib/contributing",
+                  },
+                  {
+                    text: "Code Review Guide",
+                    link: "/en/entwicklungshandbuch/contrib/code-review-guide",
+                  },
+                  {
+                    text: "Merge Policy",
+                    link: "/en/entwicklungshandbuch/contrib/merge-policy",
+                  },
+                ],
+              },
+            ],
+            "/en/entwicklungsstrategie/": [
+              {
+                text: "Vision & Philosophy",
+                items: [
+                  { text: "Overview", link: "/en/entwicklungsstrategie/" },
+                  {
+                    text: "Vision 2030",
+                    link: "/en/entwicklungsstrategie/vision",
+                  },
+                  {
+                    text: "Open Source Philosophy",
+                    link: "/en/entwicklungsstrategie/opensource-philosophie",
+                  },
+                ],
+              },
+              {
+                text: "Scaling",
+                items: [
+                  {
+                    text: "Categories",
+                    link: "/en/entwicklungsstrategie/skalierung/kategorien",
+                  },
+                  {
+                    text: "Municipalities",
+                    link: "/en/entwicklungsstrategie/skalierung/kommunen",
+                  },
+                  {
+                    text: "Federal States",
+                    link: "/en/entwicklungsstrategie/skalierung/bundeslaender",
+                  },
+                  {
+                    text: "Europe & Global",
+                    link: "/en/entwicklungsstrategie/skalierung/europa-global",
+                  },
+                ],
+              },
+              {
+                text: "Roadmap",
+                items: [
+                  {
+                    text: "Roadmap",
+                    link: "/en/entwicklungsstrategie/roadmap",
+                  },
+                ],
+              },
+            ],
+          },
         },
       },
     },
 
-    en: {
-      label: "English",
-      lang: "en-US",
-      link: "/en/",
-
-      themeConfig: {
-        nav: [
-          { text: "Start", link: "/en/" },
-          { text: "Documentation", link: "https://doc.data-dna.eu" },
-          { text: "User Manual", link: "/en/benutzerhandbuch/" },
-          { text: "Admin Manual", link: "/en/administrationshandbuch/" },
-          { text: "Developer Handbook", link: "/en/entwicklungshandbuch/" },
-          { text: "Release", link: "/en/planning/" },
-          { text: "Strategy", link: "/en/entwicklungsstrategie/" },
-          { text: "Docu QA", link: "/en/quality-overview" },
-        ],
-
-        sidebar: {
-          "/en/planning/": [
-            {
-              text: "Release",
-              items: [
-                {
-                  text: "Roadmap",
-                  collapsed: true,
-                  items: [{ text: "Overview", link: "/en/planning/" }],
-                },
-                {
-                  text: "Planning",
-                  collapsed: true,
-                  items: [
-                    { text: "v0.2.0 Planning", link: "/en/planning/v0.2.0" },
-                  ],
-                },
-                {
-                  text: "Releases",
-                  collapsed: true,
-                  items: [
-                    { text: "Overview", link: "/en/releases/" },
-                    { text: "v0.1.0", link: "/en/releases/v0.1.0" },
-                  ],
-                },
-                {
-                  text: "Feature Backlog",
-                  collapsed: true,
-                  items: [{ text: "Overview", link: "/en/planning/backlog" }],
-                },
-              ],
-            },
-          ],
-          "/en/releases/": [
-            {
-              text: "Release",
-              items: [
-                {
-                  text: "Roadmap",
-                  collapsed: true,
-                  items: [{ text: "Overview", link: "/en/planning/" }],
-                },
-                {
-                  text: "Planning",
-                  collapsed: true,
-                  items: [
-                    { text: "v0.2.0 Planning", link: "/en/planning/v0.2.0" },
-                  ],
-                },
-                {
-                  text: "Releases",
-                  collapsed: true,
-                  items: [
-                    { text: "Overview", link: "/en/releases/" },
-                    { text: "v0.1.0", link: "/en/releases/v0.1.0" },
-                  ],
-                },
-                {
-                  text: "Feature Backlog",
-                  collapsed: true,
-                  items: [{ text: "Overview", link: "/en/planning/backlog" }],
-                },
-              ],
-            },
-          ],
-          "/en/administrationshandbuch/": [
-            {
-              text: "Overview",
-              items: [
-                {
-                  text: "Administration Handbook",
-                  link: "/en/administrationshandbuch/",
-                },
-              ],
-            },
-            {
-              text: "Server Architecture",
-              items: [
-                {
-                  text: "Proxmox VE",
-                  link: "/en/administrationshandbuch/server-architektur/proxmox",
-                },
-                {
-                  text: "Proxmox Backup Server",
-                  link: "/en/administrationshandbuch/server-architektur/pbs-backup",
-                },
-                {
-                  text: "OPNsense",
-                  link: "/en/administrationshandbuch/server-architektur/opnsense",
-                },
-              ],
-            },
-            {
-              text: "Geospatial Data Infrastructure",
-              items: [
-                {
-                  text: "GDI Overview",
-                  link: "/en/administrationshandbuch/geodateninfrastruktur/",
-                },
-                {
-                  text: "PostgreSQL/PostGIS",
-                  link: "/en/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-                },
-                {
-                  text: "GeoServer",
-                  link: "/en/administrationshandbuch/geodateninfrastruktur/geoserver",
-                },
-                {
-                  text: "MapProxy",
-                  link: "/en/administrationshandbuch/geodateninfrastruktur/mapproxy",
-                },
-                {
-                  text: "OSM Tileserver",
-                  link: "/en/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
-                },
-              ],
-            },
-          ],
-          "/en/benutzerhandbuch/": [
-            {
-              text: "User Guide",
-              items: [
-                {
-                  text: "Main Window",
-                  link: "/en/benutzerhandbuch/hauptfenster",
-                },
-                {
-                  text: "Feature Editor",
-                  link: "/en/benutzerhandbuch/feature-editor",
-                },
-              ],
-            },
-          ],
-          "/en/entwicklungshandbuch/": [
-            {
-              text: "Overview",
-              items: [
-                {
-                  text: "Development Handbook",
-                  link: "/en/entwicklungshandbuch/",
-                },
-              ],
-            },
-            {
-              text: "Architecture",
-              collapsed: false,
-              items: [
-                {
-                  text: "System Overview",
-                  link: "/en/entwicklungshandbuch/architektur/systemueberblick",
-                },
-                {
-                  text: "Technology Stack",
-                  link: "/en/entwicklungshandbuch/architektur/technologie-stack",
-                },
-                {
-                  text: "Project Structure",
-                  link: "/en/entwicklungshandbuch/architektur/projektstruktur",
-                },
-                {
-                  text: "Data Flow",
-                  link: "/en/entwicklungshandbuch/architektur/datenfluss",
-                },
-              ],
-            },
-            {
-              text: "Modules",
-              collapsed: false,
-              items: [
-                {
-                  text: "Maps",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Map Config",
-                      link: "/en/entwicklungshandbuch/module/karten/map-config",
-                    },
-                    {
-                      text: "Layer Management",
-                      link: "/en/entwicklungshandbuch/module/karten/layer-management",
-                    },
-                    {
-                      text: "OpenLayers Integration",
-                      link: "/en/entwicklungshandbuch/module/karten/openlayers-integration",
-                    },
-                    {
-                      text: "WMS/WMTS Services",
-                      link: "/en/entwicklungshandbuch/module/karten/wms-wmts-services",
-                    },
-                  ],
-                },
-                {
-                  text: "Feature Editor",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Editor Overview",
-                      link: "/en/entwicklungshandbuch/module/feature-editor/editor-overview",
-                    },
-                    {
-                      text: "Draw Manager",
-                      link: "/en/entwicklungshandbuch/module/feature-editor/draw-manager",
-                    },
-                    {
-                      text: "Edit Mode",
-                      link: "/en/entwicklungshandbuch/module/feature-editor/edit-mode",
-                    },
-                    {
-                      text: "Feature Sync",
-                      link: "/en/entwicklungshandbuch/module/feature-editor/feature-sync",
-                    },
-                    {
-                      text: "OSM Integration",
-                      link: "/en/entwicklungshandbuch/module/feature-editor/osm-integration",
-                    },
-                  ],
-                },
-                {
-                  text: "Municipalities",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Content Collections",
-                      link: "/en/entwicklungshandbuch/module/kommunen/content-collections",
-                    },
-                    {
-                      text: "Data Structure",
-                      link: "/en/entwicklungshandbuch/module/kommunen/datenstruktur",
-                    },
-                    {
-                      text: "Routing",
-                      link: "/en/entwicklungshandbuch/module/kommunen/routing",
-                    },
-                  ],
-                },
-                {
-                  text: "UI Components",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Astro Components",
-                      link: "/en/entwicklungshandbuch/module/ui-komponenten/astro-components",
-                    },
-                    {
-                      text: "TailwindCSS Styling",
-                      link: "/en/entwicklungshandbuch/module/ui-komponenten/tailwind-styling",
-                    },
-                    {
-                      text: "Responsive Design",
-                      link: "/en/entwicklungshandbuch/module/ui-komponenten/responsive-design",
-                    },
-                  ],
-                },
-                {
-                  text: "Utilities",
-                  collapsed: true,
-                  items: [
-                    {
-                      text: "Layer Interaction",
-                      link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
-                    },
-                    {
-                      text: "Coordinate Utils",
-                      link: "/en/entwicklungshandbuch/module/utilities/coordinate-utils",
-                    },
-                    {
-                      text: "Storage Management",
-                      link: "/en/entwicklungshandbuch/module/utilities/storage-management",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              text: "Development Workflow",
-              collapsed: true,
-              items: [
-                {
-                  text: "Local Setup",
-                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/setup-lokal",
-                },
-                {
-                  text: "Git Workflow",
-                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/git-workflow",
-                },
-                {
-                  text: "Code Style",
-                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/code-style",
-                },
-                {
-                  text: "Testing",
-                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/testing",
-                },
-                {
-                  text: "Debugging",
-                  link: "/en/entwicklungshandbuch/entwicklungsworkflow/debugging",
-                },
-              ],
-            },
-            {
-              text: "Deployment",
-              collapsed: true,
-              items: [
-                {
-                  text: "Multi-Branch System",
-                  link: "/en/entwicklungshandbuch/deployment/multi-branch-system",
-                },
-                {
-                  text: "Webhook Automation",
-                  link: "/en/entwicklungshandbuch/deployment/webhook-automation",
-                },
-                {
-                  text: "Systemd Services",
-                  link: "/en/entwicklungshandbuch/deployment/systemd-services",
-                },
-                {
-                  text: "Caddy Proxy",
-                  link: "/en/entwicklungshandbuch/deployment/caddy-proxy",
-                },
-              ],
-            },
-            {
-              text: "Data Management",
-              collapsed: true,
-              items: [
-                {
-                  text: "Municipalities Collection",
-                  link: "/en/entwicklungshandbuch/datenverwaltung/kommunen-collection",
-                },
-                {
-                  text: "Geodata Sources",
-                  link: "/en/entwicklungshandbuch/datenverwaltung/geodaten-quellen",
-                },
-                {
-                  text: "Data Synchronization",
-                  link: "/en/entwicklungshandbuch/datenverwaltung/daten-synchronisation",
-                },
-              ],
-            },
-            {
-              text: "API Reference",
-              collapsed: true,
-              items: [
-                {
-                  text: "TypeScript Modules",
-                  link: "/en/entwicklungshandbuch/api-referenz/typescript-modules",
-                },
-                {
-                  text: "Astro Endpoints",
-                  link: "/en/entwicklungshandbuch/api-referenz/astro-endpoints",
-                },
-                {
-                  text: "Config Options",
-                  link: "/en/entwicklungshandbuch/api-referenz/config-optionen",
-                },
-              ],
-            },
-            {
-              text: "Contrib",
-              collapsed: true,
-              items: [
-                {
-                  text: "Contributing",
-                  link: "/en/entwicklungshandbuch/contrib/contributing",
-                },
-                {
-                  text: "Code Review Guide",
-                  link: "/en/entwicklungshandbuch/contrib/code-review-guide",
-                },
-                {
-                  text: "Merge Policy",
-                  link: "/en/entwicklungshandbuch/contrib/merge-policy",
-                },
-              ],
-            },
-          ],
-          "/en/entwicklungsstrategie/": [
-            {
-              text: "Vision & Philosophy",
-              items: [
-                { text: "Overview", link: "/en/entwicklungsstrategie/" },
-                {
-                  text: "Vision 2030",
-                  link: "/en/entwicklungsstrategie/vision",
-                },
-                {
-                  text: "Open Source Philosophy",
-                  link: "/en/entwicklungsstrategie/opensource-philosophie",
-                },
-              ],
-            },
-            {
-              text: "Scaling",
-              items: [
-                {
-                  text: "Categories",
-                  link: "/en/entwicklungsstrategie/skalierung/kategorien",
-                },
-                {
-                  text: "Municipalities",
-                  link: "/en/entwicklungsstrategie/skalierung/kommunen",
-                },
-                {
-                  text: "Federal States",
-                  link: "/en/entwicklungsstrategie/skalierung/bundeslaender",
-                },
-                {
-                  text: "Europe & Global",
-                  link: "/en/entwicklungsstrategie/skalierung/europa-global",
-                },
-              ],
-            },
-            {
-              text: "Roadmap",
-              items: [
-                { text: "Roadmap", link: "/en/entwicklungsstrategie/roadmap" },
-              ],
-            },
-          ],
-        },
-      },
-    },
-  },
-
-  // Gemeinsame Konfiguration
-  themeConfig: {
-    socialLinks: [
-      {
-        icon: {
-          svg: `<svg width="31.129297mm" height="23.621992mm" viewBox="0 0 31.129297 23.621992" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    // Gemeinsame Konfiguration
+    themeConfig: {
+      socialLinks: [
+        {
+          icon: {
+            svg: `<svg width="31.129297mm" height="23.621992mm" viewBox="0 0 31.129297 23.621992" version="1.1" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <style>
                 .cls-1 { fill: #6382ff; }
@@ -969,103 +1017,104 @@ export default defineConfig({
               <path class="cls-2" d="m 167.95,91.75 c -4.51,-2.35 -10.08,-0.59 -12.42,3.92 l -12.47,23.98 c -2.08,4 -6.18,6.49 -10.69,6.49 h -16.71 c -4.51,0 -8.61,-2.49 -10.69,-6.49 L 99.5,109.13 H 78.73 l 9.89,19.02 c 5.26,10.12 15.62,16.41 27.04,16.41 h 16.71 c 11.41,0 21.77,-6.29 27.04,-16.41 l 12.47,-23.98 c 2.35,-4.51 0.59,-10.08 -3.92,-12.42 z"></path>
             </g>
           </svg>`,
+          },
+          link: "https://gitlab.opencode.de/OC000028072444/p2d2",
+          ariaLabel: "p2d2 on OpenCode",
         },
-        link: "https://gitlab.opencode.de/OC000028072444/p2d2",
-        ariaLabel: "p2d2 on OpenCode",
+      ],
+      search: {
+        provider: "local",
       },
-    ],
-    search: {
-      provider: "local",
     },
-  },
 
-  rewrites: {
-    "entwicklungsstrategie/:path*": "de/entwicklungsstrategie/:path*",
-    "benutzerhandbuch/:path*": "de/benutzerhandbuch/:path*",
-    "administrationshandbuch/:path*": "de/administrationshandbuch/:path*",
+    rewrites: {
+      "entwicklungsstrategie/:path*": "de/entwicklungsstrategie/:path*",
+      "benutzerhandbuch/:path*": "de/benutzerhandbuch/:path*",
+      "administrationshandbuch/:path*": "de/administrationshandbuch/:path*",
 
-    "entwicklungshandbuch/:path*": "de/entwicklungshandbuch/:path*",
-  },
+      "entwicklungshandbuch/:path*": "de/entwicklungshandbuch/:path*",
+    },
 
-  head: [
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/x-icon",
-        href: "/favicon.ico",
-      },
+    head: [
+      [
+        "link",
+        {
+          rel: "icon",
+          type: "image/x-icon",
+          href: "/favicon.ico",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "icon",
+          type: "image/svg+xml",
+          href: "/favicon.svg",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "16x16",
+          href: "/favicon-16x16.png",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "32x32",
+          href: "/favicon-32x32.png",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "48x48",
+          href: "/favicon-48x48.png",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "apple-touch-icon",
+          sizes: "180x180",
+          href: "/favicon-180x180.png",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "manifest",
+          href: "/site.webmanifest",
+        },
+      ],
+      [
+        "meta",
+        {
+          name: "theme-color",
+          content: "#000080",
+        },
+      ],
+      [
+        "link",
+        {
+          rel: "stylesheet",
+          href: "https://cdn.jsdelivr.net/npm/molstar@latest/build/viewer/molstar.css",
+        },
+      ],
+      [
+        "meta",
+        {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1.0, viewport-fit=cover",
+        },
+      ],
     ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/svg+xml",
-        href: "/favicon.svg",
-      },
-    ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/png",
-        sizes: "16x16",
-        href: "/favicon-16x16.png",
-      },
-    ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/png",
-        sizes: "32x32",
-        href: "/favicon-32x32.png",
-      },
-    ],
-    [
-      "link",
-      {
-        rel: "icon",
-        type: "image/png",
-        sizes: "48x48",
-        href: "/favicon-48x48.png",
-      },
-    ],
-    [
-      "link",
-      {
-        rel: "apple-touch-icon",
-        sizes: "180x180",
-        href: "/favicon-180x180.png",
-      },
-    ],
-    [
-      "link",
-      {
-        rel: "manifest",
-        href: "/site.webmanifest",
-      },
-    ],
-    [
-      "meta",
-      {
-        name: "theme-color",
-        content: "#000080",
-      },
-    ],
-    [
-      "link",
-      {
-        rel: "stylesheet",
-        href: "https://cdn.jsdelivr.net/npm/molstar@latest/build/viewer/molstar.css",
-      },
-    ],
-    [
-      "meta",
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1.0, viewport-fit=cover",
-      },
-    ],
-  ],
-});
+  }),
+);
