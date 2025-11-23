@@ -52,7 +52,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "Start", link: "/de/" },
             { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
             { text: "Admin Handbuch", link: "/de/administrationshandbuch/" },
             {
@@ -75,8 +74,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "Início", link: "/pt/" },
-            { text: "Documentação", link: "https://doc.data-dna.eu" },
             { text: "Manual do Usuário", link: "/pt/benutzerhandbuch/" },
             {
               text: "Manual de Administração",
@@ -102,8 +99,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "Accueil", link: "/fr/" },
-            { text: "Documentation", link: "https://doc.data-dna.eu" },
             { text: "Manuel Utilisateur", link: "/fr/benutzerhandbuch/" },
             {
               text: "Manuel d'Administration",
@@ -129,8 +124,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "Inicio", link: "/es/" },
-            { text: "Documentación", link: "https://doc.data-dna.eu" },
             { text: "Manual de Usuario", link: "/es/benutzerhandbuch/" },
             {
               text: "Manual de Administración",
@@ -156,8 +149,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "首页", link: "/zh/" },
-            { text: "文档", link: "https://doc.data-dna.eu" },
             { text: "用户手册", link: "/zh/benutzerhandbuch/" },
             { text: "管理手册", link: "/zh/administrationshandbuch/" },
             { text: "开发者手册", link: "/zh/entwicklungshandbuch/" },
@@ -177,8 +168,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "Главная", link: "/ru/" },
-            { text: "Документация", link: "https://doc.data-dna.eu" },
             { text: "Руководство пользователя", link: "/ru/benutzerhandbuch/" },
             {
               text: "Руководство администратора",
@@ -204,7 +193,6 @@ export default withMermaid(
 
         themeConfig: {
           nav: [
-            { text: "Start", link: "/en/" },
             { text: "User Manual", link: "/en/benutzerhandbuch/" },
             { text: "Admin Manual", link: "/en/administrationshandbuch/" },
             { text: "Developer Handbook", link: "/en/entwicklungshandbuch/" },
