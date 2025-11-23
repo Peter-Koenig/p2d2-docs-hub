@@ -1,8 +1,8 @@
 // .vitepress/config.ts
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
-import sidebar_de from './sidebar_de';
-import sidebar_en from './sidebar_en';
+import { sidebar_de } from "./sidebar_de";
+import { sidebar_en } from "./sidebar_en";
 
 export default withMermaid(
   defineConfig({
@@ -35,7 +35,6 @@ export default withMermaid(
         barHeight: 35,
         barGap: 8,
         topPadding: 75,
-        sidePadding: 75,
       },
     },
     ignoreDeadLinks: true,
@@ -49,7 +48,6 @@ export default withMermaid(
         themeConfig: {
           nav: [
             { text: "Start", link: "/de/" },
-            { text: "Dokumentation", link: "https://doc.data-dna.eu" },
             { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
             { text: "Admin Handbuch", link: "/de/administrationshandbuch/" },
             {
@@ -61,7 +59,7 @@ export default withMermaid(
             { text: "Doku QS", link: "/de/quality-overview" },
           ],
 
-          sidebar: sidebar_de;
+          sidebar: sidebar_de,
         },
       },
 
@@ -73,7 +71,6 @@ export default withMermaid(
         themeConfig: {
           nav: [
             { text: "Start", link: "/en/" },
-            { text: "Documentation", link: "https://doc.data-dna.eu" },
             { text: "User Manual", link: "/en/benutzerhandbuch/" },
             { text: "Admin Manual", link: "/en/administrationshandbuch/" },
             { text: "Developer Handbook", link: "/en/entwicklungshandbuch/" },

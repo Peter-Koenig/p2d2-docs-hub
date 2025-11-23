@@ -1,4 +1,4 @@
-const sidebar_en = {
+export const sidebar_en = {
   "/en/planning/": [
     {
       text: "Release",
