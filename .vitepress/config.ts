@@ -3,6 +3,11 @@ import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 import { sidebar_de } from "./sidebar_de";
 import { sidebar_en } from "./sidebar_en";
+import { sidebar_pt } from "./sidebar_pt";
+import { sidebar_fr } from "./sidebar_fr";
+import { sidebar_es } from "./sidebar_es";
+import { sidebar_zh } from "./sidebar_zh";
+import { sidebar_ru } from "./sidebar_ru";
 
 export default withMermaid(
   defineConfig({
@@ -60,6 +65,135 @@ export default withMermaid(
           ],
 
           sidebar: sidebar_de,
+        },
+      },
+
+      pt: {
+        label: "Português (em breve)",
+        lang: "pt-BR",
+        link: "/pt/",
+
+        themeConfig: {
+          nav: [
+            { text: "Início", link: "/pt/" },
+            { text: "Documentação", link: "https://doc.data-dna.eu" },
+            { text: "Manual do Usuário", link: "/pt/benutzerhandbuch/" },
+            {
+              text: "Manual de Administração",
+              link: "/pt/administrationshandbuch/",
+            },
+            {
+              text: "Manual do Desenvolvedor",
+              link: "/pt/entwicklungshandbuch/",
+            },
+            { text: "Lançamento", link: "/pt/planning/" },
+            { text: "Estratégia", link: "/pt/entwicklungsstrategie/" },
+            { text: "QA da Documentação", link: "/pt/quality-overview" },
+          ],
+
+          sidebar: sidebar_pt,
+        },
+      },
+
+      fr: {
+        label: "Français (bientôt)",
+        lang: "fr-FR",
+        link: "/fr/",
+
+        themeConfig: {
+          nav: [
+            { text: "Accueil", link: "/fr/" },
+            { text: "Documentation", link: "https://doc.data-dna.eu" },
+            { text: "Manuel Utilisateur", link: "/fr/benutzerhandbuch/" },
+            {
+              text: "Manuel d'Administration",
+              link: "/fr/administrationshandbuch/",
+            },
+            {
+              text: "Manuel du Développeur",
+              link: "/fr/entwicklungshandbuch/",
+            },
+            { text: "Version", link: "/fr/planning/" },
+            { text: "Stratégie", link: "/fr/entwicklungsstrategie/" },
+            { text: "QA Documentation", link: "/fr/quality-overview" },
+          ],
+
+          sidebar: sidebar_fr,
+        },
+      },
+
+      es: {
+        label: "Español (próximamente)",
+        lang: "es-ES",
+        link: "/es/",
+
+        themeConfig: {
+          nav: [
+            { text: "Inicio", link: "/es/" },
+            { text: "Documentación", link: "https://doc.data-dna.eu" },
+            { text: "Manual de Usuario", link: "/es/benutzerhandbuch/" },
+            {
+              text: "Manual de Administración",
+              link: "/es/administrationshandbuch/",
+            },
+            {
+              text: "Manual del Desarrollador",
+              link: "/es/entwicklungshandbuch/",
+            },
+            { text: "Lanzamiento", link: "/es/planning/" },
+            { text: "Estrategia", link: "/es/entwicklungsstrategie/" },
+            { text: "QA de Documentación", link: "/es/quality-overview" },
+          ],
+
+          sidebar: sidebar_es,
+        },
+      },
+
+      zh: {
+        label: "中文 (即将推出)",
+        lang: "zh-CN",
+        link: "/zh/",
+
+        themeConfig: {
+          nav: [
+            { text: "首页", link: "/zh/" },
+            { text: "文档", link: "https://doc.data-dna.eu" },
+            { text: "用户手册", link: "/zh/benutzerhandbuch/" },
+            { text: "管理手册", link: "/zh/administrationshandbuch/" },
+            { text: "开发者手册", link: "/zh/entwicklungshandbuch/" },
+            { text: "发布", link: "/zh/planning/" },
+            { text: "策略", link: "/zh/entwicklungsstrategie/" },
+            { text: "文档质量", link: "/zh/quality-overview" },
+          ],
+
+          sidebar: sidebar_zh,
+        },
+      },
+
+      ru: {
+        label: "Русский (скоро)",
+        lang: "ru-RU",
+        link: "/ru/",
+
+        themeConfig: {
+          nav: [
+            { text: "Главная", link: "/ru/" },
+            { text: "Документация", link: "https://doc.data-dna.eu" },
+            { text: "Руководство пользователя", link: "/ru/benutzerhandbuch/" },
+            {
+              text: "Руководство администратора",
+              link: "/ru/administrationshandbuch/",
+            },
+            {
+              text: "Руководство разработчика",
+              link: "/ru/entwicklungshandbuch/",
+            },
+            { text: "Релиз", link: "/ru/planning/" },
+            { text: "Стратегия", link: "/ru/entwicklungsstrategie/" },
+            { text: "QA документации", link: "/ru/quality-overview" },
+          ],
+
+          sidebar: sidebar_ru,
         },
       },
 
