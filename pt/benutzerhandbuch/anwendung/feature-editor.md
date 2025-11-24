@@ -9,4 +9,4 @@ quality:
 
 # _Documento Placeholder_
 
-Esta página ainda não foi traduzida. Por favor, use a [versão alemã](https://doc.data-dna.eu/de/benutzerhandbuch/anwendung/feature-editor) ou [versão inglesa](https://doc.data-dna.eu/en/benutzerhandbuch/anwendung/feature-editor).
+Esta página ainda não foi traduzida. Por favor, use a [versão alemã](https://doc.data-dna.eu/de/) ou [versão inglesa](https://doc.data-dna.eu/en/).

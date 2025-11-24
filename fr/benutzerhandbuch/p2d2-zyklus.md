@@ -11,7 +11,7 @@ quality:
 
 Le cycle p2d2 décrit le flux de données bidirectionnel entre l'administration, le portail OpenData, la communauté p2d2 et les plateformes publiques de données. Le processus se compose de **9 étapes** :
 
-![Cycle p2d2 - Flux de Données Bidirectionnel](../assets/p2d2-zyklus.svg)
+![Cycle p2d2 - Flux de Données Bidirectionnel](/assets/p2d2-zyklus.png)
 *Figure : Le cycle p2d2 visualise le flux de données bidirectionnel entre l'administration, la communauté p2d2 et les plateformes publiques*
 
 ## 1. L'Administration Crée des Données

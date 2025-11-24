@@ -9,4 +9,4 @@ quality:
 
 # _Документ-заполнитель_
 
-Эта страница еще не переведена. Пожалуйста, используйте [немецкую версию](https://doc.data-dna.eu/de/benutzerhandbuch/anwendung/editieren) или [английскую версию](https://doc.data-dna.eu/en/benutzerhandbuch/anwendung/editieren).
+Эта страница еще не переведена. Пожалуйста, используйте [немецкую версию](https://doc.data-dna.eu/de) или [английскую версию](https://doc.data-dna.eu/en).

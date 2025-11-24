@@ -9,4 +9,4 @@ quality:
 
 # _Documento Marcador de Posición_
 
-Esta página aún no está traducida. Por favor, utilice la [versión alemana](https://doc.data-dna.eu/de/benutzerhandbuch/anwendung/feature-editor) o [versión inglesa](https://doc.data-dna.eu/en/benutzerhandbuch/anwendung/feature-editor).
+Esta página aún no está traducida. Por favor, utilice la [versión alemana](https://doc.data-dna.eu/de/) o [versión inglesa](https://doc.data-dna.eu/en/).

@@ -7,6 +7,6 @@ quality:
   reviewDate: null
 ---
 
-# _Platzhalter-Dokument_
+# _Document Placeholder_
 
-Diese Seite ist noch nicht übersetzt. Bitte verwenden Sie die [deutsche Version](../../../de/benutzerhandbuch/opendata-ansaetze.md) oder [englische Version](../../../en/benutzerhandbuch/opendata-ansaetze.md).
+Cette page n'est pas encore traduite. Veuillez utiliser la [version allemande](https://doc.data-dna.eu/de/) ou la [version anglaise](https://doc.data-dna.eu/en/).

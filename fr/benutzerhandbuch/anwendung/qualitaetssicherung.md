@@ -9,4 +9,4 @@ quality:
 
 # _Document Placeholder_
 
-Cette page n'est pas encore traduite. Veuillez utiliser la [version allemande](https://doc.data-dna.eu/de/benutzerhandbuch/anwendung/qualitaetssicherung) ou la [version anglaise](https://doc.data-dna.eu/en/benutzerhandbuch/anwendung/qualitaetssicherung).
+Cette page n'est pas encore traduite. Veuillez utiliser la [version allemande](https://doc.data-dna.eu/de/) ou la [version anglaise](https://doc.data-dna.eu/en/).
