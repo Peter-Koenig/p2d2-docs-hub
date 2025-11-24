@@ -1,15 +1,18 @@
 ---
 quality:
-  completeness: 50
-  accuracy: 70
-  reviewed: false
-  reviewer: null
-  reviewDate: null
+  completeness: 90
+  accuracy: 90
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-24
 ---
 
 # The p2d2 Cycle
 
 The p2d2 cycle describes the bidirectional data flow between administration, OpenData portal, p2d2 community, and public data platforms. The process consists of **9 steps**:
+
+![p2d2 Cycle - Bidirectional Data Flow](/assets/p2d2-zyklus.png)
+*Figure: The p2d2 cycle visualizes the bidirectional data flow between administration, p2d2 community, and public platforms*
 
 ## 1. Administration Creates Data
 
