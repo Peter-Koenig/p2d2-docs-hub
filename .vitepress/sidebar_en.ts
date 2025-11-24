@@ -114,15 +114,48 @@ export const sidebar_en = {
   ],
   "/en/benutzerhandbuch/": [
     {
-      text: "User Guide",
+      text: "User Manual",
+      items: [
+        {
+          text: "Historical Background",
+          link: "/en/benutzerhandbuch/hintergrund",
+        },
+        {
+          text: "Goals",
+          link: "/en/benutzerhandbuch/ziele",
+        },
+        {
+          text: "The p2d2 Cycle",
+          link: "/en/benutzerhandbuch/p2d2-zyklus",
+        },
+        {
+          text: "Open Source - Open Data",
+          link: "/en/benutzerhandbuch/opendata-ansaetze",
+        },
+      ],
+    },
+    {
+      text: "Application",
       items: [
         {
           text: "Main Window",
-          link: "/en/benutzerhandbuch/hauptfenster",
+          link: "/en/benutzerhandbuch/anwendung/hauptfenster",
         },
         {
           text: "Feature Editor",
-          link: "/en/benutzerhandbuch/feature-editor",
+          link: "/en/benutzerhandbuch/anwendung/feature-editor",
+        },
+        {
+          text: "Editing",
+          link: "/en/benutzerhandbuch/anwendung/editieren",
+        },
+        {
+          text: "Saving",
+          link: "/en/benutzerhandbuch/anwendung/speichern",
+        },
+        {
+          text: "Quality Assurance",
+          link: "/en/benutzerhandbuch/anwendung/qualitaetssicherung",
         },
       ],
     },

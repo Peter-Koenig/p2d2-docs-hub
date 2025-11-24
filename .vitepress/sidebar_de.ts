@@ -167,6 +167,54 @@ export const sidebar_de = {
       ],
     },
   ],
+  "/de/benutzerhandbuch/": [
+    {
+      text: "Benutzungshandbuch",
+      items: [
+        {
+          text: "Hintergrund",
+          link: "/de/benutzerhandbuch/hintergrund",
+        },
+        {
+          text: "Ziele",
+          link: "/de/benutzerhandbuch/ziele",
+        },
+        {
+          text: "p2d2 - Zyklus",
+          link: "/de/benutzerhandbuch/p2d2-zyklus",
+        },
+        {
+          text: "Open Source - Open Data",
+          link: "/de/benutzerhandbuch/opensource-opendata",
+        },
+      ],
+    },
+    {
+      text: "Anwendung",
+      items: [
+        {
+          text: "Hauptfenster",
+          link: "/de/benutzerhandbuch/anwendung/hauptfenster",
+        },
+        {
+          text: "Feature Editor",
+          link: "/de/benutzerhandbuch/anwendung/feature-editor",
+        },
+        {
+          text: "Editieren",
+          link: "/de/benutzerhandbuch/anwendung/editieren",
+        },
+        {
+          text: "Speichern",
+          link: "/de/benutzerhandbuch/anwendung/speichern",
+        },
+        {
+          text: "Qualitätssicherung",
+          link: "/de/benutzerhandbuch/anwendung/qualitaetssicherung",
+        },
+      ],
+    },
+  ],
   "/de/entwicklung/": [
     {
       text: "Entwicklung",

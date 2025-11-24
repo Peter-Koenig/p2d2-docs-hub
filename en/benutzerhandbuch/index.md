@@ -7,21 +7,21 @@ quality:
   reviewDate: null
 ---
 
-# User Guide
+# User Manual
 
-Welcome to the p2d2 User Guide. Here you'll learn how to use the application, capture geodata, and contribute to quality assurance.
+Welcome to the p2d2 User Manual. Here you will learn how to use the application, collect geodata, and contribute to quality assurance.
 
 ## Overview
 
-p2d2 is a web application designed to synchronize the open and free data from citizens with those from our administrative open data.
+p2d2 is a web application that synchronizes open and free data from citizens with open data from our administrative data.
 
-We're starting with geodata, as it is both highly practical _and_ illustrative. The application enables citizens to verify open administrative data, correct and supplement it, before it is transferred to public platforms like OpenStreetMap or Wikidata, where we can all use it and relate it to other data.
+We start with geodata because it is of high practical use _and_ illustrative. The application enables citizens to review, correct, and supplement the administration's open data before it is transferred to public platforms like OpenStreetMap or WikiData, where it can be used by all of us and related to other data.
 
 ## Target Audience
 
-This guide is intended for:
+This manual is aimed at:
 
-- **Citizens** who want to capture and improve geodata
+- **Citizens** who want to collect and improve geodata
 - **Community members** who ensure data quality
 - **Administrative staff** who review data changes
 
@@ -30,11 +30,11 @@ This guide is intended for:
 - [Historical Background](./hintergrund) - Origin and motivation
 - [OpenData Approaches](./opendata-ansaetze) - Concepts of open data
 - [The p2d2 Cycle](./p2d2-zyklus) - 9-step process
-- [The Application](./anwendung/hauptfenster) - Using the software
+- [The Application](./anwendung/hauptfenster) - Software operation
 
 ## Getting Started
 
 1. **Understand the [p2d2 Cycle](./p2d2-zyklus)**: The bidirectional data flow between administration and the public
-2. **Explore the [Main Window](./anwendung/hauptfenster)**: Get familiar with the user interface
+2. **Explore the [Main Window](./anwendung/hauptfenster)**: Get to know the user interface
 3. **Use the [Feature Editor](./anwendung/feature-editor)**: Edit geodata
 4. **Ensure Quality**: Contribute to community review
