@@ -64,6 +64,10 @@ Beispiel Friedhöfe:
 - Gräber, die bereits in der OpenStreetMap vorhanden sind:
   - Damit durch p2d2 kein Datenverlust entsteht, müssen Meta-Informationen von bestehenden Grabeintragungen aus dem existierenden Datensatz in den neuen Datensatz übernommen werden.
 
+| GIS-Editor, zoom auf Friedhof                                 | GIS-Editor, Zoom auf Grabflur                                 |
+|:-------------------------------------------------------------:|:-------------------------------------------------------------:|
+| ![GIS-Editor (1)](/assets/Rheinkassel_FeatureEditor1.png)     | ![GIS-Editor (2)](/assets/Rheinkassel_FeatureEditor2.png)     |
+
 ## 5. Community prüft Qualität
 
 Die **p2d2-Community** überprüft die Änderungen:
