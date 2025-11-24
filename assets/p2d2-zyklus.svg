@@ -1,0 +1,129 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .cycle-text { font-family: Arial, sans-serif; font-size: 12px; fill: #333; text-anchor: middle; }
+      .cycle-title { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; fill: #333; text-anchor: middle; }
+      .step-number { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: white; text-anchor: middle; }
+      .arrow { fill: none; stroke: #666; stroke-width: 2; marker-end: url(#arrowhead); }
+      .step-circle { fill: #4a86e8; stroke: #2c5aa0; stroke-width: 2; }
+      .step-circle-admin { fill: #e69138; }
+      .step-circle-p2d2 { fill: #6aa84f; }
+      .step-circle-community { fill: #cc0000; }
+      .step-circle-platforms { fill: #674ea7; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Hintergrund -->
+  <rect width="800" height="600" fill="#f8f9fa"/>
+
+  <!-- Titel -->
+  <text x="400" y="40" class="cycle-title">p2d2-Zyklus - Bidirektionaler Datenfluss</text>
+
+  <!-- Kreisförmige Anordnung der Schritte -->
+
+  <!-- Verwaltung (Orange) -->
+  <g id="verwaltung">
+    <circle cx="200" cy="200" r="35" class="step-circle step-circle-admin"/>
+    <text x="200" y="200" class="step-number">1</text>
+    <text x="200" y="250" class="cycle-text">Verwaltung legt</text>
+    <text x="200" y="265" class="cycle-text">Daten an</text>
+  </g>
+
+  <g id="opendata">
+    <circle cx="350" cy="150" r="35" class="step-circle step-circle-admin"/>
+    <text x="350" y="150" class="step-number">2</text>
+    <text x="350" y="200" class="cycle-text">OpenData-Portal</text>
+    <text x="350" y="215" class="cycle-text">veröffentlicht</text>
+  </g>
+
+  <!-- p2d2 (Grün) -->
+  <g id="p2d2-import">
+    <circle cx="500" cy="200" r="35" class="step-circle step-circle-p2d2"/>
+    <text x="500" y="200" class="step-number">3</text>
+    <text x="500" y="250" class="cycle-text">p2d2 importiert</text>
+    <text x="500" y="265" class="cycle-text">Daten</text>
+  </g>
+
+  <g id="nutzer-bearbeitung">
+    <circle cx="600" cy="300" r="35" class="step-circle step-circle-p2d2"/>
+    <text x="600" y="300" class="step-number">4</text>
+    <text x="600" y="350" class="cycle-text">Nutzer:innen</text>
+    <text x="600" y="365" class="cycle-text">bearbeiten</text>
+  </g>
+
+  <!-- Community (Rot) -->
+  <g id="community-pruefung">
+    <circle cx="500" cy="400" r="35" class="step-circle step-circle-community"/>
+    <text x="500" y="400" class="step-number">5</text>
+    <text x="500" y="450" class="cycle-text">Community prüft</text>
+    <text x="500" y="465" class="cycle-text">Qualität</text>
+  </g>
+
+  <!-- Plattformen (Lila) -->
+  <g id="transfer">
+    <circle cx="350" cy="450" r="35" class="step-circle step-circle-platforms"/>
+    <text x="350" y="450" class="step-number">6</text>
+    <text x="350" y="500" class="cycle-text">Automatisierter</text>
+    <text x="350" y="515" class="cycle-text">Transfer</text>
+  </g>
+
+  <g id="benachrichtigung">
+    <circle cx="200" cy="400" r="35" class="step-circle step-circle-platforms"/>
+    <text x="200" y="400" class="step-number">7</text>
+    <text x="200" y="450" class="cycle-text">Änderungen</text>
+    <text x="200" y="465" class="cycle-text">triggeren Benachrichtigung</text>
+  </g>
+
+  <g id="verwaltung-sichtung">
+    <circle cx="100" cy="300" r="35" class="step-circle step-circle-admin"/>
+    <text x="100" y="300" class="step-number">8</text>
+    <text x="100" y="350" class="cycle-text">Verwaltung</text>
+    <text x="100" y="365" class="cycle-text">sichtet Änderung</text>
+  </g>
+
+  <g id="verbesserte-daten">
+    <circle cx="300" cy="300" r="45" class="step-circle" fill="#ffd966" stroke="#bf9000"/>
+    <text x="300" y="300" class="step-number">9</text>
+    <text x="300" y="355" class="cycle-text">Verbesserte Daten</text>
+    <text x="300" y="370" class="cycle-text">für alle verfügbar</text>
+  </g>
+
+  <!-- Pfeile für den Datenfluss -->
+  <path d="M235,200 L315,200" class="arrow"/>
+  <path d="M385,150 L465,200" class="arrow"/>
+  <path d="M535,200 L565,300" class="arrow"/>
+  <path d="M600,335 L565,400" class="arrow"/>
+  <path d="M465,400 L385,450" class="arrow"/>
+  <path d="M315,450 L235,400" class="arrow"/>
+  <path d="M165,400 L135,300" class="arrow"/>
+  <path d="M135,300 L255,300" class="arrow"/>
+
+  <!-- Bidirektionale Pfeile -->
+  <path d="M200,235 L200,165" class="arrow"/>
+  <path d="M200,165 L200,235" class="arrow" marker-end="none" marker-start="url(#arrowhead)"/>
+
+  <path d="M350,185 L350,115" class="arrow"/>
+  <path d="M350,115 L350,185" class="arrow" marker-end="none" marker-start="url(#arrowhead)"/>
+
+  <path d="M500,235 L500,165" class="arrow"/>
+  <path d="M500,165 L500,235" class="arrow" marker-end="none" marker-start="url(#arrowhead)"/>
+
+  <!-- Legende -->
+  <rect x="50" y="520" width="20" height="20" fill="#e69138"/>
+  <text x="80" y="535" class="cycle-text" text-anchor="start">Verwaltung</text>
+
+  <rect x="150" y="520" width="20" height="20" fill="#6aa84f"/>
+  <text x="180" y="535" class="cycle-text" text-anchor="start">p2d2</text>
+
+  <rect x="250" y="520" width="20" height="20" fill="#cc0000"/>
+  <text x="280" y="535" class="cycle-text" text-anchor="start">Community</text>
+
+  <rect x="350" y="520" width="20" height="20" fill="#674ea7"/>
+  <text x="380" y="535" class="cycle-text" text-anchor="start">Plattformen</text>
+
+  <rect x="450" y="520" width="20" height="20" fill="#ffd966"/>
+  <text x="480" y="535" class="cycle-text" text-anchor="start">Ergebnis</text>
+</svg>
