@@ -47,6 +47,9 @@ cd p2d2
 # Abhängigkeiten installieren
 npm install
 
+# Entwicklungsserver bauen
+npm run build
+
 # Entwicklungsumgebung starten
 npm run dev
 
@@ -187,6 +190,9 @@ cd p2d2
 
 # Install dependencies
 npm install
+
+# Build development Server
+npm run build
 
 # Start development environment
 npm run dev
