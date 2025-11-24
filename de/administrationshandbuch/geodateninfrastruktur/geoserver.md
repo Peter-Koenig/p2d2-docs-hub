@@ -1,46 +1,106 @@
 ---
 quality:
-  completeness: 90
-  accuracy: 80
-  reviewed: true
-  reviewer: "Peer Kaiser"
-  reviewDate: "2025-11-17"
+  completeness: 70
+  accuracy: 70
+  reviewed: false
+  reviewer: anonymous
+  reviewDate: 2025-01-01
 ---
 
 # GeoServer
 
 GeoServer ist der OGC-konforme Geodienste-Server für p2d2. Er stellt WFS, WFS-T, WMS und WCS bereit.
 
-## Installation
+## Konkrete Installation
 
-### Via Docker
+### Native Installation per Script
 
+```bash
+#!/bin/bash
+
+set -e
+
+# Variablen
+GEOSERVER_WAR_ZIP="/tmp/geoserver-2.27.0-war.zip"
+GEOSERVER_WAR="/tmp/geoserver.war"
+TOMCAT_VER="9"
+TOMCAT_USER="tomcat"
+TOMCAT_GROUP="tomcat"
+TOMCAT_HOME="/var/lib/tomcat${TOMCAT_VER}"
+TOMCAT_WEBAPPS="${TOMCAT_HOME}/webapps"
+KEYSTORE_PATH="/etc/ssl/private/geoserver-keystore.jks"
+KEYSTORE_PASS="changeit"
+GEOSERVER_CONTEXT_PATH="geoserver"
+
+# 1. Benötigte Pakete installieren
+apt-get update
+apt-get install -y openjdk-17-jre-headless tomcat${TOMCAT_VER} unzip
+
+# 2. GeoServer WAR-Datei extrahieren
+unzip -o "$GEOSERVER_WAR_ZIP" -d /tmp/
+# Die ZIP enthält meist direkt die .war-Datei, ggf. anpassen:
+if [ ! -f "$GEOSERVER_WAR" ]; then
+    GEOSERVER_WAR_FOUND=$(find /tmp -name "*.war" | head -n1)
+    if [ -n "$GEOSERVER_WAR_FOUND" ]; then
+        mv "$GEOSERVER_WAR_FOUND" "$GEOSERVER_WAR"
+    else
+        echo "GeoServer WAR-Datei nicht gefunden."
+        exit 1
+    fi
+fi
+
+# 3. GeoServer WAR in Tomcat deployen
+systemctl stop tomcat${TOMCAT_VER}
+rm -rf "${TOMCAT_WEBAPPS:?}/${GEOSERVER_CONTEXT_PATH}"
+rm -f "${TOMCAT_WEBAPPS:?}/${GEOSERVER_CONTEXT_PATH}.war"
+cp "$GEOSERVER_WAR" "${TOMCAT_WEBAPPS}/${GEOSERVER_CONTEXT_PATH}.war"
+chown $TOMCAT_USER:$TOMCAT_GROUP "${TOMCAT_WEBAPPS}/${GEOSERVER_CONTEXT_PATH}.war"
+
+# 4. Self-Signed Keystore für HTTPS erzeugen
+if [ ! -f "$KEYSTORE_PATH" ]; then
+    mkdir -p "$(dirname $KEYSTORE_PATH)"
+    keytool -genkeypair \
+        -alias tomcat \
+        -keyalg RSA \
+        -keysize 4096 \
+        -validity 365 \
+        -keystore "$KEYSTORE_PATH" \
+        -storepass "$KEYSTORE_PASS" \
+        -keypass "$KEYSTORE_PASS" \
+        -dname "CN=$(hostname), OU=GeoServer, O=MyOrg, L=MyCity, S=MyState, C=DE"
+    chown $TOMCAT_USER:$TOMCAT_GROUP "$KEYSTORE_PATH"
+    chmod 640 "$KEYSTORE_PATH"
+fi
+
+# 5. Tomcat für HTTPS konfigurieren
+TOMCAT_SERVER_XML="/etc/tomcat${TOMCAT_VER}/server.xml"
+if ! grep -q 'port="8443"' "$TOMCAT_SERVER_XML"; then
+    # Füge Connector hinzu, falls noch nicht vorhanden
+    sed -i '/<\/Service>/i \
+<Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol" \
+           maxThreads="150" SSLEnabled="true" scheme="https" secure="true" \
+           clientAuth="false" sslProtocol="TLS" \
+           keystoreFile="'"$KEYSTORE_PATH"'" keystorePass="'"$KEYSTORE_PASS"'" />' \
+           "$TOMCAT_SERVER_XML"
+fi
+
+# 6. Tomcat neu starten
+systemctl daemon-reload
+systemctl restart tomcat${TOMCAT_VER}
+
+echo "GeoServer ist bereit:"
+echo "  HTTP:  http://$(hostname -I | awk '{print $1}'):8080/geoserver"
+echo "  HTTPS: https://$(hostname -I | awk '{print $1}'):8443/geoserver"
+echo "Login: admin / geoserver"
 ```
-# GeoServer-Container starten
-docker run -d \
-  --name geoserver \
-  -p 8080:8080 \
-  -e GEOSERVER_ADMIN_PASSWORD=secure_password \
-  -e GEOSERVER_ADMIN_USER=admin \
-  -v geoserver-data:/opt/geoserver_data \
-  kartoza/geoserver:2.24.0
-```
 
-### Native Installation
+## Konkrete Konfiguration ..
+.. folgt. Wurde über GUI erledigt und muss nun ausgelesen und nachgetragen werden.
 
-```
-# Java 17 installieren
-apt install openjdk-17-jdk
+---
 
-# GeoServer herunterladen
-wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.24.0/geoserver-2.24.0-bin.zip
-
-# Entpacken
-unzip geoserver-2.24.0-bin.zip -d /opt/
-
-# Starten
-/opt/geoserver-2.24.0/bin/startup.sh
-```
+# Allgemneine Befehle 
+Ist KI-generierter Inhalt und nicht falsch. Vielleicht hilfreich als Vorlage und zum lernen. Daher wurde es (noch) nicht gelöscht.
 
 ## Workspaces und Stores
 
