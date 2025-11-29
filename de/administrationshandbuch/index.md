@@ -49,24 +49,26 @@ p2d2 basiert auf einer mehrstufigen Architektur:
 
 ### Server-Infrastruktur
 
-- [Proxmox VE](./server-architektur/proxmox) - Virtualisierungsplattform
-- [Proxmox Backup Server](./server-architektur/pbs-backup) - Backup-Lösung
-- [OPNsense](./server-architektur/opnsense) - Firewall und Router
+- [Server-Architektur Übersicht](./server-architektur/) - Gesamtarchitektur der p2d2-Infrastruktur
+- [Proxmox Host](./server-architektur/proxmox-host) - Virtualisierungsplattform
+- [OPNSense Firewall](./server-architektur/vm-opnsense) - Firewall und Reverse Proxy
+- [Netzwerk-Architektur](./server-architektur/netzwerk-architektur) - Netzwerk-Segmentierung und Firewall-Design
+- [Backup-Strategie](./server-architektur/backup-strategie) - Datensicherung und Disaster Recovery
 
 ### Geodateninfrastruktur
 
-- [Übersicht GDI](./geodateninfrastruktur/) - Architektur der GDI
-- [PostgreSQL/PostGIS](./geodateninfrastruktur/postgresql-postgis) - Geodatenbank
-- [GeoServer](./geodateninfrastruktur/geoserver) - OGC-Dienste
-- [MapProxy](./geodateninfrastruktur/mapproxy) - Tile-Caching
-- [OSM-Tileserver](./geodateninfrastruktur/osm-tileserver) - OpenStreetMap-Kacheln
+- [PostgreSQL/PostGIS Container](./server-architektur/lxc-postgresql) - Geodatenbank mit räumlichen Erweiterungen
+- [GeoServer Container](./server-architektur/lxc-geoserver) - WFS/WMS-Server für Geodatendienste
+- [MapProxy Container](./server-architektur/lxc-mapproxy) - Tile-Cache und Proxy für performante Kartenauslieferung
+- [OSM-Tileserver VM](./server-architektur/vm-osm-tiler) - OpenStreetMap Tile-Rendering Server
+- [Ory IAM Container (Geplant)](./server-architektur/lxc-ory-iam) - Identity and Access Management
 
 ### Software & Deployment
 
+- [Frontend Container](./server-architektur/lxc-frontend) - AstroJS + VitePress Web-Frontend mit Multi-Branch CI/CD
 - [Frontend-Architektur](./frontend-architektur) - AstroJS-Anwendung
 - [Software-Architektur](./software-architektur) - Komponenten und Module
 - [Deployment](./deployment/staging) - Staging und Production
-- [Backup-Strategie](./backup-strategie) - Datensicherung
 
 ## Schnellstart
 

@@ -73,16 +73,48 @@ export const sidebar_de = {
       text: "Server-Architektur",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/de/administrationshandbuch/server-architektur/proxmox",
+          text: "Übersicht",
+          link: "/de/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/de/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Proxmox Host",
+          link: "/de/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/de/administrationshandbuch/server-architektur/opnsense",
+          text: "OPNSense Firewall",
+          link: "/de/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "PostgreSQL/PostGIS Container",
+          link: "/de/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "GeoServer Container",
+          link: "/de/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "MapProxy Container",
+          link: "/de/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Frontend Container",
+          link: "/de/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "OSM-Tileserver VM",
+          link: "/de/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Ory IAM Container (Geplant)",
+          link: "/de/administrationshandbuch/server-architektur/lxc-ory-iam",
+        },
+        {
+          text: "Netzwerk-Architektur",
+          link: "/de/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Backup-Strategie",
+          link: "/de/administrationshandbuch/server-architektur/backup-strategie",
         },
       ],
     },
@@ -96,22 +128,6 @@ export const sidebar_de = {
         {
           text: "GDI-Architektur",
           link: "/de/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
-        },
-        {
-          text: "PostgreSQL/PostGIS",
-          link: "/de/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-        },
-        {
-          text: "GeoServer",
-          link: "/de/administrationshandbuch/geodateninfrastruktur/geoserver",
-        },
-        {
-          text: "MapProxy",
-          link: "/de/administrationshandbuch/geodateninfrastruktur/mapproxy",
-        },
-        {
-          text: "OSM-Tileserver",
-          link: "/de/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
         },
       ],
     },
@@ -161,7 +177,7 @@ export const sidebar_de = {
       text: "Sicherheit & Backup",
       items: [
         {
-          text: "Backup-Strategie",
+          text: "Backup-Strategie (Legacy)",
           link: "/de/administrationshandbuch/backup-strategie",
         },
       ],
