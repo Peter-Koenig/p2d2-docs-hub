@@ -1,6 +1,12 @@
 ---
 title: MapProxy Container
 description: Tile-Cache und Proxy für performante Kartenauslieferung
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # LXC: MapProxy

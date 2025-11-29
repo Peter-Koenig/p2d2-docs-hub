@@ -1,6 +1,12 @@
 ---
 title: Backup-Strategie
 description: Datensicherung und Disaster Recovery
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # Backup-Strategie

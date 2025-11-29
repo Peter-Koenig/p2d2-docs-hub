@@ -1,6 +1,12 @@
 ---
 title: Proxmox Host
 description: Virtualisierungsplattform für p2d2-Infrastruktur
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # Proxmox Host

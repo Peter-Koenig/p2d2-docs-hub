@@ -1,6 +1,12 @@
 ---
 title: Server-Architektur
 description: Übersicht der p2d2-Geodateninfrastruktur
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # Server-Architektur
@@ -8,62 +14,7 @@ description: Übersicht der p2d2-Geodateninfrastruktur
 Die p2d2-Infrastruktur basiert auf **Proxmox VE 9.x** und nutzt eine hybride Architektur aus **LXC-Containern** für Microservices und **VMs** für komplexe Netzwerk- und Tile-Server-Aufgaben. Die Virtualisierung läuft auf moderner Intel-Hardware (13th Gen, 14 Cores, 64 GB RAM).
 
 ## Architektur-Übersicht
-
-```
-graph TB
-    subgraph Internet
-        Users[Benutzer]
-    end
-    
-    subgraph "Proxmox Host"
-        subgraph "VM: OPNSense Firewall"
-            Caddy[Caddy Reverse Proxy<br/>HTTPS/TLS]
-            Firewall[Stateful Firewall<br/>NAT + Routing]
-        end
-        
-        subgraph "LXC: Frontend"
-            Astro[AstroJS<br/>Multi-Branch CI/CD]
-            VitePress[VitePress<br/>Dokumentation]
-            Webhook[Webhook Server<br/>Git Automation]
-        end
-        
-        subgraph "GDI-Komponenten"
-            DB[LXC: PostgreSQL<br/>PostGIS Geodatenbank]
-            GeoServer[LXC: GeoServer<br/>WFS/WMS-Server]
-            MapProxy[LXC: MapProxy<br/>Tile-Cache]
-            Tiler[VM: OSM-Tiler<br/>Tile-Rendering]
-        end
-        
-        subgraph "Geplant"
-            IAM[LXC: Ory IAM<br/>Kratos + Hydra]
-        end
-        
-        PBS[Proxmox Backup Server<br/>Inkrementelle Backups]
-    end
-    
-    Users -->|HTTPS| Caddy
-    Caddy -->|Reverse Proxy| Astro
-    Caddy -->|Reverse Proxy| VitePress
-    Caddy -->|Reverse Proxy| MapProxy
-    Caddy -->|WFS/WMS| GeoServer
-    
-    Astro -->|WFS-T| GeoServer
-    Astro -->|SQL| DB
-    GeoServer -->|PostGIS| DB
-    MapProxy -->|Tiles| Tiler
-    MapProxy -->|WMS| GeoServer
-    
-    Webhook -->|Deploy| Astro
-    
-    PBS -.->|Backup| DB
-    PBS -.->|Backup| GeoServer
-    PBS -.->|Backup| MapProxy
-    PBS -.->|Backup| Astro
-    PBS -.->|Backup| Firewall
-    PBS -.->|Backup| Tiler
-    
-    style IAM stroke-dasharray: 5 5
-```
+TODO: Grafik einfügen
 
 ## Komponenten-Übersicht
 
