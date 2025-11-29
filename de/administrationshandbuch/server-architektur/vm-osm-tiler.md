@@ -1,6 +1,12 @@
 ---
 title: OSM-Tileserver
 description: OpenStreetMap Tile-Rendering Server für p2d2-Infrastruktur
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # VM: OSM-Tileserver

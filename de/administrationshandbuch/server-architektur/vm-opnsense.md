@@ -1,6 +1,12 @@
 ---
 title: OPNSense Firewall
 description: Firewall und Reverse Proxy für p2d2-Infrastruktur
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # VM: OPNSense Firewall

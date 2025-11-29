@@ -1,6 +1,12 @@
 ---
 title: GeoServer Container
 description: WFS/WMS-Server für Geodatendienste
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # LXC: GeoServer

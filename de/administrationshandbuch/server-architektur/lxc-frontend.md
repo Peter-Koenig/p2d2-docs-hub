@@ -1,6 +1,12 @@
 ---
 title: Frontend Container
 description: AstroJS + VitePress Web-Frontend mit Multi-Branch CI/CD
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # LXC: Frontend Container

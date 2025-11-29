@@ -1,6 +1,12 @@
 ---
 title: Ory IAM Container (Geplant)
 description: Identity and Access Management für p2d2
+quality:
+  completeness: 85
+  accuracy: 80
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # LXC: Ory IAM (Geplant)
