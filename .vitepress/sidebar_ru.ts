@@ -109,6 +109,10 @@ export const sidebar_ru = {
           link: "/ru/administrationshandbuch/geodateninfrastruktur/",
         },
         {
+          text: "Архитектура GDI",
+          link: "/ru/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+        },
+        {
           text: "PostgreSQL/PostGIS",
           link: "/ru/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
         },
@@ -123,6 +127,36 @@ export const sidebar_ru = {
         {
           text: "Сервер тайлов OSM",
           link: "/ru/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "Развертывание",
+      items: [
+        {
+          text: "CI/CD пайплайн",
+          link: "/ru/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Среда Staging",
+          link: "/ru/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "Развертывание в продакшн",
+          link: "/ru/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "Мульти-веточное развертывание",
+          link: "/ru/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "Frontend",
+      items: [
+        {
+          text: "Архитектура Frontend",
+          link: "/ru/administrationshandbuch/frontend-architektur",
         },
       ],
     },

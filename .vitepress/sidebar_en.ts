@@ -173,6 +173,10 @@ export const sidebar_en = {
           text: "Production Deployment",
           link: "/en/administrationshandbuch/deployment/production",
         },
+        {
+          text: "Multi-Branch Deployment",
+          link: "/en/administrationshandbuch/deployment/multi-branch-deployment",
+        },
       ],
     },
     {

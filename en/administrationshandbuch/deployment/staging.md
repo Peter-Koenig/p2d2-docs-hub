@@ -1,4 +1,11 @@
-## quality: completeness: 50 accuracy: 70 reviewed: false reviewer: 'KI (Gemini)' reviewDate: null
+---
+quality:
+  completeness: 50
+  accuracy: 70
+  reviewed: false
+  reviewer: (Übersetzung: KI)
+  reviewDate: null
+---
 
 # Staging Environment
 

@@ -109,6 +109,10 @@ export const sidebar_pt = {
           link: "/pt/administrationshandbuch/geodateninfrastruktur/",
         },
         {
+          text: "Arquitetura GDI",
+          link: "/pt/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+        },
+        {
           text: "PostgreSQL/PostGIS",
           link: "/pt/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
         },
@@ -123,6 +127,36 @@ export const sidebar_pt = {
         {
           text: "Servidor de Tiles OSM",
           link: "/pt/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "Implantação",
+      items: [
+        {
+          text: "Pipeline CI/CD",
+          link: "/pt/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Ambiente de Staging",
+          link: "/pt/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "Implantação em Produção",
+          link: "/pt/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "Implantação Multi-Branch",
+          link: "/pt/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "Frontend",
+      items: [
+        {
+          text: "Arquitetura Frontend",
+          link: "/pt/administrationshandbuch/frontend-architektur",
         },
       ],
     },

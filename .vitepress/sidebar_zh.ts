@@ -109,6 +109,10 @@ export const sidebar_zh = {
           link: "/zh/administrationshandbuch/geodateninfrastruktur/",
         },
         {
+          text: "GDI 架构",
+          link: "/zh/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+        },
+        {
           text: "PostgreSQL/PostGIS",
           link: "/zh/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
         },
@@ -123,6 +127,36 @@ export const sidebar_zh = {
         {
           text: "OSM 瓦片服务器",
           link: "/zh/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "部署",
+      items: [
+        {
+          text: "CI/CD 流水线",
+          link: "/zh/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Staging 环境",
+          link: "/zh/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "生产部署",
+          link: "/zh/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "多分支部署",
+          link: "/zh/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "前端",
+      items: [
+        {
+          text: "前端架构",
+          link: "/zh/administrationshandbuch/frontend-architektur",
         },
       ],
     },
