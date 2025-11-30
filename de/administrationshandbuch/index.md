@@ -1,10 +1,10 @@
 ---
 quality:
-  completeness: 50
-  accuracy: 70
-  reviewed: false
-  reviewer: null
-  reviewDate: null
+  completeness: 85
+  accuracy: 85
+  reviewed: true
+  reviewer: Peter König
+  reviewDate: 2025-11-29
 ---
 
 # Administrationshandbuch
@@ -32,17 +32,18 @@ p2d2 basiert auf einer mehrstufigen Architektur:
 
 ### Hardware
 
-- **CPU**: Mind. 4 Cores (8 empfohlen)
-- **RAM**: Mind. 16 GB (32 GB empfohlen)
-- **Storage**: Mind. 100 GB SSD (500 GB empfohlen)
+- **Proxmox Host**: Intel 13th Gen (oder vergleichbar), 14 Cores, 64 GB RAM
+- **Gesamtsystem**: ~28 GB RAM für alle Container/VMs + Overhead für Proxmox
+- **Storage**: Mind. 200 GB SSD (für Container/VMs + Backup-Space)
 - **Netzwerk**: 1 Gbit/s (10 Gbit/s für Produktion)
 
 ### Software
 
-- **Betriebssystem**: Debian 12 oder Ubuntu 22.04 LTS
-- **Virtualisierung**: Proxmox VE 8.x
+- **Virtualisierung**: Proxmox VE 9.x
+- **Container OS**: Debian 13
+- **Firewall OS**: FreeBSD 14.x (OPNSense)
 - **Datenbank**: PostgreSQL 15+ mit PostGIS 3.4+
-- **Webserver**: Nginx 1.24+
+- **Webserver**: Caddy (TLS-Termination)
 - **Node.js**: 20.x LTS
 
 ## Navigation
