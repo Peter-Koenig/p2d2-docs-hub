@@ -11,6 +11,6 @@ quality:
 
 Cette page n'a pas encore été traduite en français.
 
-Veuillez consulter la [version allemande](../../de/benutzerhandbuch/opensource-opendata.md) ou la [version anglaise](../../en/benutzerhandbuch/opendata-ansaetze.md) pour le contenu.
+Veuillez consulter la [version allemande](../../de/entwicklung/contributing.md) ou la [version anglaise](../../en/entwicklung/contributing.md) pour le contenu.
 
 > **Note :** Cette page a été générée automatiquement par l'IA en tant qu'espace réservé.

@@ -1,12 +1,16 @@
 ---
 quality:
   completeness: 5
-  accuracy: 50
+  accuracy: 5
   reviewed: false
-  reviewer: null
+  reviewer: 'KI (Gemini)'
   reviewDate: null
 ---
 
 # _占位符文档_
 
-此页面尚未翻译。请使用[德语版本](https://doc.data-dna.eu/de/)或[英语版本](https://doc.data-dna.eu/en/).
+此页面尚未翻译成中文。
+
+请参阅[德语版本](../../de/benutzerhandbuch/anwendung/feature-editor.md)或[英语版本](../../en/benutzerhandbuch/anwendung/feature-editor.md)获取内容。
+
+> **注意：** 此页面由 AI 自动生成作为占位符。

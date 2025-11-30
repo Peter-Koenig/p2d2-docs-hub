@@ -1,4 +1,19 @@
 export const sidebar_zh = {
+  "/zh/entwicklung/": [
+    {
+      text: "开发",
+      items: [
+        {
+          text: "贡献",
+          link: "/zh/entwicklung/contributing",
+        },
+        {
+          text: "多边形同步插件",
+          link: "/zh/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/zh/planning/": [
     {
       text: "发布",

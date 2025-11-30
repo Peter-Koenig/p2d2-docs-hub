@@ -11,6 +11,6 @@ quality:
 
 Esta página aún no ha sido traducida al español.
 
-Por favor, consulte la [versión alemana](../../de/benutzerhandbuch/anwendung/editieren.md) o la [versión en inglés](../../en/benutzerhandbuch/anwendung/editieren.md) para ver el contenido.
+Por favor, consulte la [versión alemana](../../de/entwicklung/polygon-sync.md) o la [versión en inglés](../../en/entwicklung/polygon-sync.md) para ver el contenido.
 
 > **Nota:** Esta página fue generada automáticamente por IA como marcador de posición.

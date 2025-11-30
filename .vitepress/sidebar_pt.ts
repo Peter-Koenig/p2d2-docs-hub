@@ -1,4 +1,19 @@
 export const sidebar_pt = {
+  "/pt/entwicklung/": [
+    {
+      text: "Desenvolvimento",
+      items: [
+        {
+          text: "Contribuindo",
+          link: "/pt/entwicklung/contributing",
+        },
+        {
+          text: "Plugin de Sincronização de Polígonos",
+          link: "/pt/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/pt/planning/": [
     {
       text: "Lançamento",

@@ -1,4 +1,19 @@
 export const sidebar_ru = {
+  "/ru/entwicklung/": [
+    {
+      text: "Разработка",
+      items: [
+        {
+          text: "Вклад",
+          link: "/ru/entwicklung/contributing",
+        },
+        {
+          text: "Плагин синхронизации полигонов",
+          link: "/ru/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/ru/planning/": [
     {
       text: "Релиз",

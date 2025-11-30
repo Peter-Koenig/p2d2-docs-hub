@@ -1,4 +1,19 @@
 export const sidebar_en = {
+  "/en/entwicklung/": [
+    {
+      text: "Development",
+      items: [
+        {
+          text: "Contributing",
+          link: "/en/entwicklung/contributing",
+        },
+        {
+          text: "Polygon Sync Plugin",
+          link: "/en/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/en/planning/": [
     {
       text: "Release",

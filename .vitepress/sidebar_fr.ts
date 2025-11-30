@@ -1,4 +1,19 @@
 export const sidebar_fr = {
+  "/fr/entwicklung/": [
+    {
+      text: "Développement",
+      items: [
+        {
+          text: "Contribuer",
+          link: "/fr/entwicklung/contributing",
+        },
+        {
+          text: "Plugin de Synchronisation de Polygones",
+          link: "/fr/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/fr/planning/": [
     {
       text: "Version",
