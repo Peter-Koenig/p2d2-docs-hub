@@ -1,11 +1,11 @@
 ---
 title: System Overview
-description: Documentation for System Overview
+description: Overall architecture and system components of p2d2
 quality:
   completeness: 0
   accuracy: 0
   reviewed: false
-  reviewer: null
+  reviewer: "(Translation: AI)"
   reviewDate: null
 ---
 
@@ -13,22 +13,76 @@ quality:
 
 > **Status:** 🚧 Documentation in progress
 
-## Overview
+## Architecture Concept
 
-[Placeholder for module description]
+The p2d2 platform is based on a modern web architecture with the following core components:
 
-## Functionality
+### Frontend Architecture
 
-[Placeholder for technical details]
+  - **Astro Framework**: Static site generation and component-based development
+  - **TypeScript**: Type-safe development for better code quality
+  - **TailwindCSS**: Utility-first CSS framework for consistent design
+  - **OpenLayers**: Map display and geodata visualization
 
-## Usage
+### Backend Services
 
-[Placeholder for code examples]
+  - **Astro Endpoints**: Server-side functions for dynamic content
+  - **Geodata Services**: Integration of WMS/WMTS services
+  - **Data Synchronization**: Automated updating of municipality data
 
-## Configuration
+### Data Management
 
-[Placeholder for configuration options]
+  - **Content Collections**: Structured management of municipality data
+  - **Geodata Sources**: Integration of external geoservices
+  - **Local Storage**: Browser-based data storage
 
-## Dependencies
+## System Components
 
-[Placeholder for modules/libraries]
+### Map Module
+
+  - OpenLayers-based map display
+  - Layer management for various geodata sources
+  - Interactive map functions (zoom, pan, feature selection)
+
+### Feature Editor
+
+  - Geometry editor for polygons and lines
+  - Integration with OpenStreetMap
+  - Data synchronization with backend
+
+### Municipality Management
+
+  - Content Collections for structured data
+  - Dynamic routing based on municipality data
+  - Responsive user interface
+
+### UI Components
+
+  - Reusable Astro components
+  - Consistent design system
+  - Mobile-optimized display
+
+## Data Flow
+
+1.  **Initialization**: Loading base configuration and municipality data
+2.  **Map Rendering**: Building the map with configured layers
+3.  **User Interaction**: Handling map interactions and editor functions
+4.  **Data Persistence**: Storing user inputs and configurations
+
+## Technology Stack
+
+| Area | Technology |
+|---|---|
+| Framework | Astro |
+| Programming Language | TypeScript |
+| Styling | TailwindCSS |
+| Map Engine | OpenLayers |
+| Build Tool | Vite |
+| Deployment | Caddy + Systemd |
+
+## Next Steps
+
+  - [ ] Create detailed architecture diagrams
+  - [ ] Document component interactions
+  - [ ] Complete data flow diagrams
+  - [ ] Document performance considerations

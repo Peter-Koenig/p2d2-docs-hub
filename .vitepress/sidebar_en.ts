@@ -362,16 +362,32 @@ export const sidebar_en = {
           collapsed: true,
           items: [
             {
-              text: "Layer Interaction",
-              link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
+              text: "Utilities Overview",
+              link: "/en/entwicklungshandbuch/module/utilities/",
             },
             {
-              text: "Coordinate Utils",
+              text: "Coordinate & CRS Utilities",
               link: "/en/entwicklungshandbuch/module/utilities/coordinate-utils",
             },
             {
-              text: "Storage Management",
+              text: "Event System & API Integration",
+              link: "/en/entwicklungshandbuch/module/utilities/event-system",
+            },
+            {
+              text: "Kommune Data Management",
+              link: "/en/entwicklungshandbuch/module/utilities/kommune-utils",
+            },
+            {
+              text: "Layer Management & Interaction",
+              link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
+            },
+            {
+              text: "Storage & State Management",
               link: "/en/entwicklungshandbuch/module/utilities/storage-management",
+            },
+            {
+              text: "WFS Integration & Authentication",
+              link: "/en/entwicklungshandbuch/module/utilities/wfs-integration",
             },
           ],
         },
