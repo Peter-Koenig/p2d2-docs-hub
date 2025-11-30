@@ -144,6 +144,44 @@ export const sidebar_en = {
           text: "GDI Architecture",
           link: "/en/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
         },
+        {
+          text: "PostgreSQL/PostGIS",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+        },
+        {
+          text: "MapProxy",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/mapproxy",
+        },
+        {
+          text: "OSM Tileserver",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "Deployment",
+      items: [
+        {
+          text: "CI/CD Pipeline",
+          link: "/en/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Staging Environment",
+          link: "/en/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "Production Deployment",
+          link: "/en/administrationshandbuch/deployment/production",
+        },
+      ],
+    },
+    {
+      text: "Frontend",
+      items: [
+        {
+          text: "Frontend Architecture",
+          link: "/en/administrationshandbuch/frontend-architektur",
+        },
       ],
     },
   ],

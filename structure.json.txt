@@ -163,7 +163,9 @@
       ]},
       {"type":"file","name":"frontend-architektur.md"},
       {"type":"directory","name":"geodateninfrastruktur","contents":[
+        {"type":"file","name":"gdi-architektur.md"},
         {"type":"file","name":"geoserver.md"},
+        {"type":"file","name":"index.md"},
         {"type":"file","name":"mapproxy.md"},
         {"type":"file","name":"osm-tileserver.md"},
         {"type":"file","name":"postgresql-postgis.md"}
@@ -311,6 +313,7 @@
     {"type":"directory","name":"administrationshandbuch","contents":[
       {"type":"directory","name":"anwendung"},
       {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"index.md"},
       {"type":"file","name":"multi-repo-deployment.md"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"upgrade-prozess.md"}
@@ -339,6 +342,7 @@
     {"type":"directory","name":"administrationshandbuch","contents":[
       {"type":"directory","name":"anwendung"},
       {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"index.md"},
       {"type":"file","name":"multi-repo-deployment.md"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"upgrade-prozess.md"}
@@ -367,6 +371,7 @@
     {"type":"directory","name":"administrationshandbuch","contents":[
       {"type":"directory","name":"anwendung"},
       {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"index.md"},
       {"type":"file","name":"multi-repo-deployment.md"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"upgrade-prozess.md"}
@@ -395,6 +400,7 @@
     {"type":"directory","name":"administrationshandbuch","contents":[
       {"type":"directory","name":"anwendung"},
       {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"index.md"},
       {"type":"file","name":"multi-repo-deployment.md"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"upgrade-prozess.md"}
@@ -423,6 +429,7 @@
     {"type":"directory","name":"administrationshandbuch","contents":[
       {"type":"directory","name":"anwendung"},
       {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"index.md"},
       {"type":"file","name":"multi-repo-deployment.md"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"upgrade-prozess.md"}
@@ -448,5 +455,5 @@
     {"type":"file","name":"index.md"}
   ]}
 ,
-  {"type":"report","directories":80,"files":293}
+  {"type":"report","directories":80,"files":300}
 ]
