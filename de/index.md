@@ -81,6 +81,25 @@ p2d2 synchronisiert offene Verwaltungsdaten mit öffentlichen Datenplattformen w
 - **Infrastruktur**: Proxmox VE, OPNsense, GitLab CI/CD
 - **Standards**: WFS, WFS-T, WMS, WMTS, TMS, GeoJSON
 
+### Server-Anforderungen (Produktion)
+
+Basierend auf der faktischen Architektur:
+
+**Minimal-Anforderungen:**
+- **Proxmox Host**: Intel 13th Gen (oder vergleichbar), 14 Cores, 64 GB RAM
+- **Gesamtsystem**: ~28 GB RAM für alle Container/VMs + Overhead für Proxmox
+
+**Container/VMs Spezifikationen:**
+- **OPNSense**: 4 GB RAM, 25 GB Disk (Firewall + Reverse Proxy)
+- **PostgreSQL**: 2 GB RAM, 15 GB Disk (Geodatenbank + PostGIS)
+- **GeoServer**: 6 GB RAM, 12 GB Disk (WFS/WMS-Server)
+- **MapProxy**: 4 GB RAM, 38 GB Disk (Tile-Cache + Proxy)
+- **OSM-Tiler**: 6 GB RAM, 65 GB Disk (Tile-Rendering)
+- **Frontend**: 4 GB RAM, 25 GB Disk (AstroJS + VitePress)
+- **Ory IAM** (geplant): 2 GB RAM, 10 GB Disk (Identity Management)
+
+**Betriebssystem**: Debian 13 (Container), FreeBSD 14.x (OPNSense)
+
 ### Repositories
 
 - **Origin**: [gitlab.opencode.de/OC000028072444/p2d2](https://gitlab.opencode.de/OC000028072444/p2d2)

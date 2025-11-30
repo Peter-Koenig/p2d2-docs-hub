@@ -73,16 +73,48 @@ export const sidebar_en = {
       text: "Server Architecture",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/en/administrationshandbuch/server-architektur/proxmox",
+          text: "Overview",
+          link: "/en/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/en/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Proxmox Host",
+          link: "/en/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/en/administrationshandbuch/server-architektur/opnsense",
+          text: "OPNSense Firewall",
+          link: "/en/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "PostgreSQL/PostGIS Container",
+          link: "/en/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "GeoServer Container",
+          link: "/en/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "MapProxy Container",
+          link: "/en/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Frontend Container",
+          link: "/en/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "OSM Tileserver",
+          link: "/en/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Network Architecture",
+          link: "/en/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Backup Strategy",
+          link: "/en/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (Planned)",
+          link: "/en/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -92,22 +124,6 @@ export const sidebar_en = {
         {
           text: "GDI Overview",
           link: "/en/administrationshandbuch/geodateninfrastruktur/",
-        },
-        {
-          text: "PostgreSQL/PostGIS",
-          link: "/en/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-        },
-        {
-          text: "GeoServer",
-          link: "/en/administrationshandbuch/geodateninfrastruktur/geoserver",
-        },
-        {
-          text: "MapProxy",
-          link: "/en/administrationshandbuch/geodateninfrastruktur/mapproxy",
-        },
-        {
-          text: "OSM Tileserver",
-          link: "/en/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
         },
       ],
     },
