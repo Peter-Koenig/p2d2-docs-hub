@@ -390,6 +390,22 @@ export const sidebar_es = {
       collapsed: true,
       items: [
         {
+          text: "Resumen de Servicios API",
+          link: "/es/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "Integración GeoServer",
+          link: "/es/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "API Overpass",
+          link: "/es/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "Transacciones WFS",
+          link: "/es/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
+        {
           text: "Módulos TypeScript",
           link: "/es/entwicklungshandbuch/api-referenz/typescript-modules",
         },

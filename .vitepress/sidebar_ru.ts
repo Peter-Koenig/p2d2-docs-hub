@@ -386,6 +386,22 @@ export const sidebar_ru = {
       collapsed: true,
       items: [
         {
+          text: "Обзор сервисов API",
+          link: "/ru/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "Интеграция GeoServer",
+          link: "/ru/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "API Overpass",
+          link: "/ru/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "Транзакции WFS",
+          link: "/ru/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
+        {
           text: "TypeScript модули",
           link: "/ru/entwicklungshandbuch/api-referenz/typescript-modules",
         },

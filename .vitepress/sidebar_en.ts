@@ -140,6 +140,10 @@ export const sidebar_en = {
           text: "GDI Overview",
           link: "/en/administrationshandbuch/geodateninfrastruktur/",
         },
+        {
+          text: "GDI Architecture",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+        },
       ],
     },
   ],
@@ -401,6 +405,22 @@ export const sidebar_en = {
       text: "API Reference",
       collapsed: true,
       items: [
+        {
+          text: "API Services Overview",
+          link: "/en/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "GeoServer Integration",
+          link: "/en/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "Overpass API",
+          link: "/en/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "WFS Transactions",
+          link: "/en/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
         {
           text: "TypeScript Modules",
           link: "/en/entwicklungshandbuch/api-referenz/typescript-modules",

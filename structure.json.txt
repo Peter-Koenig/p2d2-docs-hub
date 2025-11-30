@@ -154,6 +154,7 @@
   ]},
   {"type":"directory","name":"en","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
+      {"type":"file","name":"backup-strategie-legacy.md"},
       {"type":"file","name":"backup-strategie.md"},
       {"type":"directory","name":"deployment","contents":[
         {"type":"file","name":"cicd-pipeline.md"},
@@ -168,6 +169,7 @@
         {"type":"file","name":"postgresql-postgis.md"}
       ]},
       {"type":"file","name":"index.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
       {"type":"directory","name":"server-architektur","contents":[
         {"type":"file","name":"backup-strategie.md"},
         {"type":"file","name":"index.md"},
@@ -183,7 +185,9 @@
         {"type":"file","name":"proxmox.md"},
         {"type":"file","name":"vm-opnsense.md"},
         {"type":"file","name":"vm-osm-tiler.md"}
-      ]}
+      ]},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
     {"type":"directory","name":"benutzerhandbuch","contents":[
       {"type":"directory","name":"anwendung","contents":[
@@ -199,6 +203,10 @@
       {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
     ]},
     {"type":"directory","name":"entwicklungshandbuch","contents":[
       {"type":"directory","name":"api-referenz","contents":[
@@ -301,7 +309,11 @@
   ]},
   {"type":"directory","name":"es","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
-      {"type":"directory","name":"anwendung"}
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
     {"type":"directory","name":"benutzerhandbuch","contents":[
       {"type":"directory","name":"anwendung","contents":[
@@ -316,12 +328,20 @@
       {"type":"file","name":"opendata-ansaetze.md"},
       {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
     ]},
     {"type":"file","name":"index.md"}
   ]},
   {"type":"directory","name":"fr","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
-      {"type":"directory","name":"anwendung"}
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
     {"type":"directory","name":"benutzerhandbuch","contents":[
       {"type":"directory","name":"anwendung","contents":[
@@ -336,12 +356,20 @@
       {"type":"file","name":"opendata-ansaetze.md"},
       {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
     ]},
     {"type":"file","name":"index.md"}
   ]},
   {"type":"directory","name":"pt","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
-      {"type":"directory","name":"anwendung"}
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
     {"type":"directory","name":"benutzerhandbuch","contents":[
       {"type":"directory","name":"anwendung","contents":[
@@ -356,12 +384,20 @@
       {"type":"file","name":"opendata-ansaetze.md"},
       {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
     ]},
     {"type":"file","name":"index.md"}
   ]},
   {"type":"directory","name":"ru","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
-      {"type":"directory","name":"anwendung"}
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
     {"type":"directory","name":"benutzerhandbuch","contents":[
       {"type":"directory","name":"anwendung","contents":[
@@ -376,12 +412,20 @@
       {"type":"file","name":"opendata-ansaetze.md"},
       {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
     ]},
     {"type":"file","name":"index.md"}
   ]},
   {"type":"directory","name":"zh","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
-      {"type":"directory","name":"anwendung"}
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
     {"type":"directory","name":"benutzerhandbuch","contents":[
       {"type":"directory","name":"anwendung","contents":[
@@ -397,8 +441,12 @@
       {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"ziele.md"}
     ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
+    ]},
     {"type":"file","name":"index.md"}
   ]}
 ,
-  {"type":"report","directories":74,"files":257}
+  {"type":"report","directories":80,"files":293}
 ]

@@ -386,6 +386,22 @@ export const sidebar_zh = {
       collapsed: true,
       items: [
         {
+          text: "API 服务概览",
+          link: "/zh/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "GeoServer 集成",
+          link: "/zh/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "Overpass API",
+          link: "/zh/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "WFS 事务",
+          link: "/zh/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
+        {
           text: "TypeScript 模块",
           link: "/zh/entwicklungshandbuch/api-referenz/typescript-modules",
         },
