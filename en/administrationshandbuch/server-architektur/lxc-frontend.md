@@ -1,12 +1,12 @@
 ---
 title: Frontend Container
-description: AstroJS + VitePress Web Frontend with Multi-Branch CI/CD
+description: AstroJS + VitePress Web-Frontend with Multi-Branch CI/CD
 quality:
   completeness: 85
   accuracy: 80
-  reviewed: true
-  reviewer: Peter König
-  reviewDate: 2025-11-29
+  reviewed: false
+  reviewer: (Translation: KI)
+  reviewDate: null
 ---
 
 # LXC: Frontend Container
@@ -20,14 +20,15 @@ Hostname: frontend (customizable)
 Status: running
 
 Resources:
-RAM: 4 GB
-Disk: 25 GB (dynamically expandable)
-CPU Shares: Standard (1024)
+  RAM: 4 GB
+  Disk: 25 GB (dynamically expandable)
+  CPU Shares: Standard (1024)
 ```
 
 ## Installed Software
 
 ### Node.js Runtime
+
 ```
 Version: Node.js v20.x LTS
 Package Manager: npm (Node Package Manager)
@@ -35,6 +36,7 @@ Node Version Manager: Optional (nvm)
 ```
 
 ### Web Server
+
 ```
 AstroJS: Modern Web Framework
   - Version: 4.x (current Stable)
@@ -49,8 +51,9 @@ VitePress: Documentation System
 ```
 
 ### CI/CD Components
+
 ```
-Webhook Server: Git Automation
+Webhook-Server: Git Automation
   - Port: 9321 (HTTP, internal LAN)
   - Integration: GitHub/GitLab Webhooks
   - Deployment: Multi-Branch System
@@ -81,11 +84,10 @@ Port-Mapping:
   - feature-fv: Port 3004
 ```
 
-### Systemd Service Configuration
+### Systemd-Service Configuration
 
 ```
 # Example: astro-main.service
-
 [Unit]
 Description=AstroJS Main Frontend
 After=network.target
@@ -131,36 +133,34 @@ Firewall Rules:
 
 ## CI/CD Pipeline
 
-### Webhook Server Configuration
+### Webhook-Server Configuration
 
 ```
 # /etc/webhook-server/config.json
-
 {
-"port": 9321,
-"secret": "<WEBHOOK_SECRET>",
-"deployments": {
-"main": {
-"branch": "main",
-"path": "/var/www/astro/main",
-"port": 3000,
-"domain": "www.data-dna.eu"
-},
-"develop": {
-"branch": "develop",
-"path": "/var/www/astro/develop",
-"port": 3001,
-"domain": "dev.data-dna.eu"
-}
-}
+  "port": 9321,
+  "secret": "<WEBHOOK_SECRET>",
+  "deployments": {
+    "main": {
+      "branch": "main",
+      "path": "/var/www/astro/main",
+      "port": 3000,
+      "domain": "www.data-dna.eu"
+    },
+    "develop": {
+      "branch": "develop",
+      "path": "/var/www/astro/develop",
+      "port": 3001,
+      "domain": "dev.data-dna.eu"
+    }
+  }
 }
 ```
 
-### Deployment Script
+### Deployment-Script
 
 ```
 #!/bin/bash
-
 # /usr/local/bin/deploy-astro.sh
 
 BRANCH=$1
@@ -189,7 +189,7 @@ systemctl start astro-$BRANCH.service
 echo "Deployment completed for $BRANCH"
 ```
 
-## AstroJS Configuration
+## AstroJS-Configuration
 
 ### Main Configuration (astro.config.mjs)
 
@@ -198,96 +198,97 @@ import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 
 export default defineConfig({
-output: 'server',
-adapter: node({
-mode: 'standalone'
-}),
-
-// Geo-Configuration
-vite: {
-define: {
-// Environment Variables
-GEO_SERVER_URL: JSON.stringify('https://ows.data-dna.eu'),
-TILE_SERVER_URL: JSON.stringify('https://tiles.data-dna.eu'),
-WFS_T_URL: JSON.stringify('https://wfs.data-dna.eu')
-}
-}
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  
+  // Geo-Configuration
+  vite: {
+    define: {
+      // Environment Variables
+      __GEO_SERVER_URL__: JSON.stringify('https://ows.data-dna.eu'),
+      __TILE_SERVER_URL__: JSON.stringify('https://tiles.data-dna.eu'),
+      __WFS_T_URL__: JSON.stringify('https://wfs.data-dna.eu')
+    }
+  }
 });
 ```
 
-### Backend Integration
+### Backend-Integration
 
 ```
 // src/lib/geoserver.js
 export async function wfsTransaction(feature) {
-const response = await fetch('https://wfs.data-dna.eu/geoserver/wfs', {
-method: 'POST',
-headers: { 'Content-Type': 'text/xml' },
-body: generateWFSInsert(feature)
-});
-
-return await response.text();
+  const response = await fetch('https://wfs.data-dna.eu/geoserver/wfs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml' },
+    body: generateWFSInsert(feature)
+  });
+  
+  return await response.text();
 }
 
 // src/lib/mapproxy.js
 export function getTileUrl(layer, z, x, y) {
-return `https://tiles.data-dna.eu/tms/1.0.0/${layer}/${z}/${x}/${y}.png`;
+  return `https://tiles.data-dna.eu/tms/1.0.0/${layer}/${z}/${x}/${y}.png`;
 }
 ```
 
-## VitePress Documentation
+## VitePress-Documentation
 
 ### Configuration
 
 ```
 # Configuration: docs/.vitepress/config.js
-
 export default {
-title: 'p2d2 Documentation',
-description: 'Documentation for the p2d2 Geodata Infrastructure',
-
-themeConfig: {
-nav: [
-{ text: 'Home', link: '/' },
-{ text: 'Administration Handbook', link: '/en/administrationshandbuch/' }
-],
-
-sidebar: {
-  '/en/administrationshandbuch/': [
-    {
-      text: 'Server Architecture',
-      items: [
-        { text: 'Overview', link: '/en/administrationshandbuch/server-architektur/' },
-        { text: 'Proxmox Host', link: '/en/administrationshandbuch/server-architektur/proxmox-host' }
+  title: 'p2d2 Dokumentation',
+  description: 'Dokumentation für die p2d2 Geodateninfrastruktur',
+  
+  themeConfig: {
+    nav: [
+      { text: 'Home', link: '/' },
+      { text: 'Administrationshandbuch', link: '/de/administrationshandbuch/' }
+    ],
+    
+    sidebar: {
+      '/de/administrationshandbuch/': [
+        {
+          text: 'Server-Architektur',
+          items: [
+            { text: 'Übersicht', link: '/de/administrationshandbuch/server-architektur/' },
+            { text: 'Proxmox Host', link: '/de/administrationshandbuch/server-architektur/proxmox-host' }
+          ]
+        }
       ]
     }
-  ]
-}
-}
+  }
 }
 ```
 
-## Backup Strategy
+## Backup-Strategy
 
-### PBS Snapshot (Container-Level)
-- **Schedule**: Daily
-- **Retention**: 7 days
-- **Type**: LVM-Thin Snapshot
+### PBS-Snapshot (Container-Level)
 
-### Code Backup (Git)
+  - **Schedule**: Daily
+  - **Retention**: 7 days
+  - **Type**: LVM-Thin Snapshot
+
+### Code-Backup (Git)
+
 ```
 # Code is already backed up in Git repository
-
 # Back up deployment scripts and configurations
-tar -czf /backup/frontend-config_$(date +%Y%m%d).tar.gz  
-/etc/systemd/system/astro-*.service  
-/etc/webhook-server/  
-/usr/local/bin/deploy-*.sh
+tar -czf /backup/frontend-config_$(date +%Y%m%d).tar.gz \
+  /etc/systemd/system/astro-*.service \
+  /etc/webhook-server/ \
+  /usr/local/bin/deploy-*.sh
 ```
 
 ## Monitoring
 
-### Health Checks
+### Health-Checks
+
 ```
 # Check service status
 systemctl status astro-main
@@ -304,7 +305,8 @@ curl -I https://www.data-dna.eu
 curl -I https://dev.data-dna.eu
 ```
 
-### Log Analysis
+### Log-Analysis
+
 ```
 # AstroJS Logs
 journalctl -u astro-main -f --no-pager
@@ -320,6 +322,7 @@ tail -f /var/www/astro/main/logs/app.log
 ## Troubleshooting
 
 ### Service does not start
+
 ```
 # Check systemd logs
 journalctl -u astro-main --no-pager -n 100
@@ -331,19 +334,21 @@ netstat -tlnp | grep 3000
 ls -la /var/www/astro/main/
 ```
 
-### Deployment Errors
+### Deployment-Errors
+
 ```
-# Webhook logs
+# Webhook-Logs
 journalctl -u webhook-server --no-pager -n 50
 
-# Git repository status
+# Git-Repository Status
 cd /var/www/astro/main && git status
 
-# Build errors
+# Build-Errors
 cd /var/www/astro/main && npm run build --verbose
 ```
 
-### Performance Problems
+### Performance-Problems
+
 ```
 # Memory Usage
 ps aux | grep node
@@ -356,9 +361,10 @@ df -h /var/www/astro/
 curl -I http://geoserver.lan:8080/geoserver/web
 ```
 
-## Security Configuration
+## Security-Configuration
 
-### Service Hardening
+### Service-Hardening
+
 ```
 User Isolation:
   - Dedicated User: astro
@@ -371,7 +377,8 @@ File Permissions:
   - Build Directory: 755 (astro:astro)
 ```
 
-### Network Security
+### Network-Security
+
 ```
 Firewall Rules:
   - Only Caddy proxy has access
@@ -380,29 +387,31 @@ Firewall Rules:
 
 Environment Variables:
   - No secrets in code
-  - .env files for development
+  - .env files for Development
   - Production secrets via Systemd Environment
 ```
 
 ## Best Practices
 
 ✅ **Do**:
-- Regular Node.js updates (Security Patches)
-- Monitor all service ports
-- Backup configuration files
-- Separate user accounts for services
-- Log rotation for application logs
+
+  - Regular Node.js updates (Security patches)
+  - Monitoring of all service ports
+  - Backup of configuration files
+  - Separate user accounts for services
+  - Log rotation for application logs
 
 ❌ **Don't**:
-- Expose the frontend directly to the internet
-- Commit secrets to Git
-- Run without rate limiting
-- Allow unlimited log files
-- Run production builds on development servers
+
+  - Expose frontend directly to the internet
+  - Commit secrets to Git
+  - Run without rate-limiting
+  - Allow unlimited log files
+  - Production builds on development server
 
 ## References
 
-- [AstroJS Documentation](https://docs.astro.build/)
-- [VitePress Documentation](https://vitepress.dev/)
-- [Systemd Service Configuration](https://www.freedesktop.org/software/systemd/man/systemd.service.html)
-- [Node.js Production Best Practices](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/)
+  - [AstroJS Documentation](https://docs.astro.build/)
+  - [VitePress Documentation](https://vitepress.dev/)
+  - [Systemd Service Configuration](https://www.freedesktop.org/software/systemd/man/systemd.service.html)
+  - [Node.js Production Best Practices](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/)
