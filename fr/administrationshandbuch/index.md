@@ -1,4 +1,11 @@
-## quality: completeness: 80 accuracy: 50 reviewed: false reviewer: 'KI (Gemini)' reviewDate: null
+---
+quality:
+  completeness: 80
+  accuracy: 50
+  reviewed: false
+  reviewer: (Übersetzung: KI)
+  reviewDate: null
+---
 
 # Manuel d'Administration
 
@@ -86,4 +93,4 @@ Pour une installation de production complète, suivez les sections du Manuel d'A
 L'installation rapide est uniquement adaptée aux environnements de test ! Pour les systèmes de production, les aspects de sécurité doivent être pris en compte.
 :::
 
-> **Note:** Ce texte a été traduit automatiquement avec l'aide de l'IA et n'a pas encore été vérifié par un humain.
+> **Note :** Ce texte a été traduit automatiquement avec l'aide de l'IA et n'a pas encore été vérifié par un humain.

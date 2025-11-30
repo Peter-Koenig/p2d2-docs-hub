@@ -1,4 +1,11 @@
-## quality: completeness: 80 accuracy: 50 reviewed: false reviewer: 'KI (Gemini)' reviewDate: null
+---
+quality:
+  completeness: 80
+  accuracy: 50
+  reviewed: false
+  reviewer: (Übersetzung: KI)
+  reviewDate: null
+---
 
 # Manual de Administración
 
@@ -86,4 +93,4 @@ Para una instalación de producción completa, siga las secciones del Manual de 
 ¡La instalación rápida solo es adecuada para entornos de prueba! Para sistemas de producción, se deben considerar los aspectos de seguridad.
 :::
 
-> **Nota:** Este texto fue traducido automáticamente con KI-Unterstützung y aún no ha sido revisado por un humano.
+> **Nota:** Este texto fue traducido automáticamente con IA y aún no ha sido revisado por un humano.

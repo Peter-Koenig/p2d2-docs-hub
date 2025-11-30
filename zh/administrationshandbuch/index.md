@@ -1,4 +1,11 @@
-## quality: completeness: 80 accuracy: 50 reviewed: false reviewer: 'KI (Gemini)' reviewDate: null
+---
+quality:
+  completeness: 80
+  accuracy: 50
+  reviewed: false
+  reviewer: (Übersetzung: KI)
+  reviewDate: null
+---
 
 # 管理手册
 

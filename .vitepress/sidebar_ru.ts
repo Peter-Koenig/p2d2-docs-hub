@@ -88,16 +88,48 @@ export const sidebar_ru = {
       text: "Архитектура сервера",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/ru/administrationshandbuch/server-architektur/proxmox",
+          text: "Обзор",
+          link: "/ru/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/ru/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Хост Proxmox",
+          link: "/ru/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/ru/administrationshandbuch/server-architektur/opnsense",
+          text: "Брандмауэр OPNsense",
+          link: "/ru/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "Контейнер PostgreSQL/PostGIS",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "Контейнер GeoServer",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "Контейнер MapProxy",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Контейнер Frontend",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "Сервер тайлов OSM",
+          link: "/ru/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Сетевая архитектура",
+          link: "/ru/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Стратегия резервного копирования",
+          link: "/ru/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (Планируется)",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -115,10 +147,6 @@ export const sidebar_ru = {
         {
           text: "PostgreSQL/PostGIS",
           link: "/ru/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-        },
-        {
-          text: "GeoServer",
-          link: "/ru/administrationshandbuch/geodateninfrastruktur/geoserver",
         },
         {
           text: "MapProxy",

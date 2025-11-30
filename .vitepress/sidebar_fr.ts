@@ -92,16 +92,48 @@ export const sidebar_fr = {
       text: "Architecture Serveur",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/fr/administrationshandbuch/server-architektur/proxmox",
+          text: "Aperçu",
+          link: "/fr/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/fr/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Hôte Proxmox",
+          link: "/fr/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/fr/administrationshandbuch/server-architektur/opnsense",
+          text: "Pare-feu OPNsense",
+          link: "/fr/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "Conteneur PostgreSQL/PostGIS",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "Conteneur GeoServer",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "Conteneur MapProxy",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Conteneur Frontend",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "Serveur de tuiles OSM",
+          link: "/fr/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Architecture Réseau",
+          link: "/fr/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Stratégie de Sauvegarde",
+          link: "/fr/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (Prévu)",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -119,10 +151,6 @@ export const sidebar_fr = {
         {
           text: "PostgreSQL/PostGIS",
           link: "/fr/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-        },
-        {
-          text: "GeoServer",
-          link: "/fr/administrationshandbuch/geodateninfrastruktur/geoserver",
         },
         {
           text: "MapProxy",

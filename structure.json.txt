@@ -152,10 +152,10 @@
       {"type":"file","name":"v0.1.0.md"}
     ]}
   ]},
-  {"type":"directory","name":"en","contents":[
+  {"type":"directory","name":"es","contents":[
     {"type":"directory","name":"administrationshandbuch","contents":[
+      {"type":"directory","name":"anwendung"},
       {"type":"file","name":"backup-strategie-legacy.md"},
-      {"type":"file","name":"backup-strategie.md"},
       {"type":"directory","name":"deployment","contents":[
         {"type":"file","name":"cicd-pipeline.md"},
         {"type":"file","name":"multi-branch-deployment.md"},
@@ -173,22 +173,7 @@
       ]},
       {"type":"file","name":"index.md"},
       {"type":"file","name":"multi-repo-deployment.md"},
-      {"type":"directory","name":"server-architektur","contents":[
-        {"type":"file","name":"backup-strategie.md"},
-        {"type":"file","name":"index.md"},
-        {"type":"file","name":"lxc-frontend.md"},
-        {"type":"file","name":"lxc-geoserver.md"},
-        {"type":"file","name":"lxc-mapproxy.md"},
-        {"type":"file","name":"lxc-ory-iam.md"},
-        {"type":"file","name":"lxc-postgresql.md"},
-        {"type":"file","name":"netzwerk-architektur.md"},
-        {"type":"file","name":"opnsense.md"},
-        {"type":"file","name":"pbs-backup.md"},
-        {"type":"file","name":"proxmox-host.md"},
-        {"type":"file","name":"proxmox.md"},
-        {"type":"file","name":"vm-opnsense.md"},
-        {"type":"file","name":"vm-osm-tiler.md"}
-      ]},
+      {"type":"directory","name":"server-architektur"},
       {"type":"file","name":"software-architektur.md"},
       {"type":"file","name":"upgrade-prozess.md"}
     ]},
@@ -204,7 +189,116 @@
       {"type":"file","name":"index.md"},
       {"type":"file","name":"opendata-ansaetze.md"},
       {"type":"file","name":"p2d2-zyklus.md"},
+      {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
+    ]},
+    {"type":"directory","name":"entwicklungshandbuch","contents":[
+      {"type":"directory","name":"api-referenz","contents":[
+        {"type":"file","name":"astro-endpoints.md"}
+      ]},
+      {"type":"directory","name":"architektur"},
+      {"type":"directory","name":"contrib"},
+      {"type":"directory","name":"datenverwaltung"},
+      {"type":"directory","name":"entwicklungsworkflow"},
+      {"type":"file","name":"index.md"}
+    ]},
+    {"type":"file","name":"index.md"}
+  ]},
+  {"type":"directory","name":"fr","contents":[
+    {"type":"directory","name":"administrationshandbuch","contents":[
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"directory","name":"deployment","contents":[
+        {"type":"file","name":"cicd-pipeline.md"},
+        {"type":"file","name":"multi-branch-deployment.md"},
+        {"type":"file","name":"production.md"},
+        {"type":"file","name":"staging.md"}
+      ]},
+      {"type":"file","name":"frontend-architektur.md"},
+      {"type":"directory","name":"geodateninfrastruktur","contents":[
+        {"type":"file","name":"gdi-architektur.md"},
+        {"type":"file","name":"geoserver.md"},
+        {"type":"file","name":"index.md"},
+        {"type":"file","name":"mapproxy.md"},
+        {"type":"file","name":"osm-tileserver.md"},
+        {"type":"file","name":"postgresql-postgis.md"}
+      ]},
+      {"type":"file","name":"index.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"directory","name":"server-architektur"},
       {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
+    ]},
+    {"type":"directory","name":"benutzerhandbuch","contents":[
+      {"type":"directory","name":"anwendung","contents":[
+        {"type":"file","name":"editieren.md"},
+        {"type":"file","name":"feature-editor.md"},
+        {"type":"file","name":"hauptfenster.md"},
+        {"type":"file","name":"qualitaetssicherung.md"},
+        {"type":"file","name":"speichern.md"}
+      ]},
+      {"type":"file","name":"hintergrund.md"},
+      {"type":"file","name":"index.md"},
+      {"type":"file","name":"opendata-ansaetze.md"},
+      {"type":"file","name":"p2d2-zyklus.md"},
+      {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
+    ]},
+    {"type":"directory","name":"entwicklungshandbuch","contents":[
+      {"type":"directory","name":"api-referenz","contents":[
+        {"type":"file","name":"astro-endpoints.md"}
+      ]},
+      {"type":"directory","name":"architektur"},
+      {"type":"directory","name":"contrib"},
+      {"type":"directory","name":"datenverwaltung"},
+      {"type":"directory","name":"entwicklungsworkflow"},
+      {"type":"file","name":"index.md"}
+    ]},
+    {"type":"file","name":"index.md"}
+  ]},
+  {"type":"directory","name":"pt","contents":[
+    {"type":"directory","name":"administrationshandbuch","contents":[
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"directory","name":"deployment","contents":[
+        {"type":"file","name":"cicd-pipeline.md"},
+        {"type":"file","name":"multi-branch-deployment.md"},
+        {"type":"file","name":"production.md"},
+        {"type":"file","name":"staging.md"}
+      ]},
+      {"type":"file","name":"frontend-architektur.md"},
+      {"type":"directory","name":"geodateninfrastruktur","contents":[
+        {"type":"file","name":"gdi-architektur.md"},
+        {"type":"file","name":"geoserver.md"},
+        {"type":"file","name":"index.md"},
+        {"type":"file","name":"mapproxy.md"},
+        {"type":"file","name":"osm-tileserver.md"},
+        {"type":"file","name":"postgresql-postgis.md"}
+      ]},
+      {"type":"file","name":"index.md"},
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"directory","name":"server-architektur"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
+    ]},
+    {"type":"directory","name":"benutzerhandbuch","contents":[
+      {"type":"directory","name":"anwendung","contents":[
+        {"type":"file","name":"editieren.md"},
+        {"type":"file","name":"feature-editor.md"},
+        {"type":"file","name":"hauptfenster.md"},
+        {"type":"file","name":"qualitaetssicherung.md"},
+        {"type":"file","name":"speichern.md"}
+      ]},
+      {"type":"file","name":"hintergrund.md"},
+      {"type":"file","name":"index.md"},
+      {"type":"file","name":"opendata-ansaetze.md"},
+      {"type":"file","name":"p2d2-zyklus.md"},
       {"type":"file","name":"ziele.md"}
     ]},
     {"type":"directory","name":"entwicklung","contents":[
@@ -237,79 +331,122 @@
         {"type":"file","name":"geodaten-quellen.md"},
         {"type":"file","name":"kommunen-collection.md"}
       ]},
-      {"type":"directory","name":"deployment","contents":[
-        {"type":"file","name":"caddy-proxy.md"},
-        {"type":"file","name":"multi-branch-system.md"},
-        {"type":"file","name":"systemd-services.md"},
-        {"type":"file","name":"webhook-automation.md"}
-      ]},
       {"type":"directory","name":"entwicklungsworkflow","contents":[
-        {"type":"file","name":"code-style.md"},
         {"type":"file","name":"debugging.md"},
-        {"type":"file","name":"git-workflow.md"},
-        {"type":"file","name":"setup-lokal.md"},
-        {"type":"file","name":"testing.md"}
+        {"type":"file","name":"git-workflow.md"}
+      ]},
+      {"type":"file","name":"index.md"}
+    ]},
+    {"type":"file","name":"index.md"}
+  ]},
+  {"type":"directory","name":"ru","contents":[
+    {"type":"directory","name":"administrationshandbuch","contents":[
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"directory","name":"deployment","contents":[
+        {"type":"file","name":"cicd-pipeline.md"},
+        {"type":"file","name":"multi-branch-deployment.md"},
+        {"type":"file","name":"production.md"},
+        {"type":"file","name":"staging.md"}
+      ]},
+      {"type":"file","name":"frontend-architektur.md"},
+      {"type":"directory","name":"geodateninfrastruktur","contents":[
+        {"type":"file","name":"gdi-architektur.md"},
+        {"type":"file","name":"geoserver.md"},
+        {"type":"file","name":"index.md"},
+        {"type":"file","name":"mapproxy.md"},
+        {"type":"file","name":"osm-tileserver.md"},
+        {"type":"file","name":"postgresql-postgis.md"}
       ]},
       {"type":"file","name":"index.md"},
-      {"type":"directory","name":"module","contents":[
-        {"type":"directory","name":"feature-editor","contents":[
-          {"type":"file","name":"draw-manager.md"},
-          {"type":"file","name":"edit-mode.md"},
-          {"type":"file","name":"editor-overview.md"},
-          {"type":"file","name":"feature-sync.md"},
-          {"type":"file","name":"osm-integration.md"}
-        ]},
-        {"type":"directory","name":"karten","contents":[
-          {"type":"file","name":"layer-management.md"},
-          {"type":"file","name":"map-config.md"},
-          {"type":"file","name":"openlayers-integration.md"},
-          {"type":"file","name":"wms-wmts-services.md"}
-        ]},
-        {"type":"directory","name":"kommunen","contents":[
-          {"type":"file","name":"content-collections.md"},
-          {"type":"file","name":"datenstruktur.md"},
-          {"type":"file","name":"routing.md"}
-        ]},
-        {"type":"directory","name":"ui-komponenten","contents":[
-          {"type":"file","name":"astro-components.md"},
-          {"type":"file","name":"responsive-design.md"},
-          {"type":"file","name":"tailwind-styling.md"}
-        ]},
-        {"type":"directory","name":"utilities","contents":[
-          {"type":"file","name":"coordinate-utils.md"},
-          {"type":"file","name":"event-system.md"},
-          {"type":"file","name":"index.md"},
-          {"type":"file","name":"kommune-utils.md"},
-          {"type":"file","name":"layer-interaction.md"},
-          {"type":"file","name":"storage-management.md"},
-          {"type":"file","name":"wfs-integration.md"}
-        ]}
-      ]}
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
     ]},
-    {"type":"directory","name":"entwicklungsstrategie","contents":[
-      {"type":"file","name":"index.md"},
-      {"type":"file","name":"opensource-philosophie.md"},
-      {"type":"file","name":"roadmap.md"},
-      {"type":"directory","name":"skalierung","contents":[
-        {"type":"file","name":"bundeslaender.md"},
-        {"type":"file","name":"europe-global.md"},
-        {"type":"file","name":"kategorien.md"},
-        {"type":"file","name":"kommunen.md"}
+    {"type":"directory","name":"benutzerhandbuch","contents":[
+      {"type":"directory","name":"anwendung","contents":[
+        {"type":"file","name":"editieren.md"},
+        {"type":"file","name":"feature-editor.md"},
+        {"type":"file","name":"hauptfenster.md"},
+        {"type":"file","name":"qualitaetssicherung.md"},
+        {"type":"file","name":"speichern.md"}
       ]},
-      {"type":"file","name":"vision.md"}
-    ]},
-    {"type":"file","name":"index.md"},
-    {"type":"directory","name":"planning","contents":[
-      {"type":"file","name":"backlog.md"},
+      {"type":"file","name":"hintergrund.md"},
       {"type":"file","name":"index.md"},
-      {"type":"file","name":"v0.2.0.md"}
+      {"type":"file","name":"opendata-ansaetze.md"},
+      {"type":"file","name":"p2d2-zyklus.md"},
+      {"type":"file","name":"ziele.md"}
     ]},
-    {"type":"file","name":"quality-overview.md"},
-    {"type":"directory","name":"releases","contents":[
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
+    ]},
+    {"type":"directory","name":"entwicklungshandbuch","contents":[
+      {"type":"directory","name":"api-referenz","contents":[
+        {"type":"file","name":"astro-endpoints.md"}
+      ]},
+      {"type":"directory","name":"architektur"},
+      {"type":"directory","name":"contrib"},
+      {"type":"directory","name":"datenverwaltung"},
+      {"type":"directory","name":"entwicklungsworkflow"},
+      {"type":"file","name":"index.md"}
+    ]},
+    {"type":"file","name":"index.md"}
+  ]},
+  {"type":"directory","name":"zh","contents":[
+    {"type":"directory","name":"administrationshandbuch","contents":[
+      {"type":"directory","name":"anwendung"},
+      {"type":"file","name":"backup-strategie-legacy.md"},
+      {"type":"directory","name":"deployment","contents":[
+        {"type":"file","name":"cicd-pipeline.md"},
+        {"type":"file","name":"multi-branch-deployment.md"},
+        {"type":"file","name":"production.md"},
+        {"type":"file","name":"staging.md"}
+      ]},
+      {"type":"file","name":"frontend-architektur.md"},
+      {"type":"directory","name":"geodateninfrastruktur","contents":[
+        {"type":"file","name":"gdi-architektur.md"},
+        {"type":"file","name":"geoserver.md"},
+        {"type":"file","name":"index.md"},
+        {"type":"file","name":"mapproxy.md"},
+        {"type":"file","name":"osm-tileserver.md"},
+        {"type":"file","name":"postgresql-postgis.md"}
+      ]},
       {"type":"file","name":"index.md"},
-      {"type":"file","name":"v0.1.0.md"}
-    ]}
+      {"type":"file","name":"multi-repo-deployment.md"},
+      {"type":"file","name":"software-architektur.md"},
+      {"type":"file","name":"upgrade-prozess.md"}
+    ]},
+    {"type":"directory","name":"benutzerhandbuch","contents":[
+      {"type":"directory","name":"anwendung","contents":[
+        {"type":"file","name":"editieren.md"},
+        {"type":"file","name":"feature-editor.md"},
+        {"type":"file","name":"hauptfenster.md"},
+        {"type":"file","name":"qualitaetssicherung.md"},
+        {"type":"file","name":"speichern.md"}
+      ]},
+      {"type":"file","name":"hintergrund.md"},
+      {"type":"file","name":"index.md"},
+      {"type":"file","name":"opendata-ansaetze.md"},
+      {"type":"file","name":"p2d2-zyklus.md"},
+      {"type":"file","name":"ziele.md"}
+    ]},
+    {"type":"directory","name":"entwicklung","contents":[
+      {"type":"file","name":"contributing.md"},
+      {"type":"file","name":"polygon-sync.md"}
+    ]},
+    {"type":"directory","name":"entwicklungshandbuch","contents":[
+      {"type":"directory","name":"api-referenz","contents":[
+        {"type":"file","name":"astro-endpoints.md"}
+      ]},
+      {"type":"directory","name":"architektur"},
+      {"type":"directory","name":"contrib"},
+      {"type":"directory","name":"datenverwaltung"},
+      {"type":"directory","name":"entwicklungsworkflow"},
+      {"type":"file","name":"index.md"}
+    ]},
+    {"type":"file","name":"index.md"}
   ]}
 ,
-  {"type":"report","directories":50,"files":211}
+  {"type":"report","directories":98,"files":276}
 ]

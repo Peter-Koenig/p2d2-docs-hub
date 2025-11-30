@@ -88,16 +88,48 @@ export const sidebar_pt = {
       text: "Arquitetura de Servidor",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/pt/administrationshandbuch/server-architektur/proxmox",
+          text: "Visão Geral",
+          link: "/pt/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/pt/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Host Proxmox",
+          link: "/pt/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/pt/administrationshandbuch/server-architektur/opnsense",
+          text: "Firewall OPNsense",
+          link: "/pt/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "Contêiner PostgreSQL/PostGIS",
+          link: "/pt/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "Contêiner GeoServer",
+          link: "/pt/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "Contêiner MapProxy",
+          link: "/pt/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Contêiner Frontend",
+          link: "/pt/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "Servidor de Tiles OSM",
+          link: "/pt/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Arquitetura de Rede",
+          link: "/pt/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Estratégia de Backup",
+          link: "/pt/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (Planejado)",
+          link: "/pt/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -115,10 +147,6 @@ export const sidebar_pt = {
         {
           text: "PostgreSQL/PostGIS",
           link: "/pt/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-        },
-        {
-          text: "GeoServer",
-          link: "/pt/administrationshandbuch/geodateninfrastruktur/geoserver",
         },
         {
           text: "MapProxy",

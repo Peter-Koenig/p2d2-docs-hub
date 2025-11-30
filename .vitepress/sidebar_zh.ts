@@ -88,16 +88,48 @@ export const sidebar_zh = {
       text: "服务器架构",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/zh/administrationshandbuch/server-architektur/proxmox",
+          text: "概述",
+          link: "/zh/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox 备份服务器",
-          link: "/zh/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Proxmox 主机",
+          link: "/zh/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/zh/administrationshandbuch/server-architektur/opnsense",
+          text: "OPNSense 防火墙",
+          link: "/zh/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "PostgreSQL/PostGIS 容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "GeoServer 容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "MapProxy 容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "前端容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "OSM 瓦片服务器",
+          link: "/zh/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "网络架构",
+          link: "/zh/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "备份策略",
+          link: "/zh/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (计划中)",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -115,10 +147,6 @@ export const sidebar_zh = {
         {
           text: "PostgreSQL/PostGIS",
           link: "/zh/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
-        },
-        {
-          text: "GeoServer",
-          link: "/zh/administrationshandbuch/geodateninfrastruktur/geoserver",
         },
         {
           text: "MapProxy",
