@@ -3,7 +3,7 @@ quality:
   completeness: 80
   accuracy: 50
   reviewed: false
-  reviewer: (Übersetzung: KI)
+  reviewer: "(Übersetzung - KI)"
   reviewDate: null
 ---
 

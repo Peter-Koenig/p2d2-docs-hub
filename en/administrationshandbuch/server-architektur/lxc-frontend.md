@@ -5,7 +5,7 @@ quality:
   completeness: 85
   accuracy: 80
   reviewed: false
-  reviewer: (Translation: KI)
+  reviewer: "(Translation - KI)"
   reviewDate: null
 ---
 
