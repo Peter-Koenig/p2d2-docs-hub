@@ -96,8 +96,8 @@ After=network.target
 Type=simple
 User=astro
 WorkingDirectory=/var/www/astro/main
-Environment="NODE_ENV=production"
-Environment="PORT=3000"
+Environment=NODE_ENV=production
+Environment=PORT=3000
 ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=10
@@ -285,7 +285,7 @@ tar -czf /backup/frontend-config_$(date +%Y%m%d).tar.gz \
   /usr/local/bin/deploy-*.sh
 ```
 
-## Surveillance
+## Monitoring
 
 ### Bilans de Santé
 
@@ -393,7 +393,7 @@ Variables d'environnement :
 
 ## Bonnes Pratiques
 
-✅ **À faire** :
+✅ **À faire**:
 
   - Mises à jour régulières de Node.js (correctifs de sécurité)
   - Surveillance de tous les ports de service
@@ -401,7 +401,7 @@ Variables d'environnement :
   - Comptes utilisateur séparés pour les services
   - Rotation des logs pour les logs d'application
 
-❌ **À ne pas faire** :
+❌ **À ne pas faire**:
 
   - Exposer le frontend directement à Internet
   - Commiter des secrets dans Git

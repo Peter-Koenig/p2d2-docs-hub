@@ -33,7 +33,7 @@ p2d2 est basé sur une architecture à plusieurs niveaux :
 ### Matériel
 
   - **Hôte Proxmox**: Intel 13e Gen (ou comparable), 14 cœurs, 64 Go RAM
-  - **Système Total**: ~28 Go RAM pour tous les conteneurs/VM + surcharge pour Proxmox
+  - **Système Total**: \~28 Go RAM pour tous les conteneurs/VM + surcharge pour Proxmox
   - **Stockage**: Min. 200 Go SSD (pour conteneurs/VM + espace de sauvegarde)
   - **Réseau**: 1 Gbit/s (10 Gbit/s pour la production)
 
@@ -50,26 +50,26 @@ p2d2 est basé sur une architecture à plusieurs niveaux :
 
 ### Infrastructure Serveur
 
-  - [Aperçu de l'Architecture Serveur](./server-architektur/) - Architecture globale de l'infrastructure p2d2
-  - [Hôte Proxmox](./server-architektur/proxmox-host) - Plateforme de virtualisation
-  - [Firewall OPNSense](./server-architektur/vm-opnsense) - Firewall et Reverse Proxy
-  - [Architecture Réseau](./server-architektur/netzwerk-architektur) - Segmentation réseau et conception du firewall
-  - [Stratégie de Sauvegarde](./server-architektur/backup-strategie) - Sauvegarde des données et reprise après sinistre
+  - [Aperçu de l'Architecture Serveur](https://www.google.com/search?q=./server-architektur/) - Architecture globale de l'infrastructure p2d2
+  - [Hôte Proxmox](https://www.google.com/search?q=./server-architektur/proxmox-host) - Plateforme de virtualisation
+  - [Firewall OPNSense](https://www.google.com/search?q=./server-architektur/vm-opnsense) - Firewall et Reverse Proxy
+  - [Architecture Réseau](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - Segmentation réseau et conception du firewall
+  - [Stratégie de Sauvegarde](https://www.google.com/search?q=./server-architektur/backup-strategie) - Sauvegarde des données et reprise après sinistre
 
 ### Infrastructure de Géodonnées
 
-  - [Conteneur PostgreSQL/PostGIS](./server-architektur/lxc-postgresql) - Base de données géospatiale avec extensions spatiales
-  - [Conteneur GeoServer](./server-architektur/lxc-geoserver) - Serveur WFS/WMS pour services de géodonnées
-  - [Conteneur MapProxy](./server-architektur/lxc-mapproxy) - Cache de tuiles et proxy pour une livraison de cartes performante
-  - [VM OSM-Tileserver](./server-architektur/vm-osm-tiler) - Serveur de rendu de tuiles OpenStreetMap
-  - [Conteneur Ory IAM (Prévu)](./server-architektur/lxc-ory-iam) - Gestion des Identités et des Accès
+  - [Conteneur PostgreSQL/PostGIS](https://www.google.com/search?q=./server-architektur/lxc-postgresql) - Base de données géospatiale avec extensions spatiales
+  - [Conteneur GeoServer](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - Serveur WFS/WMS pour services de géodonnées
+  - [Conteneur MapProxy](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - Cache de tuiles et proxy pour une livraison de cartes performante
+  - [VM OSM-Tileserver](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - Serveur de rendu de tuiles OpenStreetMap
+  - [Conteneur Ory IAM (Prévu)](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - Gestion des Identités et des Accès
 
 ### Logiciel & Déploiement
 
-  - [Conteneur Frontend](./server-architektur/lxc-frontend) - Frontend web AstroJS + VitePress avec CI/CD multi-branches
-  - [Architecture Frontend](./frontend-architektur) - Application AstroJS
-  - [Architecture Logicielle](./software-architektur) - Composants et modules
-  - [Déploiement](./deployment/staging) - Staging et Production
+  - [Conteneur Frontend](https://www.google.com/search?q=./server-architektur/lxc-frontend) - Frontend web AstroJS + VitePress avec CI/CD multi-branches
+  - [Architecture Frontend](https://www.google.com/search?q=./frontend-architektur) - Application AstroJS
+  - [Architecture Logicielle](https://www.google.com/search?q=./software-architektur) - Composants et modules
+  - [Déploiement](https://www.google.com/search?q=./deployment/staging) - Staging et Production
 
 ## Démarrage Rapide
 
@@ -90,7 +90,7 @@ npm run dev
 Pour une installation de production complète, suivez les sections du Manuel d'Administration.
 
 ::: warning Avis de Sécurité
-L'installation rapide est uniquement adaptée aux environnements de test ! Pour les systèmes de production, les aspects de sécurité doivent être pris en compte.
+L'installation rapide est uniquement adaptée aux environnements de test \! Pour les systèmes de production, les aspects de sécurité doivent être pris en compte.
 :::
 
 > **Note :** Ce texte a été traduit automatiquement avec l'aide de l'IA et n'a pas encore été vérifié par un humain.

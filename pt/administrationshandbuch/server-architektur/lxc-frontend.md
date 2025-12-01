@@ -96,8 +96,8 @@ After=network.target
 Type=simple
 User=astro
 WorkingDirectory=/var/www/astro/main
-Environment="NODE_ENV=production"
-Environment="PORT=3000"
+Environment=NODE_ENV=production
+Environment=PORT=3000
 ExecStart=/usr/bin/npm run start
 Restart=always
 RestartSec=10

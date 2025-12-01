@@ -33,7 +33,7 @@ p2d2 основан на многоуровневой архитектуре:
 ### Аппаратное обеспечение
 
   - **Хост Proxmox**: Intel 13-го поколения (или аналог), 14 ядер, 64 ГБ RAM
-  - **Общая система**: ~28 ГБ RAM для всех контейнеров/ВМ + накладные расходы для Proxmox
+  - **Общая система**: \~28 ГБ RAM для всех контейнеров/ВМ + накладные расходы для Proxmox
   - **Хранилище**: Мин. 200 ГБ SSD (для контейнеров/ВМ + место для бэкапов)
   - **Сеть**: 1 Гбит/с (10 Гбит/с для продакшена)
 
@@ -50,26 +50,26 @@ p2d2 основан на многоуровневой архитектуре:
 
 ### Серверная инфраструктура
 
-  - [Обзор архитектуры сервера](./server-architektur/) - Общая архитектура инфраструктуры p2d2
-  - [Хост Proxmox](./server-architektur/proxmox-host) - Платформа виртуализации
-  - [Брандмауэр OPNSense](./server-architektur/vm-opnsense) - Брандмауэр и обратный прокси
-  - [Сетевая архитектура](./server-architektur/netzwerk-architektur) - Сегментация сети и дизайн брандмауэра
-  - [Стратегия резервного копирования](./server-architektur/backup-strategie) - Резервное копирование данных и аварийное восстановление
+  - [Обзор архитектуры сервера](https://www.google.com/search?q=./server-architektur/) - Общая архитектура инфраструктуры p2d2
+  - [Хост Proxmox](https://www.google.com/search?q=./server-architektur/proxmox-host) - Платформа виртуализации
+  - [Брандмауэр OPNSense](https://www.google.com/search?q=./server-architektur/vm-opnsense) - Брандмауэр и обратный прокси
+  - [Сетевая архитектура](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - Сегментация сети и дизайн брандмауэра
+  - [Стратегия резервного копирования](https://www.google.com/search?q=./server-architektur/backup-strategie) - Резервное копирование данных и аварийное восстановление
 
 ### Инфраструктура геоданных
 
-  - [Контейнер PostgreSQL/PostGIS](./server-architektur/lxc-postgresql) - Геопространственная база данных с пространственными расширениями
-  - [Контейнер GeoServer](./server-architektur/lxc-geoserver) - Сервер WFS/WMS для геосервисов
-  - [Контейнер MapProxy](./server-architektur/lxc-mapproxy) - Кэш тайлов и прокси для производительной доставки карт
-  - [ВМ OSM-Tileserver](./server-architektur/vm-osm-tiler) - Сервер рендеринга тайлов OpenStreetMap
-  - [Контейнер Ory IAM (Планируется)](./server-architektur/lxc-ory-iam) - Управление идентификацией и доступом
+  - [Контейнер PostgreSQL/PostGIS](https://www.google.com/search?q=./server-architektur/lxc-postgresql) - Геопространственная база данных с пространственными расширениями
+  - [Контейнер GeoServer](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - Сервер WFS/WMS для геосервисов
+  - [Контейнер MapProxy](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - Кэш тайлов и прокси для производительной доставки карт
+  - [ВМ OSM-Tileserver](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - Сервер рендеринга тайлов OpenStreetMap
+  - [Контейнер Ory IAM (Планируется)](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - Управление идентификацией и доступом
 
 ### ПО и развертывание
 
-  - [Контейнер Фронтенда](./server-architektur/lxc-frontend) - Веб-фронтенд AstroJS + VitePress с CI/CD для нескольких веток
-  - [Архитектура Фронтенда](./frontend-architektur) - Приложение AstroJS
-  - [Архитектура ПО](./software-architektur) - Компоненты и модули
-  - [Развертывание](./deployment/staging) - Staging и Production
+  - [Контейнер Фронтенда](https://www.google.com/search?q=./server-architektur/lxc-frontend) - Веб-фронтенд AstroJS + VitePress с CI/CD для нескольких веток
+  - [Архитектура Фронтенда](https://www.google.com/search?q=./frontend-architektur) - Приложение AstroJS
+  - [Архитектура ПО](https://www.google.com/search?q=./software-architektur) - Компоненты и модули
+  - [Развертывание](https://www.google.com/search?q=./deployment/staging) - Staging и Production
 
 ## Быстрый старт
 
@@ -90,7 +90,7 @@ npm run dev
 Для полной установки в производственной среде следуйте разделам Руководства по администрированию.
 
 ::: warning Предупреждение о безопасности
-Быстрая установка подходит только для тестовых сред! Для производственных систем необходимо учитывать аспекты безопасности.
+Быстрая установка подходит только для тестовых сред \! Для производственных систем необходимо учитывать аспекты безопасности.
 :::
 
 > **Примечание:** Этот текст был автоматически переведен с помощью ИИ и еще не проверен человеком.

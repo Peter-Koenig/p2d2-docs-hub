@@ -33,7 +33,7 @@ p2d2 se basa en una arquitectura de múltiples niveles:
 ### Hardware
 
   - **Host Proxmox**: Intel 13th Gen (o comparable), 14 núcleos, 64 GB RAM
-  - **Sistema Total**: ~28 GB RAM para todos los contenedores/VMs + sobrecarga para Proxmox
+  - **Sistema Total**: \~28 GB RAM para todos los contenedores/VMs + sobrecarga para Proxmox
   - **Almacenamiento**: Mín. 200 GB SSD (para contenedores/VMs + espacio de backup)
   - **Red**: 1 Gbit/s (10 Gbit/s para producción)
 
@@ -50,26 +50,26 @@ p2d2 se basa en una arquitectura de múltiples niveles:
 
 ### Infraestructura de Servidor
 
-  - [Resumen de Arquitectura de Servidor](./server-architektur/) - Arquitectura general de la infraestructura p2d2
-  - [Host Proxmox](./server-architektur/proxmox-host) - Plataforma de virtualización
-  - [Firewall OPNSense](./server-architektur/vm-opnsense) - Firewall y Reverse Proxy
-  - [Arquitectura de Red](./server-architektur/netzwerk-architektur) - Segmentación de red y diseño de firewall
-  - [Estrategia de Backup](./server-architektur/backup-strategie) - Copia de seguridad y recuperación ante desastres
+  - [Resumen de Arquitectura de Servidor](https://www.google.com/search?q=./server-architektur/) - Arquitectura general de la infraestructura p2d2
+  - [Host Proxmox](https://www.google.com/search?q=./server-architektur/proxmox-host) - Plataforma de virtualización
+  - [Firewall OPNSense](https://www.google.com/search?q=./server-architektur/vm-opnsense) - Firewall y Reverse Proxy
+  - [Arquitectura de Red](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - Segmentación de red y diseño de firewall
+  - [Estrategia de Backup](https://www.google.com/search?q=./server-architektur/backup-strategie) - Copia de seguridad y recuperación ante desastres
 
 ### Infraestructura de Geodatos
 
-  - [Contenedor PostgreSQL/PostGIS](./server-architektur/lxc-postgresql) - Base de datos geoespacial con extensiones espaciales
-  - [Contenedor GeoServer](./server-architektur/lxc-geoserver) - Servidor WFS/WMS para servicios de geodatos
-  - [Contenedor MapProxy](./server-architektur/lxc-mapproxy) - Caché de teselas y proxy para entrega de mapas de alto rendimiento
-  - [VM OSM-Tileserver](./server-architektur/vm-osm-tiler) - Servidor de renderizado de teselas OpenStreetMap
-  - [Contenedor Ory IAM (Planeado)](./server-architektur/lxc-ory-iam) - Gestión de Identidad y Acceso
+  - [Contenedor PostgreSQL/PostGIS](https://www.google.com/search?q=./server-architektur/lxc-postgresql) - Base de datos geoespacial con extensiones espaciales
+  - [Contenedor GeoServer](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - Servidor WFS/WMS para servicios de geodatos
+  - [Contenedor MapProxy](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - Caché de teselas y proxy para entrega de mapas de alto rendimiento
+  - [VM OSM-Tileserver](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - Servidor de renderizado de teselas OpenStreetMap
+  - [Contenedor Ory IAM (Planeado)](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - Gestión de Identidad y Acceso
 
 ### Software e Implementación
 
-  - [Contenedor Frontend](./server-architektur/lxc-frontend) - Frontend web AstroJS + VitePress con CI/CD multi-branch
-  - [Arquitectura Frontend](./frontend-architektur) - Aplicación AstroJS
-  - [Arquitectura de Software](./software-architektur) - Componentes y módulos
-  - [Implementación](./deployment/staging) - Staging y Producción
+  - [Contenedor Frontend](https://www.google.com/search?q=./server-architektur/lxc-frontend) - Frontend web AstroJS + VitePress con CI/CD multi-branch
+  - [Arquitectura Frontend](https://www.google.com/search?q=./frontend-architektur) - Aplicación AstroJS
+  - [Arquitectura de Software](https://www.google.com/search?q=./software-architektur) - Componentes y módulos
+  - [Implementación](https://www.google.com/search?q=./deployment/staging) - Staging y Producción
 
 ## Inicio Rápido
 
@@ -90,7 +90,7 @@ npm run dev
 Para una instalación de producción completa, siga las secciones del Manual de Administración.
 
 ::: warning Advertencia de Seguridad
-¡La instalación rápida solo es adecuada para entornos de prueba! Para sistemas de producción, se deben considerar los aspectos de seguridad.
+¡La instalación rápida solo es adecuada para entornos de prueba\! Para sistemas de producción, se deben considerar los aspectos de seguridad.
 :::
 
 > **Nota:** Este texto fue traducido automáticamente con IA y aún no ha sido revisado por un humano.

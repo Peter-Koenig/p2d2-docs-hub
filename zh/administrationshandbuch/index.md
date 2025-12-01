@@ -50,26 +50,26 @@ p2d2 基于多层架构：
 
 ### 服务器基础设施
 
-  - [服务器架构概览](./server-architektur/) - p2d2 基础设施的总体架构
-  - [Proxmox 主机](./server-architektur/proxmox-host) - 虚拟化平台
-  - [OPNSense 防火墙](./server-architektur/vm-opnsense) - 防火墙和反向代理
-  - [网络架构](./server-architektur/netzwerk-architektur) - 网络分段和防火墙设计
-  - [备份策略](./server-architektur/backup-strategie) - 数据备份和灾难恢复
+  - [服务器架构概览](https://www.google.com/search?q=./server-architektur/) - p2d2 基础设施的总体架构
+  - [Proxmox 主机](https://www.google.com/search?q=./server-architektur/proxmox-host) - 虚拟化平台
+  - [OPNsense 防火墙](https://www.google.com/search?q=./server-architektur/vm-opnsense) - 防火墙和反向代理
+  - [网络架构](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - 网络分段和防火墙设计
+  - [备份策略](https://www.google.com/search?q=./server-architektur/backup-strategie) - 数据备份和灾难恢复
 
 ### 地理数据基础设施
 
-  - [PostgreSQL/PostGIS 容器](./server-architektur/lxc-postgresql) - 带有空间扩展的地理数据库
-  - [GeoServer 容器](./server-architektur/lxc-geoserver) - 用于地理数据服务的 WFS/WMS 服务器
-  - [MapProxy 容器](./server-architektur/lxc-mapproxy) - 用于高性能地图传输的瓦片缓存和代理
-  - [OSM-Tileserver 虚拟机](./server-architektur/vm-osm-tiler) - OpenStreetMap 瓦片渲染服务器
-  - [Ory IAM 容器（计划中）](./server-architektur/lxc-ory-iam) - 身份和访问管理
+  - [PostgreSQL/PostGIS 容器](https://www.google.com/search?q=./server-architektur/lxc-postgresql) - 带有空间扩展的地理数据库
+  - [GeoServer 容器](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - 用于地理数据服务的 WFS/WMS 服务器
+  - [MapProxy 容器](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - 用于高性能地图传输的瓦片缓存和代理
+  - [OSM-Tileserver 虚拟机](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - OpenStreetMap 瓦片渲染服务器
+  - [Ory IAM 容器（计划中）](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - 身份和访问管理
 
 ### 软件与部署
 
-  - [前端容器](./server-architektur/lxc-frontend) - AstroJS + VitePress Web 前端（带多分支 CI/CD）
-  - [前端架构](./frontend-architektur) - AstroJS 应用程序
-  - [软件架构](./software-architektur) - 组件和模块
-  - [部署](./deployment/staging) - 预生产 (Staging) 和生产 (Production)
+  - [前端容器](https://www.google.com/search?q=./server-architektur/lxc-frontend) - AstroJS + VitePress Web 前端（带多分支 CI/CD）
+  - [前端架构](https://www.google.com/search?q=./frontend-architektur) - AstroJS 应用程序
+  - [软件架构](https://www.google.com/search?q=./software-architektur) - 组件和模块
+  - [部署](https://www.google.com/search?q=./deployment/staging) - 预生产 (Staging) 和生产 (Production)
 
 ## 快速入门
 
