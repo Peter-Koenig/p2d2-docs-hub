@@ -1,12 +1,16 @@
 ---
 quality:
   completeness: 5
-  accuracy: 50
+  accuracy: 5
   reviewed: false
-  reviewer: null
+  reviewer: 'KI (Gemini)'
   reviewDate: null
 ---
 
 # _Documento Marcador de Posición_
 
-Esta página aún no está traducida. Por favor, utilice la [versión alemana](https://doc.data-dna.eu/de/) o [versión inglesa](https://doc.data-dna.eu/en/).
+Esta página aún no ha sido traducida al español.
+
+Por favor, consulte la [versión alemana](../../de/benutzerhandbuch/anwendung/editieren.md) o la [versión en inglés](../../en/benutzerhandbuch/anwendung/editieren.md) para ver el contenido.
+
+> **Nota:** Esta página fue generada automáticamente por IA como marcador de posición.

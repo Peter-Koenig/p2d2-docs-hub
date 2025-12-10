@@ -1,12 +1,16 @@
 ---
 quality:
   completeness: 5
-  accuracy: 50
+  accuracy: 5
   reviewed: false
-  reviewer: null
+  reviewer: 'KI (Gemini)'
   reviewDate: null
 ---
 
-# _Platzhalter-Dokument_
+# _Documento Marcador de Posición_
 
-Diese Seite ist noch nicht übersetzt. Bitte verwenden Sie die [deutsche Version](../../../de/benutzerhandbuch/index.md) oder [englische Version](../../../en/benutzerhandbuch/index.md).
+Esta página aún no ha sido traducida al español.
+
+Por favor, consulte la [versión alemana](../../de/benutzerhandbuch/index.md) o la [versión en inglés](../../en/benutzerhandbuch/index.md) para ver el contenido.
+
+> **Nota:** Esta página fue generada automáticamente por IA como marcador de posición.

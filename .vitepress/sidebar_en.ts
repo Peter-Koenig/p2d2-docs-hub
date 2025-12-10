@@ -1,4 +1,19 @@
 export const sidebar_en = {
+  "/en/entwicklung/": [
+    {
+      text: "Development",
+      items: [
+        {
+          text: "Contributing",
+          link: "/en/entwicklung/contributing",
+        },
+        {
+          text: "Polygon Sync Plugin",
+          link: "/en/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/en/planning/": [
     {
       text: "Release",
@@ -124,6 +139,52 @@ export const sidebar_en = {
         {
           text: "GDI Overview",
           link: "/en/administrationshandbuch/geodateninfrastruktur/",
+        },
+        {
+          text: "GDI Architecture",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
+        },
+        {
+          text: "PostgreSQL/PostGIS",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+        },
+        {
+          text: "MapProxy",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/mapproxy",
+        },
+        {
+          text: "OSM Tileserver",
+          link: "/en/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "Deployment",
+      items: [
+        {
+          text: "CI/CD Pipeline",
+          link: "/en/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Staging Environment",
+          link: "/en/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "Production Deployment",
+          link: "/en/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "Multi-Branch Deployment",
+          link: "/en/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "Frontend",
+      items: [
+        {
+          text: "Frontend Architecture",
+          link: "/en/administrationshandbuch/frontend-architektur",
         },
       ],
     },
@@ -301,16 +362,32 @@ export const sidebar_en = {
           collapsed: true,
           items: [
             {
-              text: "Layer Interaction",
-              link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
+              text: "Utilities Overview",
+              link: "/en/entwicklungshandbuch/module/utilities/",
             },
             {
-              text: "Coordinate Utils",
+              text: "Coordinate & CRS Utilities",
               link: "/en/entwicklungshandbuch/module/utilities/coordinate-utils",
             },
             {
-              text: "Storage Management",
+              text: "Event System & API Integration",
+              link: "/en/entwicklungshandbuch/module/utilities/event-system",
+            },
+            {
+              text: "Kommune Data Management",
+              link: "/en/entwicklungshandbuch/module/utilities/kommune-utils",
+            },
+            {
+              text: "Layer Management & Interaction",
+              link: "/en/entwicklungshandbuch/module/utilities/layer-interaction",
+            },
+            {
+              text: "Storage & State Management",
               link: "/en/entwicklungshandbuch/module/utilities/storage-management",
+            },
+            {
+              text: "WFS Integration & Authentication",
+              link: "/en/entwicklungshandbuch/module/utilities/wfs-integration",
             },
           ],
         },
@@ -386,6 +463,22 @@ export const sidebar_en = {
       text: "API Reference",
       collapsed: true,
       items: [
+        {
+          text: "API Services Overview",
+          link: "/en/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "GeoServer Integration",
+          link: "/en/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "Overpass API",
+          link: "/en/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "WFS Transactions",
+          link: "/en/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
         {
           text: "TypeScript Modules",
           link: "/en/entwicklungshandbuch/api-referenz/typescript-modules",

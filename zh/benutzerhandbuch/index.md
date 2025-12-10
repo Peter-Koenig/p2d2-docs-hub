@@ -1,12 +1,16 @@
 ---
 quality:
   completeness: 5
-  accuracy: 50
+  accuracy: 5
   reviewed: false
-  reviewer: null
+  reviewer: 'KI (Gemini)'
   reviewDate: null
 ---
 
-# _Platzhalter-Dokument_
+# _占位符文档_
 
-Diese Seite ist noch nicht übersetzt. Bitte verwenden Sie die [deutsche Version](../../../de/benutzerhandbuch/index.md) oder [englische Version](../../../en/benutzerhandbuch/index.md).
+此页面尚未翻译成中文。
+
+请参阅[德语版本](../../de/benutzerhandbuch/index.md)或[英语版本](../../en/benutzerhandbuch/index.md)获取内容。
+
+> **注意：** 此页面由 AI 自动生成作为占位符。

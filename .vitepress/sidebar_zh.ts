@@ -1,4 +1,19 @@
 export const sidebar_zh = {
+  "/zh/entwicklung/": [
+    {
+      text: "开发",
+      items: [
+        {
+          text: "贡献",
+          link: "/zh/entwicklung/contributing",
+        },
+        {
+          text: "多边形同步插件",
+          link: "/zh/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/zh/planning/": [
     {
       text: "发布",
@@ -73,16 +88,48 @@ export const sidebar_zh = {
       text: "服务器架构",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/zh/administrationshandbuch/server-architektur/proxmox",
+          text: "概述",
+          link: "/zh/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox 备份服务器",
-          link: "/zh/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Proxmox 主机",
+          link: "/zh/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/zh/administrationshandbuch/server-architektur/opnsense",
+          text: "OPNSense 防火墙",
+          link: "/zh/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "PostgreSQL/PostGIS 容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "GeoServer 容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "MapProxy 容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "前端容器",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "OSM 瓦片服务器",
+          link: "/zh/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "网络架构",
+          link: "/zh/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "备份策略",
+          link: "/zh/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (计划中)",
+          link: "/zh/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -94,12 +141,12 @@ export const sidebar_zh = {
           link: "/zh/administrationshandbuch/geodateninfrastruktur/",
         },
         {
-          text: "PostgreSQL/PostGIS",
-          link: "/zh/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+          text: "GDI 架构",
+          link: "/zh/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
         },
         {
-          text: "GeoServer",
-          link: "/zh/administrationshandbuch/geodateninfrastruktur/geoserver",
+          text: "PostgreSQL/PostGIS",
+          link: "/zh/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
         },
         {
           text: "MapProxy",
@@ -108,6 +155,36 @@ export const sidebar_zh = {
         {
           text: "OSM 瓦片服务器",
           link: "/zh/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "部署",
+      items: [
+        {
+          text: "CI/CD 流水线",
+          link: "/zh/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Staging 环境",
+          link: "/zh/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "生产部署",
+          link: "/zh/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "多分支部署",
+          link: "/zh/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "前端",
+      items: [
+        {
+          text: "前端架构",
+          link: "/zh/administrationshandbuch/frontend-architektur",
         },
       ],
     },
@@ -370,6 +447,22 @@ export const sidebar_zh = {
       text: "API 参考",
       collapsed: true,
       items: [
+        {
+          text: "API 服务概览",
+          link: "/zh/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "GeoServer 集成",
+          link: "/zh/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "Overpass API",
+          link: "/zh/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "WFS 事务",
+          link: "/zh/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
         {
           text: "TypeScript 模块",
           link: "/zh/entwicklungshandbuch/api-referenz/typescript-modules",

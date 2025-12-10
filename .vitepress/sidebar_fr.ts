@@ -1,4 +1,19 @@
 export const sidebar_fr = {
+  "/fr/entwicklung/": [
+    {
+      text: "Développement",
+      items: [
+        {
+          text: "Contribuer",
+          link: "/fr/entwicklung/contributing",
+        },
+        {
+          text: "Plugin de Synchronisation de Polygones",
+          link: "/fr/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/fr/planning/": [
     {
       text: "Version",
@@ -77,16 +92,48 @@ export const sidebar_fr = {
       text: "Architecture Serveur",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/fr/administrationshandbuch/server-architektur/proxmox",
+          text: "Aperçu",
+          link: "/fr/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/fr/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Hôte Proxmox",
+          link: "/fr/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/fr/administrationshandbuch/server-architektur/opnsense",
+          text: "Pare-feu OPNsense",
+          link: "/fr/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "Conteneur PostgreSQL/PostGIS",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "Conteneur GeoServer",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "Conteneur MapProxy",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Conteneur Frontend",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "Serveur de tuiles OSM",
+          link: "/fr/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Architecture Réseau",
+          link: "/fr/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Stratégie de Sauvegarde",
+          link: "/fr/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (Prévu)",
+          link: "/fr/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -98,12 +145,12 @@ export const sidebar_fr = {
           link: "/fr/administrationshandbuch/geodateninfrastruktur/",
         },
         {
-          text: "PostgreSQL/PostGIS",
-          link: "/fr/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+          text: "Architecture GDI",
+          link: "/fr/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
         },
         {
-          text: "GeoServer",
-          link: "/fr/administrationshandbuch/geodateninfrastruktur/geoserver",
+          text: "PostgreSQL/PostGIS",
+          link: "/fr/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
         },
         {
           text: "MapProxy",
@@ -112,6 +159,36 @@ export const sidebar_fr = {
         {
           text: "Serveur de tuiles OSM",
           link: "/fr/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "Déploiement",
+      items: [
+        {
+          text: "Pipeline CI/CD",
+          link: "/fr/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Environnement de Staging",
+          link: "/fr/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "Déploiement en Production",
+          link: "/fr/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "Déploiement Multi-Branche",
+          link: "/fr/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "Frontend",
+      items: [
+        {
+          text: "Architecture Frontend",
+          link: "/fr/administrationshandbuch/frontend-architektur",
         },
       ],
     },
@@ -374,6 +451,22 @@ export const sidebar_fr = {
       text: "Référence API",
       collapsed: true,
       items: [
+        {
+          text: "Aperçu des Services API",
+          link: "/fr/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "Intégration GeoServer",
+          link: "/fr/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "API Overpass",
+          link: "/fr/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "Transactions WFS",
+          link: "/fr/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
         {
           text: "Modules TypeScript",
           link: "/fr/entwicklungshandbuch/api-referenz/typescript-modules",

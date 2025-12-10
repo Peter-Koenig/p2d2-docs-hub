@@ -543,6 +543,10 @@ export const sidebar_de = {
           text: "Roadmap",
           link: "/de/entwicklungsstrategie/roadmap",
         },
+        {
+          text: "IAM - Zitadel (Konzept)",
+          link: "/de/entwicklungsstrategie/iam-zitadel-konzept",
+        },
       ],
     },
   ],

@@ -1,22 +1,26 @@
 ---
-title: GeoServer Container
-description: WFS/WMS-Server für Geodatendienste
+title: GeoServer Container - Wartung & Betrieb
+description: Installation, Update und Wartung des GeoServer-Containers
 quality:
-  completeness: 85
-  accuracy: 80
+  completeness: 90
+  accuracy: 90
   reviewed: true
   reviewer: Peter König
-  reviewDate: 2025-11-29
+  reviewDate: 2025-12-06
 ---
 
-# LXC: GeoServer
+# GeoServer Container - Wartung & Betrieb
 
-## Container-Informationen
+## Übersicht
+
+Der GeoServer-Container stellt OGC-konforme Geodienste (WMS, WFS, WFS-T) für die p2d2-Plattform bereit. Der Zugriff erfolgt ausschließlich über einen Reverse-Proxy (Caddy auf OPNSense), eine direkte Exposition ins Internet findet nicht statt.
+
+## Container-Konfiguration
 
 ```
-Typ: LXC (privileged/unprivileged je nach Setup)
-OS: Debian 13 (trixie)
-Hostname: geoserver (anpassbar)
+Typ: LXC Container (Proxmox)
+OS: Debian (aktuelle Stable-Version)
+Hostname: geoserver
 Status: running
 
 Ressourcen:
@@ -25,356 +29,360 @@ Ressourcen:
   CPU Shares: Standard (1024)
 ```
 
-## Installierte Software
+## Software-Stack
 
 ### Java Runtime
-```
-Version: OpenJDK 17 (LTS)
-JVM Options: Optimiert für GeoServer-Workload
-Memory: 4 GB Heap (Xmx), 512 MB PermGen
-```
+- **Version**: OpenJDK 17 (LTS)
+- **JVM Heap**: 4 GB (Xmx), 2 GB (Xms)
+- **Garbage Collector**: G1GC
 
 ### Tomcat Servlet Container
-```
-Version: 9.x (Debian Official Repository)
-Service: tomcat9.service (systemd)
-Webroot: /var/lib/tomcat9/webapps/geoserver
-Port: 8080 (HTTP), 8443 (HTTPS optional)
-```
+- **Version**: Tomcat 9 (aus Debian-Repository)
+- **Service**: `tomcat9.service` (systemd)
+- **Webroot**: `/var/lib/tomcat9/webapps/geoserver`
+- **Ports**: 8080 (HTTP, nur intern)
 
 ### GeoServer
+- **Installation**: WAR-Deployment in Tomcat
+- **Data Directory**: `/opt/geoserver_data` (extern via `GEOSERVER_DATA_DIR`)
+- **Context-Path**: `/geoserver`
+- **Admin-Interface**: `/geoserver/web`
+
+## Installation
+
+### Initiale Installation
+
+Die Installation erfolgt über ein Shell-Skript, das OpenJDK, Tomcat und die GeoServer-WAR deployed:
+
 ```
-Version: 2.x (aktuelle Stable)
-Installation: WAR-Datei im Tomcat
-Context-Path: /geoserver
-Admin-Interface: /geoserver/web
+#!/bin/bash
+# ~/install_geoserver.sh
+
+set -e
+
+# Variablen
+GEOSERVER_VERSION="2.28.1"  # Anpassen an aktuelle Stable-Version
+GEOSERVER_WAR_ZIP="/tmp/geoserver-${GEOSERVER_VERSION}-war.zip"
+GEOSERVER_WAR="/tmp/geoserver.war"
+TOMCAT_VER="9"
+TOMCAT_USER="tomcat"
+TOMCAT_GROUP="tomcat"
+TOMCAT_HOME="/var/lib/tomcat${TOMCAT_VER}"
+TOMCAT_WEBAPPS="${TOMCAT_HOME}/webapps"
+GEOSERVER_CONTEXT_PATH="geoserver"
+
+# 1. Benötigte Pakete installieren
+apt-get update
+apt-get install -y openjdk-17-jre-headless tomcat${TOMCAT_VER} unzip
+
+# 2. GeoServer WAR-Datei extrahieren
+unzip -o "$GEOSERVER_WAR_ZIP" -d /tmp/
+if [ ! -f "$GEOSERVER_WAR" ]; then
+    GEOSERVER_WAR_FOUND=$(find /tmp -maxdepth 2 -name "geoserver*.war" | head -n1)
+    if [ -n "$GEOSERVER_WAR_FOUND" ]; then
+        mv "$GEOSERVER_WAR_FOUND" "$GEOSERVER_WAR"
+    else
+        echo "GeoServer WAR-Datei nicht gefunden."
+        exit 1
+    fi
+fi
+
+# 3. Data Directory konfigurieren
+mkdir -p /opt/geoserver_data
+chown -R $TOMCAT_USER:$TOMCAT_GROUP /opt/geoserver_data
+
+# 4. GEOSERVER_DATA_DIR setzen
+cat > /usr/share/tomcat${TOMCAT_VER}/bin/setenv.sh <<'EOF'
+#!/bin/bash
+export CATALINA_OPTS="${CATALINA_OPTS} -DGEOSERVER_DATA_DIR=/opt/geoserver_data"
+export CATALINA_OPTS="${CATALINA_OPTS} -Xmx4g -Xms2g"
+export CATALINA_OPTS="${CATALINA_OPTS} -XX:+UseG1GC"
+export CATALINA_OPTS="${CATALINA_OPTS} -Djava.awt.headless=true"
+EOF
+chmod +x /usr/share/tomcat${TOMCAT_VER}/bin/setenv.sh
+
+# 5. GeoServer WAR in Tomcat deployen
+systemctl stop tomcat${TOMCAT_VER}
+rm -rf "${TOMCAT_WEBAPPS:?}/${GEOSERVER_CONTEXT_PATH}"
+rm -f "${TOMCAT_WEBAPPS:?}/${GEOSERVER_CONTEXT_PATH}.war"
+cp "$GEOSERVER_WAR" "${TOMCAT_WEBAPPS}/${GEOSERVER_CONTEXT_PATH}.war"
+chown $TOMCAT_USER:$TOMCAT_GROUP "${TOMCAT_WEBAPPS}/${GEOSERVER_CONTEXT_PATH}.war"
+
+# 6. Tomcat starten
+systemctl daemon-reload
+systemctl enable tomcat${TOMCAT_VER}
+systemctl start tomcat${TOMCAT_VER}
+
+echo "=== GeoServer Installation abgeschlossen ==="
+echo "Interner Zugriff: http://$(hostname -I | awk '{print $1}'):8080/geoserver"
+echo "Admin-Login: admin / geoserver (bitte ändern!)"
 ```
 
-## Service-Konfiguration
+### Data Directory
 
-### Systemd-Service
+Das Data Directory liegt **außerhalb** des Webapp-Deployments unter `/opt/geoserver_data`. Dies ermöglicht sichere Updates ohne Datenverlust. Die Konfiguration erfolgt über die Umgebungsvariable `GEOSERVER_DATA_DIR` in `/usr/share/tomcat9/bin/setenv.sh`.
+
+## Update-Prozess
+
+### Security-Updates
+
+Bei Sicherheitsupdates (z.B. CVE-Fixes) wird die GeoServer-WAR ausgetauscht, während das Data Directory unverändert bleibt:
+
+```
+#!/bin/bash
+# ~/update_geoserver.sh
+
+set -e
+
+# Konfiguration
+GEOSERVER_VERSION="2.28.1"  # Neue Version
+GEOSERVER_WAR_ZIP="/tmp/geoserver-${GEOSERVER_VERSION}-war.zip"
+GEOSERVER_WAR="/tmp/geoserver.war"
+
+TOMCAT_VER="9"
+TOMCAT_USER="tomcat"
+TOMCAT_GROUP="tomcat"
+TOMCAT_HOME="/var/lib/tomcat${TOMCAT_VER}"
+TOMCAT_WEBAPPS="${TOMCAT_HOME}/webapps"
+GEOSERVER_CONTEXT_PATH="geoserver"
+
+echo "=== GeoServer Update auf Version ${GEOSERVER_VERSION} ==="
+
+# 1. Backup der Konfiguration erstellen
+BACKUP_DIR="/backup/geoserver"
+mkdir -p "$BACKUP_DIR"
+tar -czf "$BACKUP_DIR/geoserver-data_$(date +%Y%m%d-%H%M).tar.gz" \
+  /opt/geoserver_data/
+
+# 2. Tomcat stoppen
+systemctl stop tomcat${TOMCAT_VER}
+
+# 3. Alte WAR entfernen
+rm -f "${TOMCAT_WEBAPPS:?}/${GEOSERVER_CONTEXT_PATH}.war"
+rm -rf "${TOMCAT_WEBAPPS:?}/${GEOSERVER_CONTEXT_PATH}"
+
+# 4. Neue GeoServer-WAR vorbereiten
+if [ ! -f "$GEOSERVER_WAR_ZIP" ]; then
+    echo "ERROR: ZIP-Datei ${GEOSERVER_WAR_ZIP} nicht gefunden."
+    echo "Bitte von https://geoserver.org/download/ herunterladen."
+    exit 1
+fi
+
+unzip -o "$GEOSERVER_WAR_ZIP" -d /tmp/
+
+if [ ! -f "$GEOSERVER_WAR" ]; then
+    GEOSERVER_WAR_FOUND=$(find /tmp -maxdepth 2 -name "geoserver*.war" | head -n1)
+    if [ -n "$GEOSERVER_WAR_FOUND" ]; then
+        mv "$GEOSERVER_WAR_FOUND" "$GEOSERVER_WAR"
+    else
+        echo "ERROR: GeoServer WAR-Datei nicht gefunden."
+        exit 1
+    fi
+fi
+
+# 5. Neue WAR deployen
+cp "$GEOSERVER_WAR" "${TOMCAT_WEBAPPS}/${GEOSERVER_CONTEXT_PATH}.war"
+chown $TOMCAT_USER:$TOMCAT_GROUP "${TOMCAT_WEBAPPS}/${GEOSERVER_CONTEXT_PATH}.war"
+
+# 6. Tomcat starten
+systemctl start tomcat${TOMCAT_VER}
+
+echo "=== Update abgeschlossen ==="
+echo "Prüfe GeoServer unter: http://$(hostname -I | awk '{print $1}'):8080/geoserver"
+echo "Backup wurde erstellt: $BACKUP_DIR/geoserver-data_$(date +%Y%m%d)*.tar.gz"
+```
+
+### Update-Kompatibilität
+
+- **Minor-Updates** (z.B. 2.28.0 → 2.28.1): Typischerweise ohne Probleme
+- **Major-Updates** (z.B. 2.27.x → 2.28.x): Kompatibel mit Tomcat 9 und Java 17
+- **Tomcat 10+**: Noch nicht unterstützt (GeoServer 2.x nutzt javax-Servlet-API)
+
+## Service-Management
+
+### Systemd-Befehle
+
 ```
 # Service-Status prüfen
 systemctl status tomcat9
 
-# Service neu starten (mit Downtime)
+# Service neu starten
 systemctl restart tomcat9
 
-# Logs anzeigen
+# Logs live anzeigen
 journalctl -u tomcat9 -f --no-pager
 
-# Service enablen (Autostart)
+# Autostart aktivieren
 systemctl enable tomcat9
 ```
 
-### Tomcat-Konfiguration
-```
-# Server-Konfiguration
-/etc/tomcat9/server.xml
-  - Connector Port: 8080
-  - AJP Connector: Deaktiviert (Sicherheit)
-  - SSL/TLS: Optional (via Caddy-Proxy)
-
-# Application-Konfiguration
-/var/lib/tomcat9/webapps/geoserver/WEB-INF/web.xml
-```
-
-## GeoServer-Features
-
-### Unterstützte Protokolle
-```
-WMS (Web Map Service): Karten-Rendering
-  - Version: 1.1.1, 1.3.0
-  - GetMap, GetFeatureInfo, GetLegendGraphic
-
-WFS (Web Feature Service): Vektordaten
-  - Version: 1.0.0, 1.1.0, 2.0.0
-  - GetFeature, DescribeFeatureType, Transaction
-
-WFS-T (Transactional): Schreibzugriffe
-  - Insert, Update, Delete Operationen
-  - Für p2d2-Frontend Daten-Persistierung
-
-WMTS (Web Map Tile Service): Optional
-```
-
-### Datenquellen-Konfiguration
-
-#### PostgreSQL/PostGIS Connection
-```
-Connection Parameters:
-  - Host: postgresql.lan (interne DNS)
-  - Database: data-dna
-  - Schema: public
-  - User: geoserver (dedicated user)
-
-PostGIS Store:
-  - Estimated Bounds: Auto-calculate
-  - Expose Primary Keys: Enabled
-  - Prepared Statements: Enabled (Performance)
-```
-
-#### Layer-Publishing
-```
-Veröffentlichte Layer:
-  - kommunen (Polygon-Geometrien)
-  - gebaeude (Point/LineString)
-  - strassen (LineString)
-  - Custom Layer je nach Datenimport
-
-Styling (SLD):
-  - Standard-Styles für verschiedene Geometrie-Typen
-  - Custom SLD für spezielle Darstellungen
-  - Rule-basierte Klassifizierung
-```
-
-## Netzwerk-Zugang
+### Log-Dateien
 
 ```
-Listening: 
-  - TCP Port 8080 (HTTP, internes LAN)
-  - Keine direkte WAN-Exposition
+# Tomcat-Logs
+tail -f /var/log/tomcat9/catalina.out
 
-Zugriff via Reverse Proxy:
-  - ows.data-dna.eu → WMS/WFS Endpoints
-  - wfs.data-dna.eu → WFS-T Endpoints (Frontend)
+# GeoServer-Logs
+tail -f /opt/geoserver_data/logs/geoserver.log
 
-Firewall-Regeln:
-  - Caddy (OPNSense) → GeoServer: ALLOW
-  - Frontend → GeoServer: ALLOW (WFS-T)
-  - MapProxy → GeoServer: ALLOW (WMS)
-  - Externer Zugriff: DENY (nur via Caddy)
+# Performance-Analyse
+grep "Request time" /opt/geoserver_data/logs/geoserver.log | tail -20
 ```
 
-## Performance-Optimierung
+## Netzwerk & Sicherheit
 
-### JVM-Optionen (setenv.sh)
-```
-# /usr/share/tomcat9/bin/setenv.sh
-export JAVA_OPTS="$JAVA_OPTS -Xmx4g -Xms2g"
-export JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC"
-export JAVA_OPTS="$JAVA_OPTS -DGEOSERVER_DATA_DIR=/var/lib/geoserver/data"
-export JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true"
-```
+### Zugriffskontrolle
 
-### GeoServer-Konfiguration
-```
-# /var/lib/geoserver/data/global.xml
+Der GeoServer ist **nicht direkt** im Internet erreichbar. Alle externen Anfragen laufen über den Reverse-Proxy:
 
-<global>
-  <settings>
-    <proxyBaseUrl>https://ows.data-dna.eu/geoserver</proxyBaseUrl>
-    <useHeadersProxyURL>false</useHeadersProxyURL>
-    <verbose>false</verbose>
-    <verboseExceptions>false</verboseExceptions>
-    <maxFeatures>10000</maxFeatures>
-    <numDecimals>8</numDecimals>
-  </settings>
-</global>
+```
+Internet
+  ↓
+OPNSense (Caddy Reverse Proxy)
+  ├─→ ows.data-dna.eu → GeoServer WMS/WFS (lesend)
+  └─→ wfs.data-dna.eu → GeoServer WFS-T (schreibend, Frontend)
+
+Interne Services:
+  - Frontend (AstroJS) → GeoServer WFS-T
+  - MapProxy → GeoServer WMS
+  - PostgreSQL ← GeoServer (Datenquelle)
 ```
 
-### GWC (GeoWebCache) Konfiguration
+### Firewall-Regeln
+
+- **Port 8080**: Nur im internen LAN erreichbar
+- **Reverse Proxy**: TLS/HTTPS-Terminierung auf OPNSense
+- **Externe Zugriffe**: Nur über Caddy (mit Rate-Limiting)
+
+### GeoServer-Security
+
 ```
-Cache-Konfiguration:
-  - Disk Quota: 2 GB (begrenzt durch Container-Disk)
-  - Tile Layers: Automatisch für WMS-Layer
-  - Grid Subsets: WebMercator (EPSG:3857), WGS84 (EPSG:4326)
-  - Meta-Tiling: 4x4 (Performance vs. Quality)
+Admin-Zugang:
+  - Standard-Passwort "geoserver" MUSS geändert werden
+  - Zugang nur über interne IP oder Reverse-Proxy
+
+Role-Based Access Control:
+  - ADMIN: Vollzugriff (Server-Konfiguration)
+  - EDITOR: Layer-Management, WFS-T
+  - USER: Nur Lese-Zugriff (WMS/WFS)
+
+Layer-Security:
+  - Workspace-Isolation aktiviert
+  - OGC-Service-Limits (maxFeatures: 10000)
 ```
 
-## Backup-Strategie
+## Backup & Restore
 
-### PBS-Snapshot (Container-Level)
-- **Zeitplan**: Wöchentlich
-- **Retention**: 4 Wochen
-- **Typ**: LVM-Thin Snapshot
+### Automatisches Backup
 
-### GeoServer-Konfiguration Backup
 ```
-# Manuelles Backup der Konfiguration
-tar -czf /backup/geoserver-config_$(date +%Y%m%d).tar.gz \
-  /var/lib/geoserver/data/
-
-# Automatisierung via Cronjob
 # /etc/cron.weekly/geoserver-backup
 #!/bin/bash
 BACKUP_DIR="/backup/geoserver"
 mkdir -p "$BACKUP_DIR"
-tar -czf "$BACKUP_DIR/geoserver-config_$(date +%Y%m%d).tar.gz" \
-  /var/lib/geoserver/data/
+
+# Data Directory sichern
+tar -czf "$BACKUP_DIR/geoserver-data_$(date +%Y%m%d).tar.gz" \
+  /opt/geoserver_data/
 
 # Alte Backups löschen (>90 Tage)
-find "$BACKUP_DIR" -name "geoserver-config_*.tar.gz" -mtime +90 -delete
+find "$BACKUP_DIR" -name "geoserver-data_*.tar.gz" -mtime +90 -delete
 ```
 
-::: tip Konfigurations-Portabilität
-GeoServer-Konfigurations-Backups sind version-spezifisch. Bei Major-Updates Konfiguration exportieren/importieren via GeoServer-UI.
-:::
+### Proxmox PBS-Snapshots
 
-## Monitoring
+- **Zeitplan**: Wöchentlich (Container-Level)
+- **Retention**: 4 Wochen
+- **Typ**: LVM-Thin Snapshot (gesamter Container)
 
-### Health-Checks
+### Restore-Prozess
+
 ```
-# Service-Status
+# Data Directory wiederherstellen
+systemctl stop tomcat9
+tar -xzf /backup/geoserver/geoserver-data_YYYYMMDD.tar.gz -C /
+chown -R tomcat:tomcat /opt/geoserver_data
+systemctl start tomcat9
+```
+
+## Monitoring & Health-Checks
+
+### Service-Status
+
+```
+# HTTP-Erreichbarkeit prüfen
 curl -I http://localhost:8080/geoserver/web
 
-# WMS-Capabilities
-curl "http://localhost:8080/geoserver/wms?service=WMS&version=1.3.0&request=GetCapabilities"
+# WMS-Capabilities abrufen
+curl -s "http://localhost:8080/geoserver/wms?service=WMS&version=1.3.0&request=GetCapabilities" | head -20
 
-# Layer-Liste
-curl "http://localhost:8080/geoserver/rest/layers.json" -u admin:<PASSWORD>
+# REST-API-Status (benötigt Admin-Login)
+curl -u admin:<PASSWORD> http://localhost:8080/geoserver/rest/about/status.json
 ```
 
-### Log-Analyse
+### Performance-Metriken
+
 ```
-# Tomcat-Logs
-tail -f /var/log/tomcat9/catalina.out
-tail -f /var/log/tomcat9/geoserver.log
+# JVM Memory Usage
+curl -u admin:<PASSWORD> http://localhost:8080/geoserver/rest/about/system-status.json | jq '.memory'
 
-# GeoServer-Logs
-tail -f /var/lib/geoserver/data/logs/geoserver.log
-
-# Performance-Metriken
-grep "Request time" /var/lib/geoserver/data/logs/geoserver.log | tail -10
+# Request-Zeiten aus Logs
+grep "ms" /opt/geoserver_data/logs/geoserver.log | tail -10
 ```
 
 ## Troubleshooting
 
 ### GeoServer startet nicht
+
 ```
 # Tomcat-Logs prüfen
 journalctl -u tomcat9 --no-pager -n 100
 
-# GeoServer Data Directory permissions
-ls -la /var/lib/geoserver/data/
+# Data Directory Permissions
+ls -la /opt/geoserver_data/
+chown -R tomcat:tomcat /opt/geoserver_data
 
-# JVM Memory Issues
+# JVM OutOfMemory
 grep "OutOfMemory" /var/log/tomcat9/catalina.out
+# → JVM Heap in setenv.sh erhöhen
 ```
 
-### WMS/WFS-Fehlermeldungen
-```
-# Layer nicht verfügbar
-- Data Store Connection prüfen
-- PostgreSQL-Verbindung testen
-- Layer-Permissions in GeoServer
+### Connection zu PostgreSQL fehlschlägt
 
-# Performance-Probleme
-- JVM Heap Size erhöhen
-- PostGIS-Indizes prüfen
-- GWC-Caching aktivieren
 ```
-
-### Connection zu PostgreSQL
-```
-# Von GeoServer-Container aus testen
-psql -h postgresql.lan -U geoserver -d data-dna -c "SELECT version();"
-
-# Network Connectivity
+# Netzwerk-Test von GeoServer-Container aus
 ping postgresql.lan
-telnet postgresql.lan <PG_PORT>
+telnet postgresql.lan 5432
+
+# PostgreSQL-Verbindung testen
+psql -h postgresql.lan -U geoserver -d data-dna -c "SELECT version();"
 ```
 
-## Sicherheits-Konfiguration
+### Performance-Probleme
 
-### GeoServer-Security
-```
-Admin-Benutzer: 
-  - Username: admin (ändern bei Production)
-  - Password: <STRONG_PASSWORD> (nicht Standard)
-
-Role-Based Access:
-  - ADMIN_ROLE: Vollzugriff
-  - GROUP_ADMIN: Layer-Management
-  - WMS_USER: Nur Lese-Zugriff
-  - WFS_USER: Feature-Zugriff
-
-Data Security:
-  - Layer-Level Permissions
-  - Workspace Isolation
-  - OGC Service Limits
-```
-
-### Netzwerk-Sicherheit
-```
-Firewall-Regeln:
-  - Nur Caddy-Proxy hat Zugriff (Reverse Proxy)
-  - Keine direkte WAN-Exposition
-  - Interne Kommunikation nur mit autorisierten Services
-
-TLS/SSL:
-  - Via Caddy-Proxy (Let's Encrypt)
-  - HSTS Header aktiviert
-  - Modern Cipher Suites
-```
-
-## Integration mit p2d2-Architektur
-
-### Frontend-Integration (WFS-T)
-```
-// AstroJS Frontend → GeoServer WFS-T
-const wfsTransaction = `
-<wfs:Transaction service="WFS" version="2.0.0"
-  xmlns:wfs="http://www.opengis.net/wfs/2.0"
-  xmlns:gml="http://www.opengis.net/gml/3.2">
-  <wfs:Insert>
-    <feature:gebaeude xmlns:feature="http://www.data-dna.eu/features">
-      <feature:geom>
-        <gml:Point srsName="EPSG:4326">
-          <gml:pos>7.0 51.0</gml:pos>
-        </gml:Point>
-      </feature:geom>
-    </feature:gebaeude>
-  </wfs:Insert>
-</wfs:Transaction>`;
-
-// HTTP POST zu GeoServer
-fetch('https://wfs.data-dna.eu/geoserver/wfs', {
-  method: 'POST',
-  headers: { 'Content-Type': 'text/xml' },
-  body: wfsTransaction
-});
-```
-
-### MapProxy-Integration (WMS)
-```
-# MapProxy Konfiguration
-sources:
-  geoserver_wms:
-    type: wms
-    req:
-      url: http://geoserver.lan:8080/geoserver/wms
-      layers: kommunen,strassen
-      transparent: true
-
-caches:
-  geoserver_cache:
-    sources: [geoserver_wms]
-    grids: [webmercator]
-    cache:
-      type: file
-      directory: /cache/geoserver
-```
+1. **JVM Heap erhöhen**: In `/usr/share/tomcat9/bin/setenv.sh` `-Xmx6g` setzen
+2. **PostGIS-Indizes prüfen**: Spatial-Indizes auf Geometrie-Spalten
+3. **GeoWebCache aktivieren**: Tile-Caching für häufig genutzte Layer
 
 ## Best Practices
 
-✅ **Do**:
-- Regelmäßige GeoServer-Updates (Security-Patches)
-- Separate Benutzer für verschiedene Zugriffsebenen
-- GWC-Caching für häufig angefragte Layer
-- Monitoring der JVM-Performance (Heap Usage)
-- Backup der GeoServer-Konfiguration
+### Do ✅
+- Regelmäßige Security-Updates (GeoServer Release Notes verfolgen)
+- Data Directory extern von WAR-Deployment
+- Separate PostgreSQL-Benutzer mit minimalen Rechten
+- GeoWebCache für statische Layer aktivieren
+- Backup vor jedem Update
 
-❌ **Don't**:
-- Standard-Passwörter verwenden
-- GeoServer direkt im Internet exponieren
-- Unbegrenzte MaxFeatures erlauben
-- Ohne Resource-Limits laufen lassen
-- Konfiguration ohne Backup ändern
+### Don't ❌
+- Standard-Admin-Passwort verwenden
+- GeoServer direkt ins Internet exponieren
+- Unbegrenzte `maxFeatures` erlauben
+- Data Directory innerhalb von `webapps/` belassen
+- Updates ohne Backup durchführen
 
-## Referenzen
+## Weiterführende Dokumentation
 
-- [GeoServer Dokumentation](https://docs.geoserver.org/)
-- [GeoServer Security](https://docs.geoserver.org/stable/en/user/security/)
-- [WFS-T Specification](https://www.ogc.org/standards/wfs)
-- [Tomcat 9 Administration](https://tomcat.apache.org/tomcat-9.0-doc/)
+- **GIS-Konfiguration**: Siehe [Geodateninfrastruktur → GeoServer](../geodateninfrastruktur/geoserver.md)
+- **GeoServer Docs**: https://docs.geoserver.org/stable/en/user/
+- **Security Guide**: https://docs.geoserver.org/stable/en/user/security/
+- **REST API**: https://docs.geoserver.org/stable/en/user/rest/

@@ -1,4 +1,19 @@
 export const sidebar_ru = {
+  "/ru/entwicklung/": [
+    {
+      text: "Разработка",
+      items: [
+        {
+          text: "Вклад",
+          link: "/ru/entwicklung/contributing",
+        },
+        {
+          text: "Плагин синхронизации полигонов",
+          link: "/ru/entwicklung/polygon-sync",
+        },
+      ],
+    },
+  ],
   "/ru/planning/": [
     {
       text: "Релиз",
@@ -73,16 +88,48 @@ export const sidebar_ru = {
       text: "Архитектура сервера",
       items: [
         {
-          text: "Proxmox VE",
-          link: "/ru/administrationshandbuch/server-architektur/proxmox",
+          text: "Обзор",
+          link: "/ru/administrationshandbuch/server-architektur/",
         },
         {
-          text: "Proxmox Backup Server",
-          link: "/ru/administrationshandbuch/server-architektur/pbs-backup",
+          text: "Хост Proxmox",
+          link: "/ru/administrationshandbuch/server-architektur/proxmox-host",
         },
         {
-          text: "OPNsense",
-          link: "/ru/administrationshandbuch/server-architektur/opnsense",
+          text: "Брандмауэр OPNsense",
+          link: "/ru/administrationshandbuch/server-architektur/vm-opnsense",
+        },
+        {
+          text: "Контейнер PostgreSQL/PostGIS",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-postgresql",
+        },
+        {
+          text: "Контейнер GeoServer",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-geoserver",
+        },
+        {
+          text: "Контейнер MapProxy",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-mapproxy",
+        },
+        {
+          text: "Контейнер Frontend",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-frontend",
+        },
+        {
+          text: "Сервер тайлов OSM",
+          link: "/ru/administrationshandbuch/server-architektur/vm-osm-tiler",
+        },
+        {
+          text: "Сетевая архитектура",
+          link: "/ru/administrationshandbuch/server-architektur/netzwerk-architektur",
+        },
+        {
+          text: "Стратегия резервного копирования",
+          link: "/ru/administrationshandbuch/server-architektur/backup-strategie",
+        },
+        {
+          text: "Ory IAM (Планируется)",
+          link: "/ru/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },
@@ -94,12 +141,12 @@ export const sidebar_ru = {
           link: "/ru/administrationshandbuch/geodateninfrastruktur/",
         },
         {
-          text: "PostgreSQL/PostGIS",
-          link: "/ru/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
+          text: "Архитектура GDI",
+          link: "/ru/administrationshandbuch/geodateninfrastruktur/gdi-architektur",
         },
         {
-          text: "GeoServer",
-          link: "/ru/administrationshandbuch/geodateninfrastruktur/geoserver",
+          text: "PostgreSQL/PostGIS",
+          link: "/ru/administrationshandbuch/geodateninfrastruktur/postgresql-postgis",
         },
         {
           text: "MapProxy",
@@ -108,6 +155,36 @@ export const sidebar_ru = {
         {
           text: "Сервер тайлов OSM",
           link: "/ru/administrationshandbuch/geodateninfrastruktur/osm-tileserver",
+        },
+      ],
+    },
+    {
+      text: "Развертывание",
+      items: [
+        {
+          text: "CI/CD пайплайн",
+          link: "/ru/administrationshandbuch/deployment/cicd-pipeline",
+        },
+        {
+          text: "Среда Staging",
+          link: "/ru/administrationshandbuch/deployment/staging",
+        },
+        {
+          text: "Развертывание в продакшн",
+          link: "/ru/administrationshandbuch/deployment/production",
+        },
+        {
+          text: "Мульти-веточное развертывание",
+          link: "/ru/administrationshandbuch/deployment/multi-branch-deployment",
+        },
+      ],
+    },
+    {
+      text: "Frontend",
+      items: [
+        {
+          text: "Архитектура Frontend",
+          link: "/ru/administrationshandbuch/frontend-architektur",
         },
       ],
     },
@@ -370,6 +447,22 @@ export const sidebar_ru = {
       text: "Справочник API",
       collapsed: true,
       items: [
+        {
+          text: "Обзор сервисов API",
+          link: "/ru/entwicklungshandbuch/api-referenz/",
+        },
+        {
+          text: "Интеграция GeoServer",
+          link: "/ru/entwicklungshandbuch/api-referenz/geoserver-integration",
+        },
+        {
+          text: "API Overpass",
+          link: "/ru/entwicklungshandbuch/api-referenz/overpass-api",
+        },
+        {
+          text: "Транзакции WFS",
+          link: "/ru/entwicklungshandbuch/api-referenz/wfs-transactions",
+        },
         {
           text: "TypeScript модули",
           link: "/ru/entwicklungshandbuch/api-referenz/typescript-modules",

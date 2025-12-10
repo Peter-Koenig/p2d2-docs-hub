@@ -4,9 +4,9 @@ description: WFS/WMS server for geodata services
 quality:
   completeness: 85
   accuracy: 80
-  reviewed: true
-  reviewer: Peter König
-  reviewDate: 2025-11-29
+  reviewed: false
+  reviewer: "(Translation - KI)"
+  reviewDate: null
 ---
 
 # LXC: GeoServer
@@ -20,14 +20,15 @@ Hostname: geoserver (customizable)
 Status: running
 
 Resources:
-RAM: 6 GB
-Disk: 12 GB (dynamically expandable)
-CPU Shares: Standard (1024)
+  RAM: 6 GB
+  Disk: 12 GB (dynamically expandable)
+  CPU Shares: Standard (1024)
 ```
 
 ## Installed Software
 
 ### Java Runtime
+
 ```
 Version: OpenJDK 17 (LTS)
 JVM Options: Optimized for GeoServer workload
@@ -35,6 +36,7 @@ Memory: 4 GB Heap (Xmx), 512 MB PermGen
 ```
 
 ### Tomcat Servlet Container
+
 ```
 Version: 9.x (Debian Official Repository)
 Service: tomcat9.service (systemd)
@@ -43,16 +45,18 @@ Port: 8080 (HTTP), 8443 (HTTPS optional)
 ```
 
 ### GeoServer
+
 ```
 Version: 2.x (current Stable)
 Installation: WAR file in Tomcat
 Context-Path: /geoserver
-Admin Interface: /geoserver/web
+Admin-Interface: /geoserver/web
 ```
 
 ## Service Configuration
 
 ### Systemd Service
+
 ```
 # Check service status
 systemctl status tomcat9
@@ -68,6 +72,7 @@ systemctl enable tomcat9
 ```
 
 ### Tomcat Configuration
+
 ```
 # Server configuration
 /etc/tomcat9/server.xml
@@ -82,6 +87,7 @@ systemctl enable tomcat9
 ## GeoServer Features
 
 ### Supported Protocols
+
 ```
 WMS (Web Map Service): Map rendering
   - Version: 1.1.1, 1.3.0
@@ -101,6 +107,7 @@ WMTS (Web Map Tile Service): Optional
 ### Data Source Configuration
 
 #### PostgreSQL/PostGIS Connection
+
 ```
 Connection Parameters:
   - Host: postgresql.lan (internal DNS)
@@ -115,6 +122,7 @@ PostGIS Store:
 ```
 
 #### Layer Publishing
+
 ```
 Published Layers:
   - kommunen (Polygon geometries)
@@ -131,7 +139,7 @@ Styling (SLD):
 ## Network Access
 
 ```
-Listening:
+Listening: 
   - TCP Port 8080 (HTTP, internal LAN)
   - No direct WAN exposure
 
@@ -149,9 +157,9 @@ Firewall Rules:
 ## Performance Optimization
 
 ### JVM Options (setenv.sh)
+
 ```
 # /usr/share/tomcat9/bin/setenv.sh
-
 export JAVA_OPTS="$JAVA_OPTS -Xmx4g -Xms2g"
 export JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC"
 export JAVA_OPTS="$JAVA_OPTS -DGEOSERVER_DATA_DIR=/var/lib/geoserver/data"
@@ -159,18 +167,19 @@ export JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true"
 ```
 
 ### GeoServer Configuration
+
 ```
 # /var/lib/geoserver/data/global.xml
 
 <global>
-<settings>
-<proxyBaseUrl>https://ows.data-dna.eu/geoserver</proxyBaseUrl>
-<useHeadersProxyURL>false</useHeadersProxyURL>
-<verbose>false</verbose>
-<verboseExceptions>false</verboseExceptions>
-<maxFeatures>10000</maxFeatures>
-<numDecimals>8</numDecimals>
-</settings>
+  <settings>
+    <proxyBaseUrl>https://ows.data-dna.eu/geoserver</proxyBaseUrl>
+    <useHeadersProxyURL>false</useHeadersProxyURL>
+    <verbose>false</verbose>
+    <verboseExceptions>false</verboseExceptions>
+    <maxFeatures>10000</maxFeatures>
+    <numDecimals>8</numDecimals>
+  </settings>
 </global>
 ```
 
@@ -186,25 +195,26 @@ Cache Configuration:
 
 ## Backup Strategy
 
-### PBS Snapshot (Container-Level)
-- **Schedule**: Weekly
-- **Retention**: 4 weeks
-- **Type**: LVM-Thin Snapshot
+### PBS Snapshot (Container Level)
+
+  - **Schedule**: Weekly
+  - **Retention**: 4 weeks
+  - **Type**: LVM-Thin Snapshot
 
 ### GeoServer Configuration Backup
 
 ```
-# Manual configuration backup
-tar -czf /backup/geoserver-config_$(date +%Y%m%d).tar.gz   
-/var/lib/geoserver/data/
+# Manual backup of configuration
+tar -czf /backup/geoserver-config_$(date +%Y%m%d).tar.gz \
+  /var/lib/geoserver/data/
 
 # Automation via Cronjob
 # /etc/cron.weekly/geoserver-backup
 #!/bin/bash
 BACKUP_DIR="/backup/geoserver"
 mkdir -p "$BACKUP_DIR"
-tar -czf "$BACKUP_DIR/geoserver-config_$(date +%Y%m%d).tar.gz"   
-/var/lib/geoserver/data/
+tar -czf "$BACKUP_DIR/geoserver-config_$(date +%Y%m%d).tar.gz" \
+  /var/lib/geoserver/data/
 
 # Delete old backups (>90 days)
 find "$BACKUP_DIR" -name "geoserver-config_*.tar.gz" -mtime +90 -delete
@@ -262,14 +272,14 @@ grep "OutOfMemory" /var/log/tomcat9/catalina.out
 
 ```
 # Layer not available
-  - Check Data Store Connection
-  - Test PostgreSQL connection
-  - Check Layer Permissions in GeoServer
+- Check Data Store Connection
+- Test PostgreSQL connection
+- Layer permissions in GeoServer
 
 # Performance problems
-  - Increase JVM Heap Size
-  - Check PostGIS indices
-  - Enable GWC Caching
+- Increase JVM Heap Size
+- Check PostGIS indexes
+- Enable GWC caching
 ```
 
 ### Connection to PostgreSQL
@@ -288,7 +298,7 @@ telnet postgresql.lan <PG_PORT>
 ### GeoServer Security
 
 ```
-Admin user:
+Admin user: 
   - Username: admin (change in production)
   - Password: <STRONG_PASSWORD> (not default)
 
@@ -299,9 +309,9 @@ Role-Based Access:
   - WFS_USER: Feature access
 
 Data Security:
-  - Layer-level permissions
-  - Workspace isolation
-  - OGC Service limits
+  - Layer-Level Permissions
+  - Workspace Isolation
+  - OGC Service Limits
 ```
 
 ### Network Security
@@ -324,13 +334,26 @@ TLS/SSL:
 
 ```
 // AstroJS Frontend → GeoServer WFS-T
-const wfsTransaction = `  <wfs:Transaction service="WFS" version="2.0.0" xmlns:wfs="http://www.opengis.net/wfs/2.0" xmlns:gml="http://www.opengis.net/gml/3.2"> <wfs:Insert> <feature:gebaeude xmlns:feature="http://www.data-dna.eu/features"> <feature:geom> <gml:Point srsName="EPSG:4326"> <gml:pos>7.0 51.0</gml:pos> </gml:Point> </feature:geom> </feature:gebaeude> </wfs:Insert> </wfs:Transaction> `;
+const wfsTransaction = `
+<wfs:Transaction service="WFS" version="2.0.0"
+  xmlns:wfs="http://www.opengis.net/wfs/2.0"
+  xmlns:gml="http://www.opengis.net/gml/3.2">
+  <wfs:Insert>
+    <feature:gebaeude xmlns:feature="http://www.data-dna.eu/features">
+      <feature:geom>
+        <gml:Point srsName="EPSG:4326">
+           <gml:pos>7.0 51.0</gml:pos>
+        </gml:Point>
+      </feature:geom>
+    </feature:gebaeude>
+  </wfs:Insert>
+</wfs:Transaction>`;
 
 // HTTP POST to GeoServer
 fetch('https://wfs.data-dna.eu/geoserver/wfs', {
-method: 'POST',
-headers: { 'Content-Type': 'text/xml' },
-body: wfsTransaction
+  method: 'POST',
+  headers: { 'Content-Type': 'text/xml' },
+  body: wfsTransaction
 });
 ```
 
@@ -339,41 +362,43 @@ body: wfsTransaction
 ```
 # MapProxy Configuration
 sources:
-geoserver_wms:
-type: wms
-req:
-url: http://geoserver.lan:8080/geoserver/wms
-layers: kommunen,strassen
-transparent: true
+  geoserver_wms:
+    type: wms
+    req:
+      url: http://geoserver.lan:8080/geoserver/wms
+      layers: kommunen,strassen
+      transparent: true
 
 caches:
-geoserver_cache:
-sources: [geoserver_wms]
-grids: [webmercator]
-cache:
-type: file
-directory: /cache/geoserver
+  geoserver_cache:
+    sources: [geoserver_wms]
+    grids: [webmercator]
+    cache:
+      type: file
+      directory: /cache/geoserver
 ```
 
 ## Best Practices
 
 ✅ **Do**:
-- Regular GeoServer updates (Security Patches)
-- Separate users for different access levels
-- GWC Caching for frequently requested layers
-- Monitor JVM performance (Heap Usage)
-- Backup GeoServer configuration
+
+  - Regular GeoServer updates (Security patches)
+  - Separate users for different access levels
+  - GWC caching for frequently requested layers
+  - Monitoring of JVM performance (Heap Usage)
+  - Backup of GeoServer configuration
 
 ❌ **Don't**:
-- Use default passwords
-- Expose GeoServer directly to the internet
-- Allow unlimited MaxFeatures
-- Run without resource limits
-- Change configuration without backup
+
+  - Use default passwords
+  - Expose GeoServer directly to the internet
+  - Allow unlimited MaxFeatures
+  - Run without resource limits
+  - Change configuration without backup
 
 ## References
 
-- [GeoServer Documentation](https://docs.geoserver.org/)
-- [GeoServer Security](https://docs.geoserver.org/stable/en/user/security/)
-- [WFS-T Specification](https://www.ogc.org/standards/wfs)
-- [Tomcat 9 Administration](https://tomcat.apache.org/tomcat-9.0-doc/)
+  - [GeoServer Documentation](https://docs.geoserver.org/)
+  - [GeoServer Security](https://docs.geoserver.org/stable/en/user/security/)
+  - [WFS-T Specification](https://www.ogc.org/standards/wfs)
+  - [Tomcat 9 Administration](https://tomcat.apache.org/tomcat-9.0-doc/)
