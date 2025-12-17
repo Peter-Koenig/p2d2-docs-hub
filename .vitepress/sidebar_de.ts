@@ -287,6 +287,10 @@ export const sidebar_de = {
           text: "Datenfluss",
           link: "/de/entwicklungshandbuch/architektur/datenfluss",
         },
+        {
+          text: "Event Handling & Cross-Window Kommunikation",
+          link: "/de/entwicklungshandbuch/architektur/eventhandling",
+        },
       ],
     },
     {
@@ -392,6 +396,10 @@ export const sidebar_de = {
             {
               text: "Storage Management",
               link: "/de/entwicklungshandbuch/module/utilities/storage-management",
+            },
+            {
+              text: "Event System & API Integration",
+              link: "/de/entwicklungshandbuch/module/utilities/event-system",
             },
           ],
         },
