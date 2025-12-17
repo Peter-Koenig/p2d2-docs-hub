@@ -30,7 +30,7 @@ Das Event-System in p2d2 ermöglicht eine robuste, asynchrone Kommunikation zwis
 ┌────────────────────┐      ┌──────────────────────┐      ┌──────────────────┐
 │   Hauptfenster     │      │  Cross-Window Bridge │      │  Editor-Fenster  │
 │                    │      │                      │      │                  │
-│  • Event Console   │ ◄────┤  • initialize()      │────► │• Event Console   │
+│  • Event Console   │ ◄────┤  • initialize()      │────► │ • Event Console  │
 │  • Event Dispatch  │      │  • registerWindow()  │      │ • Event Dispatch │
 │  • Event Listener  │      │  • broadcastEvent()  │      │ • Event Listener │
 └────────────────────┘      └──────────────────────┘      └──────────────────┘
@@ -312,23 +312,3 @@ const EVENT_CONFIG = {
 2. **JSON-Export**: Für detaillierte Analyse und Bug-Reports
 3. **Performance-Monitoring**: Event-Häufigkeit und Latenz beobachten
 4. **Reproduktion**: Event-Sequenzen für Bug-Reproduktion exportieren
-
-## Nächste Schritte
-
-### Kurzfristig (nächster Sprint)
-
-1. **Event-Historisierung**: Server-seitiges Logging für Auditing
-2. **Event-Replay**: Wiedergabe von Event-Sequenzen für Debugging
-3. **Performance-Metriken**: Detaillierte Latenz-Messungen
-
-### Mittelfristig
-
-1. **Plugin-System**: Externe Event-Handler registrieren
-2. **Offline-Queue**: Events puffern bei Netzwerkproblemen
-3. **Event-Versionierung**: Schema-Evolution unterstützen
-
-### Langfristig
-
-1. **Machine Learning**: Anomale Event-Muster erkennen
-2. **Dreidimensionale Events**: Für zukünftige 3D-Funktionalität
-3. **Cross-Device-Sync**: Synchronisation über verschiedene Geräte
