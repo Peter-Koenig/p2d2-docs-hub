@@ -43,6 +43,19 @@ Das Event-System in p2d2 ermöglicht eine robuste, asynchrone Kommunikation zwis
                           └────────────────────────┘
 ```
 
+## Debugging in der Produktionsumgebung
+
+Die EventConsole ist auch auf www.data-dna.eu verfügbar:
+
+**Aktivierung:**
+1. **Via URL:** Füge `?debug=events` hinzu: `https://www.data-dna.eu?debug=events`
+2. **Via Keyboard:** Drücke `Ctrl+Shift+E` (Windows/Linux) oder `Cmd+Shift+E` (Mac)
+
+**Nutzung:**
+- Toggle: `Ctrl+Shift+E`
+- Filter: Textfeld oben rechts
+- Export: "Copy JSON" Button für Bug-Reports
+
 ## Event-Typologie
 
 ### Kategorien und Prioritäten
