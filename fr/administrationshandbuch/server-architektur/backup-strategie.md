@@ -18,12 +18,12 @@ La stratégie de sauvegarde du serveur p2d2 suit la **règle 3-2-1** et utilise 
 ### Composants
 
 1. **Hôte Proxmox** (serveur Hetzner)  
-   - Port de l’interface Web : 8006 (2FA activée)  
+   - Port de l’interface Web : **** (2FA activée)  
    - Exécute les tâches de sauvegarde  
    - Les identifiants d’accès ne sont pas documentés
 
 2. **Proxmox Backup Server (PBS) – Hetzner**  
-   - Port de l’interface Web : 8007 (2FA activée)  
+   - Port de l’interface Web : **** (2FA activée)  
    - Stockage : ZFS, 2× SSD (miroir), ~49 Go  
    - Rôle : **cache de sauvegarde** (rétention courte)  
    - Datastore : `p2d2-pbs-local`  
@@ -604,7 +604,7 @@ pvesm status | grep pbs
 
 # 3. Accessibilité du PBS
 ping <PBS_IP>
-curl -k https://<PBS_IP>:8007
+curl -k https://<PBS_IP>:****
 
 # 4. Espace disque
 # Interface PBS : Datastore → Summary → Usage
