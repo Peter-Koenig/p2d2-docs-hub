@@ -39,7 +39,7 @@ Die Backup-Strategie für den p2d2-Server folgt der **3-2-1-Regel** und nutzt ei
 ```bash
 # WireGuard-Tunnel zwischen Hetzner und HomeOffice
 Interface: wg-kinglui
-Port: 51015
+Port: *****
 Persistent Keepalive: 25 Sekunden
 ```
 
@@ -71,7 +71,7 @@ Backup-Jobs laufen auf dem Proxmox-Host und speichern direkt auf den lokalen PBS
 
 **Retention auf Hetzner-PBS:**
 ```
-Keep Last: 2-3 (nur letzte Backups)
+Keep Last: 2 (nur letzte Backups)
 Keep Monthly: 2 (monatliche Snapshots)
 ```
 
@@ -147,14 +147,14 @@ Verify, GC und Sync-Jobs sollten **niemals gleichzeitig** laufen. Zeitliche Abst
 ### Hetzner-PBS (Cache)
 
 ```
-Keep Last: 2-3
+Keep Last: 2
 Keep Monthly: 2
 ```
 
 **Zweck:** Kurzzeitiger Backup-Cache für schnelle Restores und Sync zum HomeOffice.
 
 **Typische Speichernutzung:**
-- 6 VMs/LXCs × 2-3 Backups = 12-18 Snapshots
+- 6 VMs/LXCs × 4 Backups = 24 Snapshots
 - ~35-40 GB bei 49 GB Kapazität
 - Nach GC: Ausreichend Platz für neue Backups
 
