@@ -39,7 +39,7 @@ The backup strategy for the p2d2 server follows the **3-2-1 rule** and uses a **
 ```bash
 # WireGuard tunnel between Hetzner and home office
 Interface: wg-kinglui
-Port: 51015
+Port: *****
 Persistent Keepalive: 25 seconds
 ```
 
@@ -73,7 +73,7 @@ Backup jobs run on the Proxmox host and store directly to the local PBS.
 **Retention on Hetzner PBS:**
 
 ```
-Keep Last: 2–3 (most recent backups only)
+Keep Last: 2 (most recent backups only)
 Keep Monthly: 2 (monthly snapshots)
 ```
 
@@ -85,7 +85,7 @@ The Hetzner PBS has limited space (~49 GB). Short retention ensures enough room 
 
 ```bash
 # Proxmox GUI: Datacenter → Backup → Edit job
-# → Retention: Keep Last = 2–3, Keep Monthly = 2
+# → Retention: Keep Last = 2, Keep Monthly = 2
 ```
 
 ### 2. Sync to home office PBS (pull)
@@ -151,14 +151,14 @@ Verify, GC and sync jobs should **never run concurrently**. Time separation avoi
 ### Hetzner PBS (cache)
 
 ```
-Keep Last: 2–3
+Keep Last: 2
 Keep Monthly: 2
 ```
 
 **Purpose:** Short-term backup cache for fast restores and sync to the home office.
 
 **Typical usage:**
-- 6 VMs/LXCs × 2–3 backups = 12–18 snapshots
+- 6 VMs/LXCs × 24 backups = 24 snapshots
 - ~35–40 GB used out of 49 GB  
 - After GC: enough free space for new backups
 
