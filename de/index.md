@@ -10,6 +10,9 @@ hero:
       text: Benutzerhandbuch
       link: /de/benutzerhandbuch/
     - theme: alt
+      text: Verwaltungshandbuch
+      link: /de/verwaltungshandbuch/
+    - theme: alt
       text: Administration
       link: /de/administrationshandbuch/
     - theme: alt
@@ -27,6 +30,10 @@ features:
     title: Benutzerhandbuch
     details: Erfahren Sie, wie Sie p2d2 nutzen, Geodaten erfassen und zur Qualitätssicherung beitragen.
     link: /de/benutzerhandbuch/
+  - icon: 🏛️
+    title: Verwaltungshandbuch
+    details: Informationen für Verwaltungsmitarbeitende zu Datensynchronisation, Kategorien und Prozessen.
+    link: /de/verwaltungshandbuch/
   - icon: ⚙️
     title: Administrationshandbuch
     details: Technische Dokumentation zur Server-Architektur, GDI-Komponenten und Deployment-Prozessen.

@@ -558,4 +558,48 @@ export const sidebar_de = {
       ],
     },
   ],
+  "/de/verwaltungshandbuch/": [
+    {
+      text: "Übersicht",
+      items: [
+        {
+          text: "Verwaltungshandbuch",
+          link: "/de/verwaltungshandbuch/",
+        },
+      ],
+    },
+    {
+      text: "Kapitel",
+      items: [
+        {
+          text: "Einführung",
+          link: "/de/verwaltungshandbuch/einfuehrung",
+        },
+        {
+          text: "Datenkategorien",
+          link: "/de/verwaltungshandbuch/datenkategorien",
+        },
+        {
+          text: "Datenaustauschprozesse",
+          link: "/de/verwaltungshandbuch/datenaustauschprozesse",
+        },
+        {
+          text: "Qualitätssicherung",
+          link: "/de/verwaltungshandbuch/qualitaetssicherung",
+        },
+        {
+          text: "Rechtliche Grundlagen",
+          link: "/de/verwaltungshandbuch/rechtliche-grundlagen",
+        },
+        {
+          text: "Best Practices",
+          link: "/de/verwaltungshandbuch/best-practices",
+        },
+        {
+          text: "Fallbeispiele",
+          link: "/de/verwaltungshandbuch/fallbeispiele",
+        },
+      ],
+    },
+  ],
 };
