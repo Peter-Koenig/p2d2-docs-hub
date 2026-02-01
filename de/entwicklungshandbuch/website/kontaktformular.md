@@ -5,11 +5,11 @@ quality:
   completeness: 95
   accuracy: 100
   reviewed: true
-  reviewer: Perplexity AI & Peter König
+  reviewer: Peter König (Perplexity - unterstützt)
   reviewDate: 2026-01-30
 ---
 
-# Kontaktformular mit ALTCHA CAPTCHA
+# [Kontaktformular](https://www.data-dna.eu/kontakt) mit ALTCHA CAPTCHA
 
 > **Status:** ✅ Produktiv seit 30.01.2026
 
@@ -31,33 +31,33 @@ Das p2d2-Kontaktformular ermöglicht Nutzern, direkt Kontakt mit dem Team aufzun
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Browser (Client)                      │
-│                                                           │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │  /kontakt (Astro Page)                          │   │
-│  │  - Formular (Name, E-Mail, Betreff, Nachricht) │   │
-│  │  - ALTCHA Widget (<altcha-widget>)              │   │
-│  └─────────────────────────────────────────────────┘   │
-│                     ↓                ↑                   │
-│              (1) Request     (2) Challenge               │
-│                     ↓                ↑                   │
+│                    Browser (Client)                     │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  /kontakt (Astro Page)                          │    │
+│  │  - Formular (Name, E-Mail, Betreff, Nachricht)  │    │
+│  │  - ALTCHA Widget (<altcha-widget>)              │    │
+│  └─────────────────────────────────────────────────┘    │
+│                     ↓                ↑                  │
+│              (1) Request     (2) Challenge              │
+│                     ↓                ↑                  │
 └─────────────────────────────────────────────────────────┘
                       ↓                ↑
 ┌─────────────────────────────────────────────────────────┐
-│                   Server (Astro SSR)                     │
-│                                                           │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  GET /api/altcha/challenge                       │  │
-│  │  - Generiert Challenge mit HMAC-Signatur         │  │
-│  │  - Sendet { algorithm, challenge, salt, sig }    │  │
-│  └──────────────────────────────────────────────────┘  │
-│                                                           │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │  POST /api/contact-submit                        │  │
-│  │  - Validiert Formulardaten                       │  │
-│  │  - Verifiziert ALTCHA-Payload                    │  │
-│  │  - Versendet E-Mail via SMTP                     │  │
-│  └──────────────────────────────────────────────────┘  │
+│                   Server (Astro SSR)                    │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  GET /api/altcha/challenge                       │   │
+│  │  - Generiert Challenge mit HMAC-Signatur         │   │
+│  │  - Sendet { algorithm, challenge, salt, sig }    │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  POST /api/contact-submit                        │   │
+│  │  - Validiert Formulardaten                       │   │
+│  │  - Verifiziert ALTCHA-Payload                    │   │
+│  │  - Versendet E-Mail via SMTP                     │   │
+│  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
 
