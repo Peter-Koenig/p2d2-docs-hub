@@ -1,10 +1,4 @@
 ---
-title: Multi-Repo Deployment
-description: Deployment-Strategie für verteilte Team-Entwicklung mit GitLab, GitHub und Webhook-Server
-status: migrated
-lastUpdated: 2025-11-17
-lang: de
-quality:
 quality:
   completeness: 100
   accuracy: 100

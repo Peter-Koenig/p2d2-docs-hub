@@ -53,6 +53,7 @@ export default withMermaid(
         themeConfig: {
           nav: [
             { text: "Benutzerhandbuch", link: "/de/benutzerhandbuch/" },
+            { text: "Verwaltungshandbuch", link: "/de/verwaltungshandbuch/" },
             { text: "Admin Handbuch", link: "/de/administrationshandbuch/" },
             {
               text: "Entwicklungs-Handbuch",
