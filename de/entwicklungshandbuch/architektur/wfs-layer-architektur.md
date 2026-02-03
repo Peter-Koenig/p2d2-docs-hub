@@ -1,6 +1,4 @@
 ---
-title: WFS-Layer-Architektur
-description: Architektur der reaktiven WFS-Layer-Verwaltung mit State-first-Ansatz
 quality:
   completeness: 70
   accuracy: 80
