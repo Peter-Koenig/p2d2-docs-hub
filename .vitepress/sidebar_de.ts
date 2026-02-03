@@ -291,6 +291,10 @@ export const sidebar_de = {
           text: "Event Handling & Cross-Window Kommunikation",
           link: "/de/entwicklungshandbuch/architektur/eventhandling",
         },
+        {
+          text: "WFS-Layer-Architektur",
+          link: "/de/entwicklungshandbuch/architektur/wfs-layer-architektur",
+        },
       ],
     },
     {
@@ -486,6 +490,10 @@ export const sidebar_de = {
         {
           text: "Config-Optionen",
           link: "/de/entwicklungshandbuch/api-referenz/config-optionen",
+        },
+        {
+          text: "Geoserver Integration",
+          link: "/de/entwicklungshandbuch/api-referenz/geoserver-integration",
         },
       ],
     },

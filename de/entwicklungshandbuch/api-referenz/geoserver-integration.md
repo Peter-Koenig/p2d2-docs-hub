@@ -104,7 +104,19 @@ export function createBasemapLayer(): TileLayer {
 
 ## WFS Services Integration
 
+::: info Architektur-Update
+Die in diesem Abschnitt beschriebene direkte `WFSLayerManager`-API gilt als **Legacy**. Für neue Features wird der reaktive State-first-Ansatz empfohlen, bei dem der `WFSLayerManager` automatisch auf Änderungen im globalen `mapState` reagiert.
+
+Details zur neuen Architektur: [WFS-Layer-Architektur](../architektur/wfs-layer-architektur.md)
+:::
+
 ### WFS Layer Management
+
+::: warning Legacy-API
+Diese direkte `WFSLayerManager`-API wird nicht mehr für neue Features empfohlen. Stattdessen sollte der reaktive State-first-Ansatz verwendet werden, bei dem UI-Komponenten nur noch `mapState.setSelectedKommune(...)` und `mapState.setSelectedCategory(...)` aufrufen und der `WFSLayerManager` reaktiv auf State-Änderungen reagiert.
+
+Siehe: [WFS-Layer-Architektur](../architektur/wfs-layer-architektur.md)
+:::
 
 ```typescript
 export class WFSLayerManager {
@@ -317,6 +329,8 @@ function getStyleForFeature(feature: Feature): Style {
 ### Layer Caching
 
 ```typescript
+// Legacy-API: Dieser Caching-Ansatz basiert auf der direkten WFSLayerManager-API
+// Für neue Features stattdessen den reaktiven State-first-Ansatz verwenden
 class CachedWFSLayerManager extends WFSLayerManager {
   private layerCache = new Map<string, VectorLayer<VectorSource>>();
   private cacheHits = 0;
@@ -444,7 +458,7 @@ async function loadGeodataWithFallback(
   category: string
 ): Promise<any> {
   try {
-    // Primär: Geoserver WFS
+    // Primär: Geoserver WFS (Legacy-API – für neue Features stattdessen mapState verwenden)
     return await wfsManager.displayLayer(kommune, category);
     
   } catch (error) {
