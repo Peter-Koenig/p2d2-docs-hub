@@ -116,6 +116,10 @@ export const sidebar_de = {
           text: "Backup-Strategie",
           link: "/de/administrationshandbuch/server-architektur/backup-strategie",
         },
+        {
+          text: "Zitadel Build Container",
+          link: "/de/administrationshandbuch/server-architektur/zitadel-buildserver",
+        },
       ],
     },
     {
