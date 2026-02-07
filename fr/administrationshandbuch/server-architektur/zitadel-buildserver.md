@@ -587,7 +587,7 @@ CT_CORES=10
 CT_MEMORY=32768         # MB (32 GB)
 CT_SWAP=4096            # MB
 CT_DISK_SIZE=25         # GB
-CT_ROOTFS_SIZE="150G"
+CT_ROOTFS_SIZE="25G"
 
 # Netzwerk-Konfiguration
 CT_BRIDGE="vmbr1"
