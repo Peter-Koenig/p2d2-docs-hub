@@ -581,8 +581,8 @@ CT_ROOTFS_SIZE="150G"
 
 # Netzwerk-Konfiguration
 CT_BRIDGE="vmbr1"
-CT_IP="192.168.122.201"
-CT_GATEWAY="192.168.122.1"
+CT_IP="192.168.***.***"
+CT_GATEWAY="192.168.***.***"
 CT_NETMASK="24"
 CT_NAMESERVER="9.9.9.9"  # Quad9
 
