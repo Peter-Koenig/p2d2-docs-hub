@@ -503,36 +503,20 @@ pct exec 201 -- free -h
 **Key Insight:** Nicht versuchen, Zitadel manuell zu bauen - lass Nx die Orchestrierung machen!
 
 **Build-Zeit:** ~8-12 Minuten auf 8-Core / 32GB RAM System
-```
-
-***
-
-## 2. Setup-Script: `setup-zitadel-build-lxc.sh`
 
 ```bash
 #!/usr/bin/env bash
 #
 # Proxmox LXC Setup für Zitadel Build-Umgebung (p2d2-Projekt)
-# Autor: Perplexity & Peter König 
+# Autor: Peter König
 # Datum: 2026-02-07
-# Version: 1.0
-# Beschreibung: Erstellt dedizierte Build-Umgebung für Zitadel v4.x aus Quellcode
-#               Verwendet NUR Debian-Pakete (außer Node.js 22 via NodeSource)
-#
-# Voraussetzungen:
-#   - Proxmox VE 8.x
-#   - Debian 13 Template verfügbar
-#   - Internet-Zugriff für Package-Downloads
-#   - Root-Rechte auf Proxmox-Host
-#
-# Verwendung:
-#   chmod +x setup-zitadel-build-lxc.sh
-#   ./setup-zitadel-build-lxc.sh
+# Beschreibung: Erstellt dedizierte Build-Umgebung für Zitadel aus Quellen
+#               NUR mit Debian-Paketen (außer Node.js 22)
 
 set -euo pipefail
 
 ################################################################################
-# KONFIGURATION - Hier alle relevanten Größen anpassen
+# KONFIGURATION
 ################################################################################
 
 # Proxmox LXC-Einstellungen
@@ -542,41 +526,46 @@ CT_HOSTNAME="zitadel-build-lxc"
 CT_STORAGE="VMs-Containers"
 
 # Hardware-Ressourcen
-CT_CORES=8              # Mehr Cores für parallele Builds
-CT_MEMORY=32768         # MB (32 GB für Node/Go-Builds)
-CT_SWAP=4096            # MB (4 GB Swap)
-CT_DISK_SIZE=150        # GB (Go-Modules, Node-Deps, Git-Repos, Build-Artifacts)
+CT_CORES=10
+CT_MEMORY=32768         # MB (32 GB)
+CT_SWAP=4096            # MB
+CT_DISK_SIZE=25         # GB
+CT_ROOTFS_SIZE="150G"
 
-# Netzwerk-Konfiguration (ANPASSEN!)
-CT_BRIDGE="vmbr0"
-CT_IP="10.0.1.201"          # STATISCHE IP
-CT_GATEWAY="10.0.1.1"       # Gateway
+# Netzwerk-Konfiguration
+CT_BRIDGE="vmbr1"
+CT_IP="192.168.122.201"
+CT_GATEWAY="192.168.122.1"
 CT_NETMASK="24"
-CT_NAMESERVER="9.9.9.9"     # Quad9
+CT_NAMESERVER="9.9.9.9"  # Quad9
 
 # LXC-Image (Debian 13 Trixie)
 CT_TEMPLATE="local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
 
 # Security-Einstellungen
 CT_UNPRIVILEGED=1
-CT_FEATURES="nesting=1,keyctl=1"  # nesting für Docker (optional), keyctl für Go-Builds
+CT_FEATURES="nesting=1,keyctl=1"
 
 # SSH-Einstellungen
 CT_SSH_PUBKEY="/root/.ssh/authorized_keys"
 
 # Build-Tool-Versionen
-# Go: Aus Debian-Paket (golang-1.24)
-# Node.js: 22.x via NodeSource (Zitadel braucht 22+, Debian hat nur 20.x)
+# Go: Aus Debian-Paket (1.24)
+# Node.js: 22.x via NodeSource (Zitadel braucht 22+)
 NODE_MAJOR="22"
 PNPM_VERSION="9.15.0"
 
 # Zitadel-Repo
 ZITADEL_REPO="https://github.com/zitadel/zitadel.git"
-ZITADEL_BUILD_VERSION="v4.10.1"  # Aktuelle stabile Version
+ZITADEL_BUILD_VERSION="v4.10.1"  # Aktuelle Version
 
 # Build-Output-Directory
 BUILD_OUTPUT_DIR="/opt/builds"
-BUILD_USER="builder"             # Non-root Build-User
+BUILD_USER="builder"
+
+# Backup
+BACKUP_ENABLED=0
+BACKUP_STORAGE="pbs-backup"
 
 ################################################################################
 # HELPER FUNCTIONS
@@ -632,7 +621,7 @@ create_container() {
         --features "$CT_FEATURES" \
         --start 0 \
         --onboot 0 \
-        --description "Zitadel Build Environment - Debian 13 with Go 1.24 / Node 22 / Nx"
+        --description "Zitadel Build Environment - Debian 13 with Go/Node/Protobuf"
     
     log "Container erfolgreich erstellt"
 }
@@ -649,11 +638,11 @@ configure_ssh() {
 }
 
 ################################################################################
-# SYSTEM-SETUP IM CONTAINER
+# SYSTEM-SETUP
 ################################################################################
 
 setup_system() {
-    log "Starte Container für initiales Setup..."
+    log "Starte Container..."
     pct start "$CT_ID"
     
     log "Warte auf Container-Boot..."
@@ -707,7 +696,6 @@ setup_system() {
             automake \
             libtool \
             gettext \
-            locate \
             sudo \
             locales
         
@@ -743,7 +731,7 @@ create_build_user() {
         mkdir -p $BUILD_OUTPUT_DIR
         chown -R $BUILD_USER:$BUILD_USER $BUILD_OUTPUT_DIR
         
-        # Home-Setup für builder
+        # Home-Setup
         su - $BUILD_USER -c '
             mkdir -p ~/.local/bin
             mkdir -p ~/projects
@@ -840,46 +828,47 @@ install_protoc() {
 }
 
 ################################################################################
-# GO BUILD-TOOLS & PROTOC-PLUGINS
+# BUF & GO TOOLS
 ################################################################################
 
 install_go_tools() {
-    log "Installiere Go-Build-Tools und protoc-Plugins..."
+    log "Installiere Go-Build-Tools (buf, goreleaser, etc.)..."
     
-    pct exec "$CT_ID" -- su - "$BUILD_USER" -c "
+    pct exec "$CT_ID" -- bash -c "
         set -e
         source /etc/profile.d/go.sh
         
-        # buf (Protocol Buffers Build-Tool)
+        # buf (für Protocol Buffers)
         go install github.com/bufbuild/buf/cmd/buf@latest
         
-        # goreleaser (für Release-Builds)
+        # goreleaser
         go install github.com/goreleaser/goreleaser/v2@latest
         
         # go-bindata (für Asset-Embedding)
         go install github.com/go-bindata/go-bindata/...@latest
         
-        # goimports (Code-Formatting)
+        # goimports
         go install golang.org/x/tools/cmd/goimports@latest
         
-        # golangci-lint (Linting)
+        # golangci-lint (via Script)
         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-            | sh -s -- -b \$HOME/go/bin
+            | sh -s -- -b /usr/local/bin
         
-        # ===== PROTOC-PLUGINS FÜR ZITADEL =====
-        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-        go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
-        go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-        go install github.com/envoyproxy/protoc-gen-validate@latest
-        go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+        # Symlinks für globalen Zugriff
+        ln -sf /root/go/bin/buf /usr/local/bin/buf || true
+        ln -sf /root/go/bin/goreleaser /usr/local/bin/goreleaser || true
+        ln -sf /root/go/bin/go-bindata /usr/local/bin/go-bindata || true
+        ln -sf /root/go/bin/goimports /usr/local/bin/goimports || true
         
-        # Verify
-        ls -la \$HOME/go/bin/ | grep -E '(buf|protoc-gen)' || true
+        # Verify (mit vollem Pfad, da PATH eventuell noch nicht aktualisiert)
+        /usr/local/bin/buf --version
+        /usr/local/bin/goreleaser --version
+        /usr/local/bin/golangci-lint --version
     "
     
-    log "Go-Build-Tools und protoc-Plugins installiert"
+    log "Go-Build-Tools installiert"
 }
+
 
 ################################################################################
 # ZITADEL REPOSITORY CLONEN
@@ -903,23 +892,18 @@ clone_zitadel_repo() {
         
         cd zitadel
         
-        # ===== CUSTOM ZITADEL PROTOC-PLUGINS INSTALLIEREN =====
-        echo 'Installing custom Zitadel protoc-plugins...'
-        go install ./internal/protoc/protoc-gen-authoption
-        go install ./internal/protoc/protoc-gen-zitadel
-        
-        # Build-Info speichern
+        # Build-Info
         git log -1 --format='Commit: %H%nDate: %ci%nAuthor: %an' > BUILD_INFO.txt
         echo 'Built by: $BUILD_USER@$CT_HOSTNAME' >> BUILD_INFO.txt
         
         ls -lah
     "
     
-    log "Zitadel-Repository gecloned und Custom-Plugins installiert"
+    log "Zitadel-Repository gecloned nach /home/$BUILD_USER/projects/zitadel"
 }
 
 ################################################################################
-# BUILD-SCRIPT ERSTELLEN
+# BUILD-SCRIPT
 ################################################################################
 
 create_build_script() {
@@ -938,7 +922,7 @@ BUILD_OUTPUT=\"/opt/builds/zitadel-\${VERSION}-\${BUILD_DATE}\"
 log() { echo \"[BUILD] \$*\"; }
 error() { echo \"[ERROR] \$*\" >&2; exit 1; }
 
-# Environment laden
+# Environment
 source /etc/profile.d/go.sh
 export PATH=\$PATH:\$HOME/go/bin
 
@@ -956,29 +940,48 @@ log \"Commit:     \$BUILD_COMMIT\"
 log \"Output:     \$BUILD_OUTPUT\"
 log \"========================================\"
 
-# 1. Checkout Version
-log \"[1/4] Checking out version \$VERSION...\"
+# Checkout Version
+log \"[1/5] Checking out version \$VERSION...\"
 git fetch --tags || true
 git checkout \"\$VERSION\" || error \"Checkout failed for version \$VERSION\"
 BUILD_COMMIT=\$(git rev-parse --short HEAD)
 
-# 2. Dependencies
-log \"[2/4] Installing pnpm dependencies...\"
+# Dependencies
+log \"[2/5] Installing pnpm dependencies...\"
 pnpm install || error \"pnpm install failed\"
 
-# 3. Build mit Nx (macht alles automatisch!)
-log \"[3/4] Building via Nx (this may take 5-15 minutes)...\"
+# Build mit Version-Injection via Nx
+log \"[3/5] Building via Nx (this may take 5-10 minutes)...\"
 log \"       - Generating Proto files (TypeScript + Go)\"
-log \"       - Building Console frontend (Angular)\"
-log \"       - Building Login frontend (Next.js)\"
+log \"       - Building Console frontend\"
+log \"       - Building Login frontend\"
 log \"       - Generating asset routes\"
 log \"       - Embedding static files\"
 log \"       - Compiling Go binary\"
 
-npx nx run @zitadel/api:build || error \"Nx build failed\"
+# Nx build mit ldflags für Version/Date
+CGO_ENABLED=0 go build \\
+    -o .artifacts/bin/linux/amd64/zitadel.local \\
+    -ldflags=\"-s -w \\
+        -X github.com/zitadel/zitadel/cmd/build.version=\$VERSION \\
+        -X github.com/zitadel/zitadel/cmd/build.date=\$BUILD_DATE \\
+        -X github.com/zitadel/zitadel/cmd/build.commit=\$BUILD_COMMIT\" \\
+    || {
+        log \"Go build failed, trying Nx build first...\"
+        npx nx run @zitadel/api:build || error \"Nx build failed\"
+        
+        # Retry mit ldflags
+        CGO_ENABLED=0 go build \\
+            -o .artifacts/bin/linux/amd64/zitadel.local \\
+            -ldflags=\"-s -w \\
+                -X github.com/zitadel/zitadel/cmd/build.version=\$VERSION \\
+                -X github.com/zitadel/zitadel/cmd/build.date=\$BUILD_DATE \\
+                -X github.com/zitadel/zitadel/cmd/build.commit=\$BUILD_COMMIT\" \\
+            || error \"Go build failed after Nx build\"
+    }
 
-# 4. Output vorbereiten
-log \"[4/4] Preparing build artifacts...\"
+# Output vorbereiten
+log \"[4/5] Preparing build artifacts...\"
 mkdir -p \"\$BUILD_OUTPUT\"
 cp .artifacts/bin/linux/amd64/zitadel.local \"\$BUILD_OUTPUT/zitadel\"
 chmod +x \"\$BUILD_OUTPUT/zitadel\"
@@ -997,14 +1000,18 @@ pnpm:       \$(pnpm --version)
 
 Build Method: Nx Monorepo Build System
 Build Steps:
-  1. pnpm install
-  2. nx run @zitadel/api:build (includes all sub-targets)
+  1. Proto generation (buf + TypeScript)
+  2. Console build (Angular)
+  3. Login build (Next.js)
+  4. Asset generation
+  5. Statik embedding
+  6. Go binary compilation
 
 Binary Size: \$(du -h \$BUILD_OUTPUT/zitadel | cut -f1)
 EOF
 
 # Checksum
-log \"Creating checksum...\"
+log \"[5/5] Creating checksum...\"
 cd \"\$BUILD_OUTPUT\"
 sha256sum zitadel > zitadel.sha256
 
@@ -1050,6 +1057,7 @@ BUILDSCRIPT
     log "Build-Script erstellt: /usr/local/bin/build-zitadel"
 }
 
+
 ################################################################################
 # DOKUMENTATION
 ################################################################################
@@ -1065,7 +1073,7 @@ create_readme() {
 - **ID:** $CT_ID
 - **Hostname:** $CT_HOSTNAME
 - **IP:** $CT_IP
-- **CPUs:** $CT_CORES / RAM: $(($CT_MEMORY / 1024))GB / Disk: ${CT_DISK_SIZE}GB
+- **CPUs:** $CT_CORES / RAM: $(($CT_MEMORY / 1024))GB
 
 ## Installierte Tools (aus Debian-Paketen)
 - **Go:** 1.24 (golang-1.24)
@@ -1073,128 +1081,69 @@ create_readme() {
 - **Node.js:** $(node --version 2>/dev/null || echo 'unbekannt') (via NodeSource)
 - **pnpm:** $PNPM_VERSION
 
-## Verwendung
+## Nutzung
 
 ### 1. Einloggen
 \`\`\`bash
 pct enter $CT_ID
 \`\`\`
 
-### 2. Als Build-User wechseln
+### 2. Als Build-User
 \`\`\`bash
 su - $BUILD_USER
 \`\`\`
 
-### 3. Build starten
+### 3. Bauen
 \`\`\`bash
-# Einfach (dauert 5-15 Minuten)
-build-zitadel v4.10.1
+# Einfach
+sudo build-zitadel v4.10.1
 
-# Andere Version
-build-zitadel v4.11.0
+# Manuell
+cd ~/projects/zitadel
+source /etc/profile.d/go.sh
+make build
 \`\`\`
 
 ### 4. Binary finden
 \`\`\`bash
 ls -lh $BUILD_OUTPUT_DIR/latest/zitadel
-$BUILD_OUTPUT_DIR/latest/zitadel -v
 \`\`\`
 
-### 5. Nach iam-LXC deployen
+### 5. Deployen
 \`\`\`bash
-# Als root auf Proxmox-Host
 scp $BUILD_OUTPUT_DIR/latest/zitadel root@10.0.1.101:/usr/local/bin/
-pct exec 101 -- systemctl restart zitadel
-pct exec 101 -- zitadel -v
+\`\`\`
+
+## Neue Version bauen
+\`\`\`bash
+sudo build-zitadel v4.11.0
 \`\`\`
 
 ## Troubleshooting
 
-### Build schlägt fehl
+### Proto-Build schlägt fehl
 \`\`\`bash
-# Logs prüfen
-cd ~/projects/zitadel
-npx nx run @zitadel/api:build --verbose
+source /etc/profile.d/go.sh
+go install github.com/bufbuild/buf/cmd/buf@latest
+\`\`\`
 
-# Dependencies reinstall
-rm -rf node_modules
+### Console-Build schlägt fehl
+\`\`\`bash
+cd ~/projects/zitadel
+rm -rf node_modules console/node_modules
 pnpm install --force
-
-# Cache löschen
-rm -rf .nx/cache
-rm -rf ~/.cache/pnpm
-\`\`\`
-
-### Proto-Generation Fehler
-\`\`\`bash
-# Protoc-Plugins prüfen
-ls -la ~/go/bin/protoc-gen-*
-
-# Reinstall
-cd ~/projects/zitadel
-go install ./internal/protoc/protoc-gen-authoption
-go install ./internal/protoc/protoc-gen-zitadel
-\`\`\`
-
-### Disk-Space
-\`\`\`bash
-# Prüfen
-df -h
-
-# Aufräumen
-go clean -modcache
-pnpm store prune
-rm -rf $BUILD_OUTPUT_DIR/zitadel-v4.9.*
 \`\`\`
 
 ## Paketquellen
 - Go: Debian 13 (golang-1.24)
 - protoc: Debian 13 (protobuf-compiler)
-- Node.js: NodeSource Repository (v22.x)
-- protoc-Plugins: Go install (latest)
-
-## Build-Architektur
-
-Zitadel v4 nutzt **Nx Monorepo Build System**:
-
-\`\`\`
-npx nx run @zitadel/api:build
-├─> @zitadel/proto:generate    (TypeScript Proto-Files)
-├─> @zitadel/api:generate-stubs (Go Proto-Files + OpenAPI)
-├─> @zitadel/api:generate-assets (Asset Router)
-├─> @zitadel/api:generate-statik (Embed Login Resources)
-├─> @zitadel/console:build      (Angular Frontend)
-├─> @zitadel/login:build        (Next.js Frontend)
-└─> Go-Binary kompilieren       (CGO_ENABLED=0)
-\`\`\`
-
-**Output:** `.artifacts/bin/linux/amd64/zitadel.local`
-
-## Wichtige Pfade
-
-\`\`\`
-/home/builder/
-├── go/                      # Go-Tools & Modules
-│   └── bin/                 # buf, protoc-gen-*
-├── projects/zitadel/        # Git-Repository
-│   ├── .artifacts/          # Build-Output
-│   ├── console/             # Angular Console
-│   ├── apps/login/          # Next.js Login
-│   └── pkg/grpc/            # Generated Proto-Files
-└── .cache/                  # pnpm Cache
-
-/opt/builds/                 # Build-Artifacts
-├── zitadel-v4.10.1-.../
-│   ├── zitadel
-│   ├── zitadel.sha256
-│   └── BUILD_INFO.txt
-└── latest -> ...            # Symlink
-\`\`\`
+- Node.js: NodeSource Repo (v22)
+- Alle anderen: Go-Modules
 
 EOF
     "
     
-    log "README erstellt: /root/BUILD_ENVIRONMENT_README.md"
+    log "README erstellt"
 }
 
 ################################################################################
@@ -1206,15 +1155,14 @@ verify_environment() {
     
     pct exec "$CT_ID" -- bash -c "
         source /etc/profile.d/go.sh
-        export PATH=\$PATH:/home/$BUILD_USER/go/bin
         
         echo '===== Environment Verification ====='
-        echo 'Go:' && /usr/lib/go-1.24/bin/go version
+        echo 'Go:' && go version
         echo 'Node.js:' && node --version
         echo 'pnpm:' && pnpm --version
         echo 'protoc:' && protoc --version
-        echo 'buf:' && su - $BUILD_USER -c 'buf --version' || echo 'Not in PATH yet (OK)'
-        echo '===== Verification Complete ====='
+        echo 'buf:' && buf --version
+        echo '===== OK ====='
     "
 }
 
@@ -1223,14 +1171,10 @@ verify_environment() {
 ################################################################################
 
 main() {
-    log "=========================================="
-    log "Zitadel Build Environment Setup"
-    log "=========================================="
+    log "===== Zitadel Build Environment Setup ====="
     log "Container: $CT_NAME (ID: $CT_ID)"
     log "IP: $CT_IP"
-    log "Resources: $CT_CORES Cores / $(($CT_MEMORY / 1024))GB RAM / ${CT_DISK_SIZE}GB Disk"
-    log "Go: Debian 1.24 | Node: v${NODE_MAJOR}.x"
-    log "=========================================="
+    log "Resources: $CT_CORES Cores / $(($CT_MEMORY / 1024))GB RAM / ${CT_DISK_SIZE}GB SSD"
     log ""
     
     check_root
@@ -1251,25 +1195,15 @@ main() {
     verify_environment
     
     log ""
-    log "=========================================="
-    log "✓ Setup erfolgreich abgeschlossen!"
-    log "=========================================="
+    log "===== Setup abgeschlossen! ====="
     log ""
     log "Container $CT_NAME bereit unter $CT_IP"
     log ""
     log "NÄCHSTE SCHRITTE:"
-    log "1. Einloggen:    pct enter $CT_ID"
-    log "2. Als builder:  su - builder"
-    log "3. README:       cat /root/BUILD_ENVIRONMENT_README.md"
-    log "4. Build:        build-zitadel $ZITADEL_BUILD_VERSION"
-    log ""
-    log "Build-Zeit: ~5-15 Minuten (je nach Hardware)"
-    log "Build-Output: $BUILD_OUTPUT_DIR/latest/"
-    log ""
-    log "Deployment:"
-    log "  scp $BUILD_OUTPUT_DIR/latest/zitadel root@10.0.1.101:/usr/local/bin/"
-    log "  pct exec 101 -- systemctl restart zitadel"
-    log "=========================================="
+    log "1. Einloggen: pct enter $CT_ID"
+    log "2. README: cat /root/BUILD_ENVIRONMENT_README.md"
+    log "3. Bauen: build-zitadel $ZITADEL_BUILD_VERSION"
+    log "4. Deployen zu iam-LXC (10.0.1.101)"
 }
 
 main "$@"
