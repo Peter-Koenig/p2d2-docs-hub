@@ -135,6 +135,10 @@ export const sidebar_fr = {
           text: "Ory IAM (Prévu)",
           link: "/fr/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
+        {
+          text: "Conteneur de Build Zitadel",
+          link: "/fr/administrationshandbuch/zitadel-buildserver",
+        },
       ],
     },
     {
