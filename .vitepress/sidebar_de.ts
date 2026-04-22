@@ -160,6 +160,10 @@ export const sidebar_de = {
           link: "/de/administrationshandbuch/deployment/staging",
         },
         {
+          text: "GeoServer-Staging",
+          link: "/de/administrationshandbuch/deployment/geoserver-staging",
+        },
+        {
           text: "Production",
           link: "/de/administrationshandbuch/deployment/production",
         },
