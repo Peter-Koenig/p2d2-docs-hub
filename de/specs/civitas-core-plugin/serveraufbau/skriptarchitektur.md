@@ -273,7 +273,6 @@ install_k3s() {
   # kubeconfig bereitstellen
   mkdir -p "$(dirname "${KUBECONFIG_PATH}")"
   install -m 600 /etc/rancher/k3s/k3s.yaml "${KUBECONFIG_PATH}"
-  export KUBECONFIG="${KUBECONFIG_PATH}"
 
   # Warten bis Node Ready
   kubectl wait node --all --for=condition=Ready --timeout=120s
