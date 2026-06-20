@@ -61,6 +61,7 @@ export default withMermaid(
             },
             { text: "Release", link: "/de/planning/" },
             { text: "Strategie", link: "/de/entwicklungsstrategie/" },
+            { text: "Spezifikationshandbuch", link: "/de/specs/" },
             { text: "Doku QS", link: "/de/quality-overview" },
           ],
 
