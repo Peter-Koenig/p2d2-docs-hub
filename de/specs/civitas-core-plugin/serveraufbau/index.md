@@ -27,6 +27,7 @@ Dieser Bereich spezifiziert den Serveraufbau, der für den Betrieb des CIVITAS/C
 - [Netzwerk, DNS und TLS](./netzwerk-dns-tls.md) — Netzsegment, Namensauflösung, Zertifikate
 - [Kubernetes-Laufzeit](./kubernetes-laufzeit.md) — Container-Orchestrierung und Plattformkomponenten
 - [Installationsphasen und Abnahme](./installationsphasen-und-abnahme.md) — Phasenmodell und Abnahmekriterien
+- [Skriptarchitektur](./skriptarchitektur.md) — Modulaufbau, Konventionen und Idempotenz-Strategie
 - [Persistenz, Storage, Backup und Restore](./persistenz-storage-backup-restore.md) — Speicherkonzept und Wiederherstellung
 
 ## Abhängigkeiten

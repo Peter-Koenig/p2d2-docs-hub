@@ -667,6 +667,10 @@ export const sidebar_de = {
                                     text: "Installationsphasen und Abnahme",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau/installationsphasen-und-abnahme",
                                 },
+                                {
+                                    text: "Skriptarchitektur",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau/skriptarchitektur",
+                                },
                             ],
                         },
                     ],
