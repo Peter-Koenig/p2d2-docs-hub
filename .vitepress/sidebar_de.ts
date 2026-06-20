@@ -663,6 +663,10 @@ export const sidebar_de = {
                                     text: "Kubernetes-Laufzeit",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau/kubernetes-laufzeit",
                                 },
+                                {
+                                    text: "Installationsphasen und Abnahme",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau/installationsphasen-und-abnahme",
+                                },
                             ],
                         },
                     ],

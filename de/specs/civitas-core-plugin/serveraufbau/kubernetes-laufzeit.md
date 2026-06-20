@@ -206,9 +206,9 @@ unterscheiden sich je nach Distribution nur in Phase 1:
 1. **k3s-Version** als Konfigurationsvariable, nicht hartcodiert.
 2. **Installationsmodus**: Online via curl (Default) oder Offline mit
    vorgehaltener Binary – als konfigurierbare Option.
-3. **Deaktivierte Komponenten**: traefik (per `--disable traefik`, da
-   nginx als Ingress-Controller gewählt ist), local-path-provisioner,
-   servicelb, metrics-server.
+3. **Deaktivierte Komponenten**: nur traefik (per `--disable traefik`, da
+   nginx als Ingress-Controller gewählt ist). local-path-provisioner,
+   servicelb und metrics-server bleiben aktiv (k3s-Standardverhalten).
 4. **Nachinstallierte Komponenten**: cert-manager und Ingress-Controller
    (nginx) via Helm (helm-CLI vorher installieren).
 5. **kubeconfig**: Automatisch nach `~/.kube/config` kopieren für cc_cli.
