@@ -618,4 +618,29 @@ export const sidebar_de = {
       ],
     },
   ],
+  "/de/specs/": [
+    {
+      text: "Spezifikationshandbuch",
+      items: [
+        { text: "Übersicht", link: "/de/specs/" },
+        {
+          text: "CIVITAS/CORE-Plugin",
+          collapsed: false,
+          items: [
+            { text: "Übersicht", link: "/de/specs/civitas-core-plugin/" },
+            {
+              text: "Serveraufbau",
+              collapsed: false,
+              items: [
+                { text: "Übersicht", link: "/de/specs/civitas-core-plugin/serveraufbau/" },
+                { text: "Zielbild und Abgrenzung", link: "/de/specs/civitas-core-plugin/serveraufbau/zielbild-und-abgrenzung" },
+                { text: "VM-Sizing und Host-Ressourcen", link: "/de/specs/civitas-core-plugin/serveraufbau/vm-sizing-und-host-ressourcen" },
+                { text: "Netzwerk, DNS und TLS", link: "/de/specs/civitas-core-plugin/serveraufbau/netzwerk-dns-tls" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
 };

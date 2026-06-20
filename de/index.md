@@ -24,6 +24,9 @@ hero:
     - theme: alt
       text: Release
       link: /de/planning/
+    - theme: alt
+      text: Spezifikationshandbuch
+      link: /de/specs/
 
 features:
   - icon: 📚
@@ -46,6 +49,10 @@ features:
     title: Entwicklungs-Handbuch
     details: Technische Dokumentation für Entwickler zur Architektur, Modulen und Entwicklungsworkflows.
     link: /de/entwicklungshandbuch/
+  - icon: 📐
+    title: Spezifikationshandbuch
+    details: Soll-Zustand, Architekturentscheidungen und Abnahmekriterien für geplante Erweiterungen und Komponenten.
+    link: /de/specs/
 
 title: "Landing Page"
 
