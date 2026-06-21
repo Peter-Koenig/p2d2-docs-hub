@@ -161,7 +161,8 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 | `python3` / `pip3` vorhanden | Binaries verfügbar | `command -v python3 && command -v pip3` | Abbruch |
 | `wg` (wireguard-tools) | Binary verfügbar | `command -v wg` | Abbruch (wird automatisch installiert) |
 | SMTP erreichbar | TCP-Verbindung zu `$SMTP_HOST:$SMTP_PORT` | `nc -z -w5 $SMTP_HOST $SMTP_PORT` | Abbruch |
-| k3s / kubectl | Noch nicht installiert ODER bereits korrekte Version | Versionsvergleich gegen `$K3S_VERSION` | Abbruch bei falscher Version |
+| `k3s / kubectl` | Noch nicht installiert ODER bereits korrekte Version | Versionsvergleich gegen `$K3S_VERSION` | Abbruch bei falscher Version |
+| Pflicht-Env-Vars | Alle mandatory Secrets gesetzt | Prüfung in `01_config.sh` via `${VAR:?}` | Abbruch |
 
 > **Hinweis DNS**: Die DNS-Prüfung in Phase 0 gibt eine Warnung aus,
 > bricht aber nicht ab. Hintergrund: Die DNS-Einträge für `idm.<domain>`
@@ -286,6 +287,8 @@ Cluster installieren.
 | 2.3 | `cc_cli validate` ausführen | Exit-Code 0 |
 | 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`) | Exit-Code 0 |
 | 2.4b | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation vorhanden |
+
+| 2.4c | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
 | 2.5 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
 
 > **Hinweis TLS**: Die cc-cli-Konfiguration enthält keinen TLS-Block für
@@ -356,6 +359,14 @@ curl -sf -H "Host: idm.$DOMAIN" http://localhost:8080/health
 # Portal intern erreichbar (HTTP via localhost:8080 mit Host-Header)
 curl -sf -H "Host: portal.$DOMAIN" http://localhost:8080/
 # Erwartung: HTTP 200 oder Redirect auf Login
+
+# WireGuard-Tunnel aktiv
+systemctl is-active wg-quick@wg0
+# Erwartung: active
+
+# Konnektivität OPNsense
+ping -c2 10.10.10.1
+# Erwartung: 0% packet loss
 ```
 
 > **Abnahme Phase 2 bestanden**, wenn alle Pods laufen, Ingress-Ressourcen
