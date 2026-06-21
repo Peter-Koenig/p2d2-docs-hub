@@ -246,6 +246,35 @@ check() {
 }
 ```
 
+### Passwort-Generierung nach Policy
+
+```bash
+# Erzeugt ein policy-konformes Passwort:
+#   - mind. 12 Zeichen (konfigurierbar via $1)
+#   - mind. 1 Ziffer
+#   - mind. 1 Großbuchstabe
+#   - mind. 1 Kleinbuchstabe
+#   - mind. 1 Sonderzeichen aus: !@#$%^&*()-_
+#   - KEINE base64-Sonderzeichen (+, /, =)
+gen_policy_password() {
+  local length="${1:-24}"
+  local charset='A-Za-z0-9!@#$%^&*()\-_'
+  local pw
+  while true; do
+    pw="$(tr -dc "${charset}" < /dev/urandom | head -c "${length}" || true)"
+    if echo "${pw}" | grep -qP '(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()\-_])'; then
+      echo "${pw}"
+      return 0
+    fi
+  done
+}
+```
+
+> **Verwendung**: Wird in `render_inventory()` (Modul 06) für alle automatisch
+> generierten Komponenten-Passwörter verwendet (PGAdmin, APISIX, Superset,
+> Grafana, GeoServer, Piveau). Das von außen gesetzte `ADMIN_PASS` (Keycloak)
+> muss die Policy ebenfalls erfüllen – wird in `render_inventory()` geprüft.
+
 ***
 
 ## Modul 03 — Vorbedingungen (`03_preflight.sh`)
