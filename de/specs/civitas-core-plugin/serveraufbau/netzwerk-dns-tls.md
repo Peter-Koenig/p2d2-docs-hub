@@ -9,8 +9,8 @@ specid: civitas-core-plugin-serveraufbau-netzwerk
 parent: civitas-core-plugin-serveraufbau-index
 dependencies: []
 quality:
-  completeness: 60
-  accuracy: 60
+  completeness: 85
+  accuracy: 90
   reviewed: false
   reviewer:
   reviewDate:
@@ -76,7 +76,17 @@ Alternativ kann die TLS-Terminierung direkt in der Plugin-VM (z. B. durch den Ku
 
 - Ist eine externe Erreichbarkeit des Plugins erforderlich?
 - Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?
-- Wird ein separater DNS-Eintrag für die interne Kommunikation benötigt?
+- Wird ein separater DNS-Eintrag f&uuml;r die interne Kommunikation ben&ouml;tigt?
+
+## Getroffene Entscheidungen
+
+Die folgenden Entscheidungen sind gefallen und verbindlich:
+
+- **TLS-Terminierung**: Variante A ist gew&auml;hlt. Caddy auf OPNsense terminiert TLS f&uuml;r `idm.udp.data-dna.eu` und `portal.udp.data-dna.eu`. Die VM betreibt kein TLS.
+- **HTTP-Port**: Der nginx-Ingress-Controller lauscht auf Port 8080 (HTTP). Caddy leitet auf `10.10.10.5:8080` weiter.
+- **Kein interner TLS**: Ingress-Ressourcen im `civitas-core`-Namespace erhalten keinen TLS-Block. `ssl-redirect` ist global auf `false` gesetzt.
+- **Caddy-Konfiguration**: Die bestehende Konfiguration in `/usr/local/etc/caddy/caddy.d/civitas.data-dna.eu.conf` ist g&uuml;ltig und wird nicht ge&auml;ndert.
+- **WireGuard**: Der Tunnel zwischen OPNsense (`10.10.10.1`) und der VM (`10.10.10.5`) ist manuell konfiguriert und funktioniert. Keine Skript-Automatisierung in dieser Ausbaustufe.
 
 ## Risiken
 
