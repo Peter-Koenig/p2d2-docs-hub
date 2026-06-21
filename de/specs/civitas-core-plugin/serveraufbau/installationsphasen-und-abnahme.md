@@ -46,6 +46,10 @@ ausgelegt, nicht auf Produktionsreife.
 - **Kein öffentlicher DNS**: Alle Endpunkte (`idm.*`, `portal.*`) sind
   intern im SOHO-VLAN erreichbar; DNS-Einträge werden manuell in der
   Hetzner-WebGUI gesetzt, bevor Phase 2 ausgeführt wird
+- **Ausführungskontext**: Das Skript kann auf dem Proxmox-Host oder in der
+  Ziel-VM gestartet werden. Auf dem Proxmox-Host wird Phase -1 ausgeführt
+  (VM-Provisionierung), danach wird die weitere Ausführung in der VM
+  empfohlen. Innerhalb der VM beginnen die Phasen ab Phase 0.
 
 ***
 
@@ -56,10 +60,82 @@ vorgelagerten Vorbedingungsprüfung:
 
 | Phase | Name | Inhalt |
 |---|---|---|
+| -1 | VM-Provisionierung | VM auf Proxmox-Host erstellen (Cloud-Image, Cloud-Init) |
 | 0 | Vorbedingungen | Systemprüfung, Konnektivität, Variablen |
 | 1 | Kubernetes-Cluster | k3s installieren, Add-ons deployen |
 | 2 | CIVITAS/CORE-Plattform | cc-cli installieren, Plattform deployen |
 | 3 | Verifikation | End-to-End-Abnahme, Fehlerreport |
+
+***
+
+## Phase -1 — VM-Provisionierung
+
+### Zweck
+
+Die CIVITAS/CORE-VM auf dem Proxmox-Knoten "civitas" aus einem
+Debian-13-Cloud-Image erzeugen. Dieser Schritt läuft nur auf dem
+Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
+(Idempotenz).
+
+### Voraussetzungen
+
+- Ausführung auf dem Proxmox-Host (qm, pvesh, pvesm verfügbar)
+- `ROOT_PASSWORD` als Umgebungsvariable gesetzt
+- Internetzugriff für Cloud-Image-Download
+
+### Schritte
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| -1.1 | Cloud-Image herunterladen (`debian-13-genericcloud-amd64-daily.qcow2`) | Datei in `/var/lib/vz/template/iso/` vorhanden |
+| -1.2 | VM mit qm create anlegen (12 vCPU, 40 GiB RAM, Bridge vmbr0) | `qm status VM_ID` — VM existiert |
+| -1.3 | Disk aus Cloud-Image importieren (300 GiB, ZFS-thin) | `qm config VM_ID` — Disk zugewiesen |
+| -1.4 | Cloud-Init konfigurieren (root-Passwort, DHCP) | `qm config VM_ID` — ciuser/cipassword gesetzt |
+| -1.5 | VM starten | `qm status VM_ID` → running |
+| -1.6 | Warten auf IP (QEMU-Guest-Agent) | `qm guest exec VM_ID -- hostname -I` liefert IP |
+| -1.7 | Anleitung für SSH-Zugang ausgeben | — |
+
+### Abnahmekriterien Phase -1
+
+```bash
+# VM existiert und läuft
+qm status VM_ID
+# Erwartung: VM-ID im Status "running"
+
+# VM-Konfiguration prüfen
+qm config VM_ID | grep -E 'memory|cores|name'
+# Erwartung: speicher 40960, cores 12, name civitas-core
+
+# SSH-Zugang funktioniert
+ssh -o StrictHostKeyChecking=no root@VM_IP 'hostnamectl'
+# Erwartung: Debian GNU/Linux 13 (Trixie)
+
+# Installationsskript in VM verfügbar
+ssh root@VM_IP 'ls -la install_civitas_core.sh'
+```
+
+> **Abnahme Phase -1 bestanden**, wenn die VM läuft, per SSH erreichbar ist
+> und das Installationsskript in die VM übertragen wurde.
+
+### Konfigurationsvariablen Phase -1
+
+Die folgenden Variablen werden im Konfigurationsmodul des Skripts
+externalisiert:
+
+| Variable | Beschreibung | Beispielwert |
+|---|---|---|
+| `VM_ID` | Proxmox VM-ID | `100` |
+| `VM_NAME` | Anzeigename in Proxmox | `civitas-core` |
+| `VM_RAM_MB` | RAM in MiB | `40960` |
+| `VM_CORES` | vCPUs | `12` |
+| `VM_DISK_GB` | Disk-Größe in GiB | `300` |
+| `VM_BRIDGE` | Bridge-Netzwerk | `vmbr0` |
+| `PROXMOX_STORAGE` | Proxmox-Storage für VM-Disk | `local-zfs` |
+| `CLOUD_IMAGE_URL` | URL zum Debian-13-Cloud-Image | siehe Quellcode |
+
+> **Hinweis**: `ROOT_PASSWORD` wird ausschließlich als Umgebungsvariable
+> übergeben und nie hartcodiert. Das Skript bricht ab, wenn die Variable
+> nicht gesetzt ist.
 
 ***
 
@@ -348,6 +424,10 @@ protokolliert.
 ***
 
 ## Festlegungen
+
+0. Vor Phase 0 kann auf dem Proxmox-Host eine **Phase -1 (VM-Provisionierung)**
+   ausgeführt werden. Diese erstellt die CIVITAS/CORE-VM aus dem Debian-13-
+   Cloud-Image und ist idempotent (bestehende VM wird übersprungen).
 
 1. Das Skript gliedert sich in Phase 0 (Vorbedingungen), Phase 1
    (k3s + Add-ons), Phase 2 (cc-cli + Plattform) und Phase 3

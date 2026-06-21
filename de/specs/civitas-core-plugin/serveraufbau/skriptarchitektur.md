@@ -44,6 +44,7 @@ Das Installationsskript wird im Repository `civitas_einrichtung` abgelegt:
 /srv/p2d2/repos/civitas_einrichtung/
 ├── install_civitas_core.sh          ← Entry-Point, Phasenmodell, Orchestrierung
 ├── modules/
+│   ├── 00_provision_vm.sh           ← Phase -1: VM-Provisionierung
 │   ├── 01_config.sh                 ← Alle Konfigurationsvariablen
 │   ├── 02_lib.sh                    ← Hilfsfunktionen (log, check, wait, …)
 │   ├── 03_preflight.sh              ← Phase 0: Vorbedingungsprüfungen
@@ -83,6 +84,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Module laden
 source "${SCRIPT_DIR}/modules/01_config.sh"
 source "${SCRIPT_DIR}/modules/02_lib.sh"
+source "${SCRIPT_DIR}/modules/00_provision_vm.sh"
 source "${SCRIPT_DIR}/modules/03_preflight.sh"
 source "${SCRIPT_DIR}/modules/04_k3s.sh"
 source "${SCRIPT_DIR}/modules/05_addons.sh"
@@ -90,6 +92,7 @@ source "${SCRIPT_DIR}/modules/06_civitas.sh"
 source "${SCRIPT_DIR}/modules/07_verify.sh"
 
 # Phasen ausführen
+provision_vm        # Phase -1: VM erstellen (auf Proxmox-Host)
 run_preflight        # Phase 0
 install_k3s          # Phase 1a
 install_addons       # Phase 1b
@@ -104,6 +107,9 @@ run_verification     # Phase 3
 - Jede Phase ist eine Funktion mit klar definiertem Namen und
   Rückgabeverhalten.
 - Der Entry-Point enthält keine Geschäftslogik — nur Laden und Aufrufen.
+- **`ROOT_PASSWORD`** muss vor dem Skriptaufruf als Umgebungsvariable gesetzt
+  sein. Ohne diesen Wert bricht das Skript bereits beim Laden von `01_config.sh`
+  mit einer Fehlermeldung ab.
 - **Das Skript wird als `root` ausgeführt** (oder via `sudo`). Der kubeconfig-Pfad
   (`KUBECONFIG_PATH`) bezieht sich auf das Homeverzeichnis des root-Users
   (`/root/.kube/config`). Die Berechtigung der kubeconfig-Datei wird mit
@@ -396,6 +402,72 @@ render_config_yaml() {
 > Die erzeugte `config.yaml` liegt unter `/tmp/` und enthält das
 > SMTP-Passwort im Klartext. Sie wird nach `cc_cli exec` gelöscht
 > (`trap "rm -f ${CONFIG_YAML_PATH}" EXIT`).
+
+***
+
+## Modul 00 — VM-Provisionierung (`00_provision_vm.sh`)
+
+Implementiert `provision_vm()`. Läuft auf dem Proxmox-Host und erstellt die
+CIVITAS/CORE-VM aus einem Debian-13-Cloud-Image. Idempotenz: Wenn die VM
+bereits existiert, wird die Provisionierung übersprungen.
+
+### Ablauf
+
+```bash
+provision_vm() {
+  log "=== Phase -1: VM provisionieren ==="
+
+  if ! is_installed qm; then
+    log_warn "Nicht auf Proxmox-Host — überspringe"
+    return 0
+  fi
+
+  if qm status "${VM_ID}" &>/dev/null; then
+    log_ok "VM ${VM_ID} existiert bereits — überspringe"
+    return 0
+  fi
+
+  # Cloud-Image herunterladen (curl, idempotent via Prüfung auf Vorhandensein)
+  download_cloud_image
+
+  # VM mit qm create anlegen (12 vCPU, 40 GiB RAM, 300 GiB Disk)
+  create_vm
+
+  # Disk via qm importdisk einspielen und auf Zielgröße resizen
+  import_and_resize_disk
+
+  # Cloud-Init: root-Passwort, DHCP-Netzwerk
+  configure_cloud_init
+
+  # VM starten und auf IP warten
+  qm start "${VM_ID}"
+  wait_for_vm_ip "${VM_ID}"
+}
+```
+
+### Konfigurationsvariablen (zusätzlich in `01_config.sh`)
+
+| Variable | Beschreibung | Default |
+|---|---|---|
+| `VM_ID` | Proxmox VM-ID | `100` |
+| `VM_NAME` | Anzeigename in Proxmox | `civitas-core` |
+| `VM_RAM_MB` | RAM in MiB | `40960` |
+| `VM_CORES` | vCPUs | `12` |
+| `VM_DISK_GB` | Disk-Größe in GiB | `300` |
+| `VM_BRIDGE` | Bridge-Interface | `vmbr0` |
+| `PROXMOX_STORAGE` | Proxmox-Storage für VM-Disk | `local-zfs` |
+| `CLOUD_IMAGE_URL` | URL zum Debian-13-Cloud-Image | `https://cloud.debian.org/…` |
+
+### Idempotenz
+
+- Cloud-Image wird nur einmal heruntergeladen (Prüfung: Datei existiert).
+- VM wird nur erstellt, wenn `qm status $VM_ID` fehlschlägt.
+- Bei erneuten Skriptdurchläufen wird die VM-IP neu ermittelt.
+
+### Secrets
+
+- `ROOT_PASSWORD` wird aus der Umgebungsvariablen gelesen (in `01_config.sh`
+  mit `:?`-Expansion geprüft). Keine Hartcodierung, kein Eintrag in Git.
 
 ***
 
