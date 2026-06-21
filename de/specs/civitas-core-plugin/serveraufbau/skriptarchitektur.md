@@ -131,7 +131,9 @@ könnten.
 # ── Versionspinning ──────────────────────────────────────────────────────────
 K3S_VERSION="v1.32.3+k3s1"         # Beim Skriptbau aus k3s-Release-Doku fixieren
 HELM_VERSION="v3.17.0"             # Beim Skriptbau aus Helm-Release-Doku fixieren
-CC_CLI_VERSION="2.3.1"             # Beim Skriptbau aus CIVITAS/CORE-Doku fixieren
+# CC_CLI_VERSION entfällt — cc-cli wird aus Git-Repository installiert (siehe Modul 06)
+CC_CLI_REPO_URL="https://gitlab.com/civitas-connect/civitas-core/civitas-core.git"
+CC_CLI_REPO_PATH="/opt/civitas-core-repo"
 CERT_MANAGER_VERSION="v1.16.0"     # Beim Skriptbau aus cert-manager-Release-Doku fixieren
 NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-Doku fixieren
 
@@ -444,17 +446,19 @@ patch_ingress_for_external_tls() {
 }
 ```
 
+### cc-cli-Installation aus Git-Repository
+
+cc-cli wird nicht von PyPI, sondern aus dem CIVITAS/CORE-Git-Repository
+installiert. Das Repository wird nach `${CC_CLI_REPO_PATH}` geklont
+und daraus per `pip install ${repo_path}` im venv installiert.
+
+Debian 13 (Trixie) aktiviert PEP 668 (`externally-managed-environment`),
+daher erfolgt die Installation in einem isolierten Virtual Environment
+unter `${CC_CLI_VENV_PATH}`. Alle cc_cli-Aufrufe in Phase 2 nutzen
+den venv-Pfad.
+
 ### config.yaml aus Template
-```
 
-### Virtual Environment
-
-Debian 13 (Trixie) aktiviert PEP 668 (`externally-managed-environment`), was
-`pip install` systemweit unterbindet. cc-cli wird daher in einem isolierten
-Virtual Environment unter `CC_CLI_VENV_PATH` (Default: `/opt/civitas-core-venv`)
-installiert. Alle cc_cli-Aufrufe in Phase 2 nutzen den venv-Pfad.
-
-### config.yaml aus Template
 
 Die `config.yaml` für cc-cli wird aus `templates/config.yaml.tpl` erzeugt.
 Alle Platzhalter werden durch die Variablen aus `01_config.sh` ersetzt:
