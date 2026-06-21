@@ -285,7 +285,13 @@ Cluster installieren.
 | 2.2 | Konfigurationsdatei `config.yaml` aus Template erzeugen | Datei vorhanden, Pflichtfelder gesetzt |
 | 2.3 | `cc_cli validate` ausführen | Exit-Code 0 |
 | 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`) | Exit-Code 0 |
+| 2.4b | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation vorhanden |
 | 2.5 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
+
+> **Hinweis TLS**: Die cc-cli-Konfiguration enthält keinen TLS-Block für
+> Ingress-Ressourcen. TLS wird von Caddy auf OPNsense terminiert. Nach
+> `cc_cli exec` werden alle Ingress-Ressourcen im Namespace mit der Annotation
+> `nginx.ingress.kubernetes.io/ssl-redirect: "false"` versehen.
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
@@ -339,12 +345,16 @@ kubectl get ingress -n civitas-core
 kubectl get certificate -n civitas-core
 # Erwartung: READY = True für alle Zertifikate
 
-# Keycloak erreichbar (intern)
-curl -sk https://idm.$DOMAIN/health
+# Hinweis: TLS wird von Caddy auf OPNsense terminiert.
+# Die VM hat keinen direkten HTTPS-Zugang zu den öffentlichen Hostnamen.
+# Die Erreichbarkeit wird intern gegen den nginx-Ingress auf Port 8080 geprüft.
+
+# Keycloak intern erreichbar (HTTP via localhost:8080 mit Host-Header)
+curl -sf -H "Host: idm.$DOMAIN" http://localhost:8080/health
 # Erwartung: HTTP 200 oder Keycloak-Begrüßungsseite
 
-# Portal erreichbar (intern)
-curl -sk https://portal.$DOMAIN
+# Portal intern erreichbar (HTTP via localhost:8080 mit Host-Header)
+curl -sf -H "Host: portal.$DOMAIN" http://localhost:8080/
 # Erwartung: HTTP 200 oder Redirect auf Login
 ```
 

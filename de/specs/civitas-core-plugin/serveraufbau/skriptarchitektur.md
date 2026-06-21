@@ -351,6 +351,19 @@ spec:
 > Für eine spätere Produktionsstrategie (ACME, interne CA) wird dieser
 > Issuer ausgetauscht — Festlegung in `netzwerk-dns-tls.md`.
 
+> **nginx-Ingress-Ports**: Der nginx-Ingress-Controller wird mit `hostNetwork=true`
+> als DaemonSet installiert und lauscht auf HTTP-Port 8080. HTTPS (Port 8443)
+> ist vorhanden, wird aber nicht genutzt (TLS-Terminierung in Caddy auf OPNsense).
+> Relevante Helm-Values:
+> ```
+> controller.hostNetwork=true
+> controller.kind=DaemonSet
+> controller.service.ports.http=8080
+> controller.service.ports.https=8443
+> controller.containerPort.http=8080
+> controller.containerPort.https=8443
+> ```
+
 ***
 
 ## Modul 06 — CIVITAS/CORE (`06_civitas.sh`)
@@ -370,8 +383,42 @@ install_civitas() {
   render_config_yaml
   run_cc_cli_validate
   run_cc_cli_exec
+  patch_ingress_for_external_tls   # ssl-redirect deaktivieren (TLS via Caddy)
   wait_pods_ready "${K8S_NAMESPACE}"
 }
+```
+
+### Ingress-Patch für externes TLS
+
+Nach `cc_cli exec` werden alle Ingress-Ressourcen im Namespace `${K8S_NAMESPACE}`
+mit der Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` versehen.
+Damit wird die Weiterleitung von HTTP auf HTTPS im nginx-Ingress deaktiviert,
+da TLS bereits von Caddy auf OPNsense terminiert wird.
+
+```bash
+patch_ingress_for_external_tls() {
+  log "Deaktiviere ssl-redirect für alle Ingress-Ressourcen (TLS via Caddy) ..."
+
+  local ingresses
+  ingresses=$(kubectl get ingress -n "${K8S_NAMESPACE}" \
+    -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || true)
+
+  if [[ -z "${ingresses}" ]]; then
+    log_warn "Keine Ingress-Ressourcen in ${K8S_NAMESPACE} gefunden — überspringe Patch"
+    return 0
+  fi
+
+  for ingress in ${ingresses}; do
+    kubectl annotate ingress "${ingress}" \
+      -n "${K8S_NAMESPACE}" \
+      nginx.ingress.kubernetes.io/ssl-redirect=false \
+      --overwrite
+    log_ok "Ingress ${ingress} — ssl-redirect=false gesetzt"
+  done
+}
+```
+
+### config.yaml aus Template
 ```
 
 ### config.yaml aus Template
