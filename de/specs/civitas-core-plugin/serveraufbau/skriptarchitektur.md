@@ -455,7 +455,7 @@ provision_vm() {
 | `VM_CORES` | vCPUs | `12` |
 | `VM_DISK_GB` | Disk-Größe in GiB | `300` |
 | `VM_BRIDGE` | Bridge-Interface | `vmbr0` |
-| `PROXMOX_STORAGE` | Proxmox-Storage für VM-Disk | `local-zfs` |
+| `PROXMOX_STORAGE` | Proxmox-Storage für VM-Disk | `local-zfs-civitas` |
 | `CLOUD_IMAGE_URL` | URL zum Debian-13-Cloud-Image | `https://cloud.debian.org/…` |
 
 ### Idempotenz
