@@ -604,6 +604,17 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 
 ## Festlegungen
 
+-1. Die VM-Provisionierung (Phase -1) erstellt die CIVITAS/CORE-VM auf dem
+   Proxmox-Host aus einem Debian-13-Cloud-Image. Die Konfiguration der
+   netzseitigen Erreichbarkeit (z. B. WireGuard-Tunnel, Reverse Proxy) ist
+   organisationsspezifisch und nicht Gegenstand dieses Skripts. Das Paket
+   `wireguard-tools` wird jedoch in Phase 0 automatisch installiert, sodass
+   der WireGuard-Tunnel nach Bedarf konfiguriert werden kann.
+
+0. Vor Phase 0 kann auf dem Proxmox-Host eine **Phase -1 (VM-Provisionierung)**
+   ausgeführt werden. Diese erstellt die CIVITAS/CORE-VM aus dem Debian-13-
+   Cloud-Image und ist idempotent (bestehende VM wird übersprungen).
+
 1. Das Skript besteht aus einem Entry-Point (`install_civitas_core.sh`)
    und sieben Modulen in `modules/`.
 2. Alle Konfiguration ist in `01_config.sh` zentralisiert. Kein anderes

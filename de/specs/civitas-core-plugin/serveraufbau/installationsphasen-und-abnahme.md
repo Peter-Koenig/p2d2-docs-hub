@@ -159,6 +159,7 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 | DNS `idm.<domain>` / `portal.<domain>` | Auflösbar | `dig +short idm.$DOMAIN` | **Warnung** (kein Abbruch, DNS wird manuell vor Phase 2 gesetzt) |
 | `curl` vorhanden | Binary verfügbar | `command -v curl` | Abbruch |
 | `python3` / `pip3` vorhanden | Binaries verfügbar | `command -v python3 && command -v pip3` | Abbruch |
+| `wg` (wireguard-tools) | Binary verfügbar | `command -v wg` | Abbruch (wird automatisch installiert) |
 | SMTP erreichbar | TCP-Verbindung zu `$SMTP_HOST:$SMTP_PORT` | `nc -z -w5 $SMTP_HOST $SMTP_PORT` | Abbruch |
 | k3s / kubectl | Noch nicht installiert ODER bereits korrekte Version | Versionsvergleich gegen `$K3S_VERSION` | Abbruch bei falscher Version |
 
