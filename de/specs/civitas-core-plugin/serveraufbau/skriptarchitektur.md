@@ -53,16 +53,18 @@ Das Installationsskript wird im Repository `civitas_einrichtung` abgelegt:
 │   ├── 06_civitas.sh                ← Phase 2: cc-cli, config.yaml, deploy
 │   └── 07_verify.sh                 ← Phase 3: Verifikation, Fehlerreport
 ├── templates/
-│   └── config.yaml.tpl              ← cc-cli-Konfigurationsvorlage
+│   ├── config.yaml.tpl              ← cc-cli-Konfigurationsvorlage
+│   └── wg0.conf.tpl                 ← WireGuard-Konfigurationsvorlage
 └── .env.example                     ← Beispiel für Umgebungsvariablen (kein Secret)
 ```
 
-> **Hinweis**: Secrets (SMTP-Passwort, Admin-Passwort) werden **nie** in
+> **Hinweis**: Secrets (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel) werden **nie** in
 > Dateien im Repository abgelegt. Sie werden als Umgebungsvariablen vor
 > dem Skriptaufruf gesetzt:
 > ```bash
 > export SMTP_PASS="..."
 > export ADMIN_PASS="..."
+> export WG_VM_PRIVATE_KEY="..."
 > ./install_civitas_core.sh
 > ```
 
@@ -170,6 +172,30 @@ SOHO_GATEWAY="${SOHO_GATEWAY:-192.168.1.1}"   # Anpassen an lokale Topologie
 > **Versionspinning-Regel**: Alle `*_VERSION`-Variablen werden beim ersten
 > Skriptbau auf konkrete Werte gesetzt und danach nur durch bewusste
 > Wartungsaktionen aktualisiert. Niemals `latest` verwenden.
+
+***
+
+## Pflicht-Umgebungsvariablen (Env-Vars)
+
+Alle nachfolgenden Variablen müssen vor dem Skriptaufruf als
+Umgebungsvariablen gesetzt sein. Sie werden in `01_config.sh` mit
+`${VAR:?Fehlermeldung}` geprüft. Das Skript bricht beim Laden von
+`01_config.sh` sofort ab, wenn eine Variable fehlt oder leer ist.
+
+| Variable | Beschreibung | Beispielwert / Hinweis |
+|---|---|---|
+| `ROOT_PASSWORD` | root-Passwort der VM | Sicheres Zufallspasswort |
+| `SMTP_PASS` | SMTP-Passwort für no-reply@data-dna.eu | Aus netcup WCP |
+| `ADMIN_PASS` | Keycloak Initial-Admin-Passwort | Sicheres Zufallspasswort, min. 12 Zeichen |
+| `WG_VM_PRIVATE_KEY` | WireGuard PrivateKey der VM (`wg genkey`) | Base64-String, 44 Zeichen |
+| `WG_OPN_PUBLIC_KEY` | WireGuard PublicKey von OPNsense (`wg pubkey`) | Base64-String, 44 Zeichen |
+| `WG_PRESHARED_KEY` | WireGuard PreSharedKey (`wg genpsk`) | **Optional** — leer lassen wenn nicht verwendet |
+| `WG_OPN_ENDPOINT` | Öffentliche IP:Port der OPNsense-WireGuard-Instanz | z. B. `1.2.3.4:51820` |
+
+> **Hinweis zu `WG_PRESHARED_KEY`**: Diese Variable ist optional und wird mit
+> `${WG_PRESHARED_KEY:-}` ohne Abbruch gelesen. Ist sie leer, wird die
+> Zeile `PreSharedKey` in der erzeugten `wg0.conf` entfernt, da WireGuard
+> bei leerem Schlüssel einen Fehler wirft.
 
 ***
 

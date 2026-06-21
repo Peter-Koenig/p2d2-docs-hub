@@ -86,7 +86,12 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
 - **HTTP-Port**: Der nginx-Ingress-Controller lauscht auf Port 8080 (HTTP). Caddy leitet auf `10.10.10.5:8080` weiter.
 - **Kein interner TLS**: Ingress-Ressourcen im `civitas-core`-Namespace erhalten keinen TLS-Block. `ssl-redirect` ist global auf `false` gesetzt.
 - **Caddy-Konfiguration**: Die bestehende Konfiguration in `/usr/local/etc/caddy/caddy.d/civitas.data-dna.eu.conf` ist g&uuml;ltig und wird nicht ge&auml;ndert.
-- **WireGuard**: Der Tunnel zwischen OPNsense (`10.10.10.1`) und der VM (`10.10.10.5`) ist manuell konfiguriert und funktioniert. Keine Skript-Automatisierung in dieser Ausbaustufe.
+- **WireGuard-Konfiguration**: Das Skript schreibt `/etc/wireguard/wg0.conf`
+  aus `templates/wg0.conf.tpl` (Phase 2, nach `cc_cli exec`). Die Schlüssel
+  `WG_VM_PRIVATE_KEY`, `WG_OPN_PUBLIC_KEY` und `WG_PRESHARED_KEY` werden
+  ausschließlich als Env-Vars übergeben. Nach dem Schreiben der Config
+  wird der Tunnel mit `systemctl enable --now wg-quick@wg0` aktiviert und
+  die Konnektivität zu OPNsense (ping `10.10.10.1`) geprüft.
 
 ## Risiken
 
