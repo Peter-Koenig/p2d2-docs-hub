@@ -671,6 +671,10 @@ export const sidebar_de = {
                                     text: "Skriptarchitektur",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau/skriptarchitektur",
                                 },
+                                {
+                                    text: "cc-cli-Inventar",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau/cc-cli-inventar",
+                                },
                             ],
                         },
                     ],

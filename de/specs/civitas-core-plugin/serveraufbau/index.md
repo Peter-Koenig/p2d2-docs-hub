@@ -28,6 +28,7 @@ Dieser Bereich spezifiziert den Serveraufbau, der für den Betrieb des CIVITAS/C
 - [Kubernetes-Laufzeit](./kubernetes-laufzeit.md) — Container-Orchestrierung und Plattformkomponenten
 - [Installationsphasen und Abnahme](./installationsphasen-und-abnahme.md) — Phasenmodell und Abnahmekriterien
 - [Skriptarchitektur](./skriptarchitektur.md) — Modulaufbau, Konventionen und Idempotenz-Strategie
+- [cc-cli-Inventar](./cc-cli-inventar.md) — Ansible-Inventory für CIVITAS/CORE-Deployment
 - [Persistenz, Storage, Backup und Restore](./persistenz-storage-backup-restore.md) — Speicherkonzept und Wiederherstellung
 
 ## Abhängigkeiten
