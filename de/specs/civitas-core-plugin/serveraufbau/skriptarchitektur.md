@@ -131,9 +131,9 @@ könnten.
 # ── Versionspinning ──────────────────────────────────────────────────────────
 K3S_VERSION="v1.32.3+k3s1"         # Beim Skriptbau aus k3s-Release-Doku fixieren
 HELM_VERSION="v3.17.0"             # Beim Skriptbau aus Helm-Release-Doku fixieren
-# CC_CLI_VERSION entfällt — cc-cli wird aus Git-Repository installiert (siehe Modul 06)
-CC_CLI_REPO_URL="https://gitlab.com/civitas-connect/civitas-core/civitas-core.git"
-CC_CLI_REPO_PATH="/opt/civitas-core-repo"
+CC_CLI_VERSION="1.5.0"              # cc-cli — aus GitLab Package Registry
+CC_CLI_REGISTRY_URL="https://gitlab.com/api/v4/projects/62227605/packages/pypi/simple"
+CC_CLI_VENV_PATH="/opt/civitas-core-venv"
 CERT_MANAGER_VERSION="v1.16.0"     # Beim Skriptbau aus cert-manager-Release-Doku fixieren
 NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-Doku fixieren
 
@@ -446,13 +446,18 @@ patch_ingress_for_external_tls() {
 }
 ```
 
-### cc-cli-Installation aus Git-Repository
+### cc-cli-Installation aus GitLab Package Registry
 
-cc-cli wird nicht von PyPI, sondern aus dem CIVITAS/CORE-Git-Repository
-installiert. Das Repository wird nach `${CC_CLI_REPO_PATH}` geklont
-und daraus per `pip install ${repo_path}` im venv installiert.
+cc-cli wird nicht von PyPI, sondern aus der GitLab Package Registry des
+CIVITAS/CORE-Projekts installiert. Die `requirements.txt` im Repository
+zeigt die Quelle:
 
-Quelle: https://docs.core.civitasconnect.digital/docs/1.4.1/Deployment/Deployment-Guide/
+```
+--index-url https://gitlab.com/api/v4/projects/62227605/packages/pypi/simple
+cc-cli==1.5.0
+```
+
+Quelle: https://gitlab.opencode.de/civitas-connect/civitas-core/-/blob/main/requirements.txt
 
 Debian 13 (Trixie) aktiviert PEP 668 (`externally-managed-environment`),
 daher erfolgt die Installation in einem isolierten Virtual Environment
