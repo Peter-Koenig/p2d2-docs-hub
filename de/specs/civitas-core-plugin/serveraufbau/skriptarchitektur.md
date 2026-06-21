@@ -447,6 +447,13 @@ patch_ingress_for_external_tls() {
 ### config.yaml aus Template
 ```
 
+### Virtual Environment
+
+Debian 13 (Trixie) aktiviert PEP 668 (`externally-managed-environment`), was
+`pip install` systemweit unterbindet. cc-cli wird daher in einem isolierten
+Virtual Environment unter `CC_CLI_VENV_PATH` (Default: `/opt/civitas-core-venv`)
+installiert. Alle cc_cli-Aufrufe in Phase 2 nutzen den venv-Pfad.
+
 ### config.yaml aus Template
 
 Die `config.yaml` für cc-cli wird aus `templates/config.yaml.tpl` erzeugt.
