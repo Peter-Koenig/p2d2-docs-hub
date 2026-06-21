@@ -452,6 +452,8 @@ cc-cli wird nicht von PyPI, sondern aus dem CIVITAS/CORE-Git-Repository
 installiert. Das Repository wird nach `${CC_CLI_REPO_PATH}` geklont
 und daraus per `pip install ${repo_path}` im venv installiert.
 
+Quelle: https://docs.core.civitasconnect.digital/docs/1.4.1/Deployment/Deployment-Guide/
+
 Debian 13 (Trixie) aktiviert PEP 668 (`externally-managed-environment`),
 daher erfolgt die Installation in einem isolierten Virtual Environment
 unter `${CC_CLI_VENV_PATH}`. Alle cc_cli-Aufrufe in Phase 2 nutzen
