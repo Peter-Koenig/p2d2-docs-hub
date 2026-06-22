@@ -327,7 +327,7 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 > Phase 0 geprüft.
 
 > **Hinweis cc-cli-Version**: `CC_CLI_VERSION` ist immer auf eine konkrete
-> Versionsnummer zu setzen (z. B. `2.3.1`), niemals auf `latest`. Breaking
+> Versionsnummer zu setzen (z. B. `1.5.0`), niemals auf `latest`. Breaking
 > Changes durch neue Releases werden so vermieden. Die zum Zeitpunkt des
 > ersten Skriptbaus aktuelle Version wird beim Bau fixiert.
 
@@ -378,9 +378,12 @@ ping -c2 10.10.10.1
 
 
 
-> **Abnahme Phase 2 bestanden**, wenn alle Pods laufen, Ingress-Ressourcen
-> vorhanden sind, TLS-Zertifikate ausgestellt wurden und beide Endpunkte
-> intern per HTTP erreichbar sind.
+> **Abnahme Phase 2 (Zielzustand)**: Phase 2 gilt als bestanden, wenn alle
+> Pods laufen, Ingress-Ressourcen vorhanden sind, TLS-Zertifikate ausgestellt
+> wurden und beide Endpunkte intern per HTTP erreichbar sind.
+> **Aktuelle Einschränkung**: Schritt 2.4 (`cc_cli exec`) scheitert derzeit
+> mit `Could not find any playbook to execute.`. Der Zielzustand ist daher
+> noch nicht erreichbar — siehe „Bekannte Lücke" oben.
 
 ***
 

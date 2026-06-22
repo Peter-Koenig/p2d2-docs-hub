@@ -494,35 +494,51 @@ daher erfolgt die Installation in einem isolierten Virtual Environment
 unter `${CC_CLI_VENV_PATH}`. Alle cc_cli-Aufrufe in Phase 2 nutzen
 den venv-Pfad.
 
-### config.yaml aus Template
+### Inventory aus Template
 
 
-Die `config.yaml` für cc-cli wird aus `templates/config.yaml.tpl` erzeugt.
+Das Inventory `cc_cli_inventory.yml` wird aus `templates/inventory.yml.tpl` erzeugt.
 Alle Platzhalter werden durch die Variablen aus `01_config.sh` ersetzt:
 
 ```bash
-render_config_yaml() {
-  local tpl="${SCRIPT_DIR}/templates/config.yaml.tpl"
-  local out="/tmp/civitas_core_config.yaml"
+render_inventory() {
+  log "Erzeuge Inventory aus Template …"
+
+  local tpl="${SCRIPT_DIR}/templates/inventory.yml.tpl"
+  mkdir -p "${CC_CLI_WORKDIR}"
+  local out="${CC_CLI_WORKDIR}/cc_cli_inventory.yml"
+
+  if [[ ! -f "${tpl}" ]]; then
+    log_error "Template nicht gefunden: ${tpl}"
+    exit 1
+  fi
+
+  # Passwort-Generierung (ADMIN_PASS aus Env, restliche auto-generiert)
+  # ...
 
   sed \
-    -e "s|{{DOMAIN}}|${DOMAIN}|g" \
-    -e "s|{{SMTP_HOST}}|${SMTP_HOST}|g" \
-    -e "s|{{SMTP_PORT}}|${SMTP_PORT}|g" \
-    -e "s|{{SMTP_USER}}|${SMTP_USER}|g" \
-    -e "s|{{SMTP_PASS}}|${SMTP_PASS}|g" \
-    -e "s|{{ADMIN_EMAIL}}|${ADMIN_EMAIL}|g" \
-    -e "s|{{K8S_NAMESPACE}}|${K8S_NAMESPACE}|g" \
-    "$tpl" > "$out"
+    -e "s|PLACEHOLDER_DOMAIN|${DOMAIN}|g" \
+    -e "s|PLACEHOLDER_ENVIRONMENT|${CC_ENVIRONMENT:-cc-prd}|g" \
+    -e "s|PLACEHOLDER_ADMINEMAIL|${ADMIN_EMAIL}|g" \
+    -e "s|PLACEHOLDER_SMTP_HOST|${SMTP_HOST}|g" \
+    -e "s|PLACEHOLDER_SMTP_USER|${SMTP_USER}|g" \
+    -e "s|PLACEHOLDER_SMTP_PASS|${SMTP_PASS}|g" \
+    -e "s|PLACEHOLDER_KEYCLOAK_ADMIN_PASSWORD|${pw_keycloak}|g" \
+    # ... ca. 20 weitere Platzhalter für Secrets und Komponenten ...
+    "${tpl}" > "${out}"
 
-  CONFIG_YAML_PATH="$out"
-  log_ok "config.yaml erzeugt: ${out}"
+  CONFIG_YAML_PATH="${out}"
+  export CONFIG_YAML_PATH
+  log_ok "Inventory erzeugt: ${out}"
+  log_warn "Inventory enthält Secrets im Klartext"
 }
 ```
 
-> Die erzeugte `config.yaml` liegt unter `/tmp/` und enthält das
-> SMTP-Passwort im Klartext. Sie wird nach `cc_cli exec` gelöscht
-> (`trap "rm -f ${CONFIG_YAML_PATH}" EXIT`).
+> Die erzeugte Inventory-Datei liegt unter `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`
+> und enthält Secrets im Klartext. Sie wird nach `cc_cli exec` gelöscht
+> (`trap 'rm -f "${CONFIG_YAML_PATH:-}"; rm -rf "${CC_CLI_WORKDIR:-}"' EXIT`).
+> Der Repository-Workspace (aktuell nicht implementiert) bliebe bei diesem
+> Trap erhalten, da nur das flüchtige Workdir und das Inventory gelöscht werden.
 
 ### Bekannte Lücke: fehlender Repository-/Playbook-Kontext
 
