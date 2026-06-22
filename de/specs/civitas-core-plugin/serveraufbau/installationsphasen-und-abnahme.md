@@ -327,9 +327,8 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 > Phase 0 geprüft.
 
 > **Hinweis cc-cli-Version**: `CC_CLI_VERSION` ist immer auf eine konkrete
-> Versionsnummer zu setzen (z. B. `1.5.0`), niemals auf `latest`. Breaking
-> Changes durch neue Releases werden so vermieden. Die zum Zeitpunkt des
-> ersten Skriptbaus aktuelle Version wird beim Bau fixiert.
+> Versionsnummer zu setzen (derzeit `1.5.0`), niemals `latest`. Breaking
+> Changes durch neue Releases werden so vermieden.
 
 ### Abnahmekriterien Phase 2
 
@@ -448,11 +447,11 @@ protokolliert.
 
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
-| Gast-OS: Debian 12 oder Ubuntu 24.04 LTS? | Offen | Peter König |
+| Gast-OS | **Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code | durch Code festgelegt |
 | Domainname: `civitas.data-dna.eu` oder anderer Vorschlag? | Offen | Peter König |
 | TLS-Strategie: self-signed ClusterIssuer oder interne CA? | Offen | netzwerk-dns-tls.md |
 | Ziel-Namespace für CIVITAS/CORE | Vorschlag: `civitas-core` | Bestätigung Peter König |
-| cc-cli-Version (Pinning) | Beim ersten Skriptbau aus Doku ermitteln | Skriptbau |
+| cc-cli-Version (Pinning) | **Gepinnt auf `1.5.0`** in `01_config.sh` | durch Code festgelegt |
 
 | `servicelb` und `metrics-server`: deaktivieren oder aktiv lassen? | Offen | skriptarchitektur.md |
 

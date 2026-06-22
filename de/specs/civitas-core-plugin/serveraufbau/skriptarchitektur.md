@@ -747,10 +747,10 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
-| Gast-OS: Debian 12 oder Ubuntu 24.04 LTS? | Offen | Peter König |
+| Gast-OS | **Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code | durch Code festgelegt |
 | Domainname: `civitas.data-dna.eu`? | Offen | Peter König |
-| `SOHO_GATEWAY`-Adresse | Offen | lokale Netzwerkkonfiguration |
-| Konkrete Versionsnummern (k3s, helm, cert-manager, cc-cli) | Beim Skriptbau ermitteln | Skriptbau |
+| `SOHO_GATEWAY`-Adresse | **Im Code gesetzt** auf `192.168.12.1` (01_config.sh, verwendet in 03_preflight.sh) | durch Code festgelegt |
+| Konkrete Versionsnummern (k3s, helm, cert-manager, cc-cli) | **Gepinnt im Code** (01_config.sh) | durch Code festgelegt |
 | TLS-Strategie: self-signed oder CA? | Offen | netzwerk-dns-tls.md |
 | `servicelb` und `metrics-server`: deaktivieren? | Vorschlag: aktiv lassen | Skriptbau |
 | Repository-Kontext für `cc_cli exec` (Playbook-Bereitstellung) | **Nächster Ausbauschritt** – derzeit nicht implementiert | Nach aktueller Spezifikation |
@@ -780,8 +780,8 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
    vor der Aktion und überspringt bereits korrekte Zustände.
 5. `set -euo pipefail` und `trap ERR` sind verbindlich für den gesamten
    Ausführungskontext.
-6. Die `config.yaml` für cc-cli wird aus einem Template erzeugt und nach
-   der Ausführung gelöscht.
+6. Die Inventory-Datei `cc_cli_inventory.yml` wird aus `templates/inventory.yml.tpl` erzeugt und nach
+   der Ausführung gelöscht (Trap löscht `${CC_CLI_WORKDIR}`).
 7. Das Verifikationsmodul führt alle Abnahmetests erneut aus und gibt
    einen eindeutigen Exit-Code zurück (0 = Erfolg, 1 = Fehler).
 8. Alle Versionen werden beim Skriptbau gepinnt. Automatische Upgrades
