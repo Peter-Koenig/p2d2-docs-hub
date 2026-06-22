@@ -2,7 +2,7 @@
 title: Spezifikationshandbuch
 description: Zweck, Abgrenzung und Navigation des Specs-Handbuchs für p2d2
 status: draft
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-23
 lang: de
 category: spec
 specid: specs-index
@@ -38,13 +38,13 @@ Während Administrations- und Entwicklungshandbuch den Ist-Zustand beschreiben, 
 ## Navigationsübersicht
 
 - [Serveraufbau V1 — Übersicht](./civitas-core-plugin/)
-- [Serveraufbau V1 — Komponenten](./civitas-core-plugin/serveraufbau/)
-  - [Zielbild und Abgrenzung](./civitas-core-plugin/serveraufbau/zielbild-und-abgrenzung.md)
-  - [VM-Sizing und Host-Ressourcen](./civitas-core-plugin/serveraufbau/vm-sizing-und-host-ressourcen.md)
-  - [Netzwerk, DNS und TLS](./civitas-core-plugin/serveraufbau/netzwerk-dns-tls.md)
-  - [Kubernetes und Laufzeitarchitektur](./civitas-core-plugin/serveraufbau/kubernetes-und-laufzeitarchitektur.md)
-  - [Persistenz, Storage, Backup und Restore](./civitas-core-plugin/serveraufbau/persistenz-storage-backup-restore.md)
-  - [Installationsphasen und Abnahmekriterien](./civitas-core-plugin/serveraufbau/installationsphasen-und-abnahmekriterien.md)
+- [Serveraufbau V1 — Komponenten](./civitas-core-plugin/serveraufbau-v1/)
+  - [Zielbild und Abgrenzung](./civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung.md)
+  - [VM-Sizing und Host-Ressourcen](./civitas-core-plugin/serveraufbau-v1/vm-sizing-und-host-ressourcen.md)
+  - [Netzwerk, DNS und TLS](./civitas-core-plugin/serveraufbau-v1/netzwerk-dns-tls.md)
+  - [Kubernetes und Laufzeitarchitektur](./civitas-core-plugin/serveraufbau-v1/kubernetes-und-laufzeitarchitektur.md)
+  - [Persistenz, Storage, Backup und Restore](./civitas-core-plugin/serveraufbau-v1/persistenz-storage-backup-restore.md)
+  - [Installationsphasen und Abnahmekriterien](./civitas-core-plugin/serveraufbau-v1/installationsphasen-und-abnahmekriterien.md)
 
 ## Änderungsnachverfolgung
 
