@@ -2,7 +2,7 @@
 title: cc-cli-Inventar — Ansible-Inventory für CIVITAS/CORE
 description: Dokumentation des per Wizard erzeugten cc_cli_inventory.yml, seiner Struktur und der daraus abgeleiteten Template-Vorlage für die automatisierte Installation.
 status: draft
-lastUpdated: 2026-06-21
+lastUpdated: 2026-06-23
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-cc-cli-inventar
@@ -11,7 +11,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
   - civitas-core-plugin-serveraufbau-skriptarchitektur
 quality:
-  completeness: 80
+  completeness: 85
   accuracy: 95
   reviewed: false
   reviewer:
@@ -25,16 +25,30 @@ quality:
 Dieses Dokument beschreibt die Struktur des Ansible-Inventorys, das `cc_cli`
 für das Deployment der CIVITAS/CORE-Plattform benötigt. Es dient als Referenz
 für den Bau des Templates `templates/inventory.yml.tpl` und der
-`_render_config_yaml()`-Funktion in `modules/06_civitas.sh`.
+`render_inventory()`-Funktion in `modules/06_civitas.sh`.
 
 ## Hintergrund
 
 Das Inventory wird vom `cc_cli wizard` erzeugt. Die Befragung ist interaktiv.
 Für die automatisierte Installation stellen wir ein vorbereitetes Template
-bereit, dessen Platzhalter durch `_render_config_yaml()` ersetzt werden.
+bereit, dessen Platzhalter durch `render_inventory()` ersetzt werden.
 
 Das Inventory ist kein einfaches YAML, sondern ein **Ansible-Inventory** mit
 der Standardstruktur `all → vars → children → controller → hosts → vars`.
+
+### Bekannte Lücke: Repository-Kontext für `cc_cli exec`
+
+Das Inventory allein genügt nicht für `cc_cli exec`. Die ausführbaren
+Ansible-Playbooks liegen nicht im pip-Paket `cc-cli`, sondern im
+CIVITAS/CORE-Repository. Der aktuelle Fehler `Could not find any playbook
+to execute.` weist darauf hin, dass dieser Kontext im aktuellen Modul 06
+noch nicht bereitgestellt wird.
+
+Dieses Dokument spezifiziert den **Inhalt** des Inventorys und den
+**Dateinamen**. Die Bereitstellung des Repository-Arbeitskontexts (Klonen
+des CIVITAS/CORE-Repositorys, Ablegen des Inventorys im Repo-Kontext,
+Prüfung der Schema-Datei `./core_platform/inventory_schema.json` vor
+`cc_cli validate`) ist als nächster Ausbauschritt zu spezifizieren.
 
 ## Wizard-Fragen und Antworten
 
@@ -257,7 +271,7 @@ all:
 
 1. **Template-Datei**: `templates/config.yaml.tpl` muss durch
    `templates/inventory.yml.tpl` ersetzt werden (oder umbenannt).
-2. **`_render_config_yaml()`** muss alle Platzhalter des Inventars ersetzen,
+2. **`render_inventory()`** muss alle Platzhalter des Inventars ersetzen,
    insbesondere `{{DOMAIN}}`, `{{ENVIRONMENT}}`, `{{SMTP_HOST}}`,
    `{{SMTP_USER}}`, `{{SMTP_PASS}}`, `{{ADMIN_EMAIL}}`.
 3. **Passwörter**: Das Inventory enthält viele Passwort-Felder. Die
@@ -269,18 +283,30 @@ all:
    Externalisierung als Env-Vars ist für eine spätere Ausbaustufe
    vorgesehen.
 5. **`config.yaml` → `inventory.yml`**: Der Dateiname in
-   `_render_config_yaml()` sollte von `civitas_core_config.yaml` auf
+   `render_inventory()` sollte von `civitas_core_config.yaml` auf
    `civitas_core_inventory.yml` geändert werden, da es sich um ein
    Ansible-Inventory handelt.
 6. **Schema-Referenz**: Die erste Zeile des Wizard-Outputs enthält einen
    `$schema`-Verweis auf das JSON-Schema des Projekts. Dieser sollte
    im Template erhalten bleiben.
+7. **Repository-Arbeitskontext**: Das Inventory wird aktuell isoliert in
+   `${CC_CLI_WORKDIR}/cc_cli_inventory.yml` verwendet. Ein darüber
+   hinausgehender Repository-Kontext (CIVITAS/CORE-Repository mit
+   Playbooks und Schema-Datei) ist im aktuellen Modul 06 noch nicht
+   implementiert und als nächster Ausbauschritt gesondert zu spezifizieren.
 
 ## Festlegungen
 
 1. Das Installationsskript verwendet ein Template im Ansible-Inventory-Format.
 2. Der Dateiname lautet `inventory.yml.tpl` (bzw. im Skript `templates/inventory.yml.tpl`).
-3. Die `_render_config_yaml()`-Funktion erzeugt daraus `/tmp/civitas_core_inventory.yml`.
+3. Die Funktion `render_inventory()` erzeugt die Inventory-Datei aktuell
+   unter `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`.
 4. Alle Secrets werden durch Platzhalter ersetzt, die über Env-Vars befüllt werden.
 5. Die Komponenten-Auswahl (enable/disable) wird zunächst als Template-Default
    gesetzt. Eine spätere Externalisierung über Env-Vars ist möglich.
+6. Der Dateiname `cc_cli_inventory.yml` ist verbindlich – `cc_cli` sucht
+   diese Datei im Arbeitsverzeichnis.
+7. Das Inventory ist ohne den Repository-Kontext (Playbooks, Schema)
+   nach aktuellem Stand nicht ausführbar (`Could not find any playbook
+   to execute.`). Die Bereitstellung dieses Kontexts ist noch nicht
+   implementiert.

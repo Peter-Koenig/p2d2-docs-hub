@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-23
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -14,8 +14,8 @@ dependencies:
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
 quality:
-  completeness: 85
-  accuracy: 90
+  completeness: 80
+  accuracy: 95
   reviewed: false
   reviewer:
   reviewDate:
@@ -437,10 +437,11 @@ install_civitas() {
   check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
 
   install_cc_cli
-  render_config_yaml
+  render_inventory
   run_cc_cli_validate
   run_cc_cli_exec
   patch_ingress_for_external_tls   # ssl-redirect deaktivieren (TLS via Caddy)
+  setup_wireguard
   wait_pods_ready "${K8S_NAMESPACE}"
 }
 ```
@@ -523,6 +524,23 @@ render_config_yaml() {
 > SMTP-Passwort im Klartext. Sie wird nach `cc_cli exec` gelöscht
 > (`trap "rm -f ${CONFIG_YAML_PATH}" EXIT`).
 
+### Bekannte Lücke: fehlender Repository-/Playbook-Kontext
+
+Der aktuelle Fehler `Could not find any playbook to execute.` nach
+`cc_cli exec` weist darauf hin, dass der für `cc_cli exec` offenbar
+benötigte Repository-/Playbook-Kontext im aktuellen Modul 06 noch nicht
+implementiert ist. Ein entsprechender Schritt (Repository klonen,
+Inventory in den Repo-Kontext legen, vor `cc_cli exec` ausführen) ist
+als nächster Ausbauschritt zu spezifizieren und zu implementieren.
+
+Die aktuelle Implementierung arbeitet mit:
+- `CC_CLI_WORKDIR=/tmp/civitas-core-deploy`
+- Inventory-Pfad: `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`
+- `cc_cli validate` und `cc_cli exec` laufen aus `${CC_CLI_WORKDIR}`
+
+Der EXIT-Trap im Entry-Point löscht das gesamte Workdir:
+`trap 'rm -f "${CONFIG_YAML_PATH:-}"; rm -rf "${CC_CLI_WORKDIR:-}"' EXIT`
+
 ***
 
 ## Modul 00 — VM-Provisionierung (`00_provision_vm.sh`)
@@ -547,7 +565,7 @@ provision_vm() {
     return 0
   fi
 
-  # Cloud-Image herunterladen (curl, idempotent via Prüfung auf Vorhandensein)
+  # Cloud-Image nach /tmp/${image_name} herunterladen (curl)
   download_cloud_image
 
   # VM mit qm create anlegen (12 vCPU, 40 GiB RAM, 300 GiB Disk)
@@ -556,12 +574,12 @@ provision_vm() {
   # Disk via qm importdisk einspielen und auf Zielgröße resizen
   import_and_resize_disk
 
-  # Cloud-Init: root-Passwort, DHCP-Netzwerk
+  # Cloud-Init: root, SSH-Key, statische IPv4/IPv6
   configure_cloud_init
 
-  # VM starten und auf IP warten
+  # VM starten und auf SSH-Erreichbarkeit warten
   qm start "${VM_ID}"
-  wait_for_vm_ip "${VM_ID}"
+  wait_for_ssh "${VM_IP_STATIC}"
 }
 ```
 
@@ -582,7 +600,7 @@ provision_vm() {
 
 - Cloud-Image wird nur einmal heruntergeladen (Prüfung: Datei existiert).
 - VM wird nur erstellt, wenn `qm status $VM_ID` fehlschlägt.
-- Bei erneuten Skriptdurchläufen wird die VM-IP neu ermittelt.
+- Bei erneuten Skriptdurchläufen wird die SSH-Erreichbarkeit unter der konfigurierten statischen IP geprüft.
 
 ### Secrets
 
@@ -719,6 +737,7 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 | Konkrete Versionsnummern (k3s, helm, cert-manager, cc-cli) | Beim Skriptbau ermitteln | Skriptbau |
 | TLS-Strategie: self-signed oder CA? | Offen | netzwerk-dns-tls.md |
 | `servicelb` und `metrics-server`: deaktivieren? | Vorschlag: aktiv lassen | Skriptbau |
+| Repository-Kontext für `cc_cli exec` (Playbook-Bereitstellung) | **Nächster Ausbauschritt** – derzeit nicht implementiert | Nach aktueller Spezifikation |
 
 ***
 
@@ -752,5 +771,5 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 8. Alle Versionen werden beim Skriptbau gepinnt. Automatische Upgrades
    sind nicht vorgesehen.
 9. Das Skript bildet die **erste Ausbaustufe** ab: reproduzierbarer,
-   testbarer Prototyp. Produktionsanpassungen (HA, DMZ, externes etcd,
-   Backup) bleiben einer späteren Spezifikation vorbehalten.
+    testbarer Prototyp. Produktionsanpassungen (HA, DMZ, externes etcd,
+    Backup) bleiben einer späteren Spezifikation vorbehalten.
