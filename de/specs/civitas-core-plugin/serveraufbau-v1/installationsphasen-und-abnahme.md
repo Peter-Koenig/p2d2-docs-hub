@@ -13,7 +13,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-netzwerk
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
 quality:
-  completeness: 75
+  completeness: 85
   accuracy: 90
   reviewed: false
   reviewer:
@@ -63,6 +63,7 @@ vorgelagerten Vorbedingungsprüfung:
 | -1 | VM-Provisionierung | VM auf Proxmox-Host erstellen (Cloud-Image, Cloud-Init) |
 | 0 | Vorbedingungen | Systemprüfung, Konnektivität, Variablen |
 | 1 | Kubernetes-Cluster | k3s installieren, Add-ons deployen |
+| 2.0 | Repository-Klon | CIVITAS/CORE-Repository nach `/opt/civitas-core-v1` klonen, Symlink setzen |
 | 2 | CIVITAS/CORE-Plattform | cc-cli installieren, Plattform deployen |
 | 3 | Verifikation | End-to-End-Abnahme, Fehlerreport |
 
@@ -262,16 +263,55 @@ kubectl get storageclass
 
 ***
 
+## Phase 2.0 — Repository-Klon
+
+### Zweck
+
+Das CIVITAS/CORE-Repository mit den Ansible-Playbooks auf die
+Ziel-VM klonen. `cc_cli exec` sucht `playbook.yml` relativ zum CWD — das
+Repository muss daher vor dem Aufruf bereitstehen.
+
+### Schritte
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 2.0.1 | Repository klonen nach `/opt/civitas-core-v1` | `.git`-Verzeichnis vorhanden → `git pull` statt `clone` |
+| 2.0.2 | Symlink `/opt/civitas-core → /opt/civitas-core-v1` setzen | `readlink /opt/civitas-core` liefert `/opt/civitas-core-v1` |
+
+### Konfigurationsvariablen
+
+| Variable | Beschreibung | Wert |
+|---|---|---|
+| `CC_V1_REPO_URL` | Repository-URL | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
+| `CC_V1_REPO_PATH` | Lokaler Pfad | `/opt/civitas-core-v1` |
+| `CC_V1_REPO_BRANCH` | Branch | `main` |
+
+### Abnahmekriterien Phase 2.0
+
+```bash
+# Repository vorhanden
+test -d /opt/civitas-core-v1/.git
+# Playbook auffindbar
+test -f /opt/civitas-core-v1/playbook.yml
+# Symlink korrekt
+test "$(readlink /opt/civitas-core)" = "/opt/civitas-core-v1"
+```
+
+***
+
 ## Phase 2 — CIVITAS/CORE-Plattform
 
 ### Zweck
 
 Die CIVITAS/CORE-Plattform über `cc-cli` auf dem in Phase 1 bereitgestellten
-Cluster installieren.
+Cluster installieren. Der Aufruf von `cc_cli validate` und `cc_cli exec`
+erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
+`/opt/civitas-core-v1`.
 
 ### Voraussetzungen
 
 - Phase 1 vollständig abgenommen.
+- Phase 2.0 vollständig abgenommen (Repository vorhanden).
 - Gültiger kubeconfig unter `~/.kube/config`.
 - DNS-Einträge für `idm.$DOMAIN` und `portal.$DOMAIN` auflösbar
   (hier harte Prüfung — Abbruch bei Fehler).
@@ -283,25 +323,22 @@ Cluster installieren.
 |---|---|---|
 | 2.0 | DNS erneut prüfen (harter Abbruch wenn nicht auflösbar) | `dig +short idm.$DOMAIN` und `dig +short portal.$DOMAIN` — beide müssen eine IP liefern |
 | 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
-| 2.2 | Repository-Workspace bereitstellen: CIVITAS/CORE-Repository klonen nach `${CC_CLI_REPO_PATH}`, Symlink `/opt/civitas-core` anlegen | Repository-Verzeichnis vorhanden, `git remote -v` zeigt erwartete URL |
-| 2.3 | Inventory `cc_cli_inventory.yml` aus Template in den Repository-Workspace rendern | Datei `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` vorhanden, Platzhalter geprüft |
-| 2.4 | Repository-Vorbedingungen prüfen: Schema `./core_platform/inventory_schema.json` und Playbook-Struktur vorhanden | Schema-Datei existiert, erwartete Ansible-Verzeichnisse vorhanden |
-| 2.5 | `cc_cli validate` ausführen (aus Repository-Workspace `${CC_CLI_REPO_PATH}`) | Exit-Code 0 |
-| 2.6 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`, aus Repository-Workspace `${CC_CLI_REPO_PATH}`) | Exit-Code 0 |
-| 2.7 | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` vorhanden |
-| 2.8 | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
-| 2.9 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
+| 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen | Datei vorhanden, Platzhalter geprüft |
+| 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
+| 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`, aus `/opt/civitas-core-v1`) | Exit-Code 0 |
+| 2.4b | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` vorhanden |
+| 2.4c | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
+
+> **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
+> heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
+> `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
+> Verzeichnis führt zu `Could not find any playbook to execute.`
 
 > **Hinweis TLS**: Die cc-cli-Konfiguration enthält keinen TLS-Block für
 > Ingress-Ressourcen. TLS wird von Caddy auf OPNsense terminiert. Nach
-> Schritt 2.7 werden alle Ingress-Ressourcen im Namespace mit der Annotation
+> Schritt 2.4b werden alle Ingress-Ressourcen im Namespace mit der Annotation
 > `nginx.ingress.kubernetes.io/ssl-redirect: "false"` versehen.
 
-> **Entschieden**: Der bisherige Fehler `Could not find any playbook to execute.`
-> wird durch Schritt 2.2 behoben: Das CIVITAS/CORE-Repository wird nach
-> `${CC_CLI_REPO_PATH}` geklont und stellt die Ansible-Playbooks sowie das Schema
-> `./core_platform/inventory_schema.json` für `cc_cli validate` bereit.
-> `cc_cli exec` wird aus diesem Verzeichnis ausgeführt.
 
 
 
@@ -319,9 +356,9 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `SMTP_USER` | SMTP-Absender | `noreply@data-dna.eu` |
 | `SMTP_PASS` | SMTP-Passwort | Aus Umgebungsvariable `$SMTP_PASS` |
 | `CC_CLI_VERSION` | cc-cli-Version (Pinning) | `1.5.0` — nicht `latest` |
-| `CC_CLI_REPO_URL` | Repository-URL für CIVITAS/CORE V1 | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
-| `CC_CLI_REPO_PATH` | Lokaler Pfad des Repository-Workspace auf der Ziel-VM | `/opt/civitas-core-v1` |
-| `CC_CLI_SYMLINK_PATH` | Symlink-Ziel für die aktive Version | `/opt/civitas-core` |
+| `CC_V1_REPO_URL` | Repository-URL des CIVITAS/CORE V1-Monorepos | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
+| `CC_V1_REPO_PATH` | Lokaler Pfad des geklonten Repositorys | `/opt/civitas-core-v1` |
+| `CC_V1_REPO_BRANCH` | Git-Branch | `main` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
 | `ADMIN_EMAIL` | Initiale Admin-E-Mail | `admin@data-dna.eu` |
 | `K8S_NAMESPACE` | Ziel-Namespace | `civitas-core` |
@@ -386,9 +423,9 @@ ping -c2 10.10.10.1
 > **Abnahme Phase 2 (Zielzustand)**: Phase 2 gilt als bestanden, wenn alle
 > Pods laufen, Ingress-Ressourcen vorhanden sind, TLS-Zertifikate ausgestellt
 > wurden und beide Endpunkte intern per HTTP erreichbar sind.
-> **Aktuelle Einschränkung**: Schritt 2.4 (`cc_cli exec`) scheitert derzeit
-> mit `Could not find any playbook to execute.`. Der Zielzustand ist daher
-> noch nicht erreichbar — siehe „Bekannte Lücke" oben.
+> **Hinweis:** Phase 2.0 (Repository-Klon) muss vor Phase 2 abgeschlossen sein.
+> Ohne das geklonte Repository in `/opt/civitas-core-v1` scheitert Schritt 2.4
+> mit `Could not find any playbook to execute.`.
 
 ***
 
@@ -491,3 +528,8 @@ protokolliert.
     Produktionsanpassungen (HA, externes etcd, Backup-Integration,
     öffentlicher Zugang / DMZ) bleiben einer späteren Spezifikation
     vorbehalten.
+12. Das CIVITAS/CORE-Repository wird in Phase 2.0 nach `/opt/civitas-core-v1`
+    geklont. Ein Symlink `/opt/civitas-core → /opt/civitas-core-v1` wird
+    gesetzt. `cc_cli exec` wird ausschließlich aus `/opt/civitas-core-v1`
+    heraus aufgerufen. Wird das Repository bei einem Folgeaufruf bereits
+    vorgefunden, ersetzt `git pull` den `git clone`-Schritt (Idempotenz).
