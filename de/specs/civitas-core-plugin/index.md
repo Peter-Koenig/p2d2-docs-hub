@@ -1,5 +1,5 @@
 ---
-title: CIVITAS/CORE-Plugin für p2d2
+title: Serveraufbau V1
 description: Spezifikation eines Plugins zur Anbindung der CIVITAS/CORE-Plattform an p2d2
 status: draft
 lastUpdated: 2026-06-20
@@ -16,7 +16,7 @@ quality:
   reviewDate:
 ---
 
-# CIVITAS/CORE-Plugin für p2d2
+# Serveraufbau V1
 
 Dieser Bereich spezifiziert ein Plugin, das die Anbindung der CIVITAS/CORE-Plattform an p2d2 ermöglicht. CIVITAS/CORE stellt eine modulare Open-Source-Plattform für kommunale Verwaltungsprozesse bereit. Das Plugin soll Daten und Prozesse zwischen p2d2 und CIVITAS/CORE orchestrieren.
 

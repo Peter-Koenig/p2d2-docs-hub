@@ -1,5 +1,5 @@
 ---
-title: Serveraufbau für das CIVITAS/CORE-Plugin
+title: Serveraufbau V1
 description: Übersicht über die Spezifikation des Serveraufbaus für das CIVITAS/CORE-Plugin
 status: draft
 lastUpdated: 2026-06-20
@@ -16,7 +16,7 @@ quality:
   reviewDate:
 ---
 
-# Serveraufbau für das CIVITAS/CORE-Plugin
+# Serveraufbau V1
 
 Dieser Bereich spezifiziert den Serveraufbau, der für den Betrieb des CIVITAS/CORE-Plugins erforderlich ist. Die hier dokumentierten Anforderungen und Entscheidungen bilden die Grundlage für die spätere Erstellung von Installationsskripten und Infrastructure-as-Code-Vorlagen.
 

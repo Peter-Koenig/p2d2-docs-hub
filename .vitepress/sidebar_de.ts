@@ -632,7 +632,7 @@ export const sidebar_de = {
             items: [
                 { text: "Übersicht", link: "/de/specs/" },
                 {
-                    text: "CIVITAS/CORE-Plugin",
+                    text: "Serveraufbau V1",
                     collapsed: false,
                     items: [
                         {

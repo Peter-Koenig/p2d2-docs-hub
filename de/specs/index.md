@@ -33,12 +33,12 @@ Während Administrations- und Entwicklungshandbuch den Ist-Zustand beschreiben, 
 
 ## Aktuelle Bereiche
 
-- [CIVITAS/CORE-Plugin](./civitas-core-plugin/) — Spezifikation eines Plugins zur Anbindung der CIVITAS/CORE-Plattform
+- [Serveraufbau V1](./civitas-core-plugin/) — Spezifikation des Serveraufbaus für die CIVITAS/CORE-Plattform
 
 ## Navigationsübersicht
 
-- [CIVITAS/CORE-Plugin — Übersicht](./civitas-core-plugin/)
-- [CIVITAS/CORE-Plugin — Serveraufbau](./civitas-core-plugin/serveraufbau/)
+- [Serveraufbau V1 — Übersicht](./civitas-core-plugin/)
+- [Serveraufbau V1 — Komponenten](./civitas-core-plugin/serveraufbau/)
   - [Zielbild und Abgrenzung](./civitas-core-plugin/serveraufbau/zielbild-und-abgrenzung.md)
   - [VM-Sizing und Host-Ressourcen](./civitas-core-plugin/serveraufbau/vm-sizing-und-host-ressourcen.md)
   - [Netzwerk, DNS und TLS](./civitas-core-plugin/serveraufbau/netzwerk-dns-tls.md)
