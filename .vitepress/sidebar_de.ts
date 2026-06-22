@@ -679,6 +679,40 @@ export const sidebar_de = {
                         },
                     ],
                 },
+                {
+                    text: "Serveraufbau V2",
+                    collapsed: false,
+                    items: [
+                        {
+                            text: "Übersicht",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/",
+                        },
+                        {
+                            text: "Zielbild",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/zielbild",
+                        },
+                        {
+                            text: "Installationsphasen und Abnahme",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/installationsphasen-und-abnahme",
+                        },
+                        {
+                            text: "Deployment-Voraussetzungen",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/deployment-voraussetzungen",
+                        },
+                        {
+                            text: "Helmfile-Konfiguration",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/helmfile-konfiguration",
+                        },
+                        {
+                            text: "Netzwerk, DNS und TLS",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/netzwerk-dns-tls",
+                        },
+                        {
+                            text: "Skriptarchitektur",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v2/skriptarchitektur",
+                        },
+                    ],
+                },
             ],
         },
     ],
