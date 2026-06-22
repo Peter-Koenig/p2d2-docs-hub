@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-23
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -14,7 +14,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
 quality:
   completeness: 75
-  accuracy: 85
+  accuracy: 90
   reviewed: false
   reviewer:
   reviewDate:
@@ -38,7 +38,7 @@ ausgelegt, nicht auf Produktionsreife.
 ## Rahmenbedingungen
 
 - **Zielplattform**: Dedizierte Proxmox-VM auf dem Knoten `civitas`
-  (12 vCPU, 40 GiB RAM, 300 GiB Disk, Debian/Ubuntu Gast-OS)
+  (12 vCPU, 40 GiB RAM, 300 GiB Disk, Debian 13 (Trixie) als Gast-OS)
 - **Kubernetes-Distribution**: k3s (Single-Node, SQLite Data Store)
 - **Deployment-Werkzeug**: `cc-cli` (CIVITAS/CORE CLI)
 - **Pflichtkomponenten**: cert-manager, nginx-Ingress, RWO Storage Class
@@ -87,13 +87,13 @@ Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
 
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
-| -1.1 | Cloud-Image herunterladen (`debian-13-genericcloud-amd64-daily.qcow2`) | Datei in `/var/lib/vz/template/iso/` vorhanden |
-| -1.2 | VM mit qm create anlegen (12 vCPU, 40 GiB RAM, Bridge vmbr0) | `qm status VM_ID` — VM existiert |
-| -1.3 | Disk aus Cloud-Image importieren (300 GiB, ZFS-thin) | `qm config VM_ID` — Disk zugewiesen |
-| -1.4 | Cloud-Init konfigurieren (root-Passwort, DHCP) | `qm config VM_ID` — ciuser/cipassword gesetzt |
-| -1.5 | VM starten | `qm status VM_ID` → running |
-| -1.6 | Warten auf IP (QEMU-Guest-Agent) | `qm guest exec VM_ID -- hostname -I` liefert IP |
-| -1.7 | Anleitung für SSH-Zugang ausgeben | — |
+| -1.1 | Cloud-Image herunterladen (`debian-13-genericcloud-amd64-daily.qcow2`) | Datei `/tmp/${image_name}` vorhanden |
+| -1.2 | VM mit qm create anlegen (`VM_ID=2010`, 12 vCPU, 40 GiB RAM, Bridge vmbr0) | `qm status ${VM_ID}` — VM existiert |
+| -1.3 | Disk aus Cloud-Image importieren (300 GiB, ZFS-thin) | `qm config ${VM_ID}` — Disk zugewiesen |
+| -1.4 | Cloud-Init konfigurieren (root, SSH-Key, statische IPv4/IPv6) | `qm config ${VM_ID}` — ciuser, sshkeys, ipconfig0 gesetzt |
+| -1.5 | VM starten | `qm status ${VM_ID}` → running |
+| -1.6 | Warten auf SSH-Erreichbarkeit unter der konfigurierten statischen VM-IP | `ssh root@${VM_IP_STATIC} true` erreichbar |
+| -1.7 | Anleitung für nächste Schritte ausgeben | — |
 
 ### Abnahmekriterien Phase -1
 
@@ -150,7 +150,7 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 
 | Prüfpunkt | Erwarteter Zustand | Befehl / Methode | Fehlerverhalten |
 |---|---|---|---|
-| Betriebssystem | Debian 12 oder Ubuntu 24.04 LTS, x86_64 | `lsb_release -rs`, `uname -m` | Abbruch |
+| Betriebssystem | Debian 13 (Trixie), x86_64 | `/etc/os-release` (ID=debian, VERSION_ID=13) | Abbruch |
 | vCPU | ≥ 4 (empfohlen: 12) | `nproc` | Abbruch |
 | RAM | ≥ 16384 MiB (empfohlen: 40 GiB) | `free -m` (numerischer Vergleich) | Abbruch |
 | Disk (freier Platz k3s-Pfad) | ≥ 100 GiB | `df -h /var/lib/rancher/k3s 2>/dev/null \|\| df -h /` | Abbruch |
@@ -283,18 +283,24 @@ Cluster installieren.
 |---|---|---|
 | 2.0 | DNS erneut prüfen (harter Abbruch wenn nicht auflösbar) | `dig +short idm.$DOMAIN` und `dig +short portal.$DOMAIN` — beide müssen eine IP liefern |
 | 2.1 | `cc-cli` installieren (gepinnte Version) | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
-| 2.2 | Konfigurationsdatei `config.yaml` aus Template erzeugen | Datei vorhanden, Pflichtfelder gesetzt |
-| 2.3 | `cc_cli validate` ausführen | Exit-Code 0 |
-| 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`) | Exit-Code 0 |
-| 2.4b | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation vorhanden |
-
-| 2.4c | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
-| 2.5 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
+| 2.2 | Inventory `cc_cli_inventory.yml` aus Template nach `${CC_CLI_WORKDIR}` rendern | Datei `${CC_CLI_WORKDIR}/cc_cli_inventory.yml` vorhanden, Platzhalter geprüft |
+| 2.3 | `cc_cli validate` ausführen (aus `${CC_CLI_WORKDIR}`) | Exit-Code 0 |
+| 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`, aus `${CC_CLI_WORKDIR}`) | **Bekannte Lücke**: aktuell `Could not find any playbook to execute.` |
+| 2.5 | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` vorhanden |
+| 2.6 | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
+| 2.7 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
 
 > **Hinweis TLS**: Die cc-cli-Konfiguration enthält keinen TLS-Block für
 > Ingress-Ressourcen. TLS wird von Caddy auf OPNsense terminiert. Nach
-> `cc_cli exec` werden alle Ingress-Ressourcen im Namespace mit der Annotation
+> Schritt 2.5 werden alle Ingress-Ressourcen im Namespace mit der Annotation
 > `nginx.ingress.kubernetes.io/ssl-redirect: "false"` versehen.
+
+> **Bekannte Lücke**: Der aktuelle Fehler `Could not find any playbook to execute.`
+> nach `cc_cli exec` weist darauf hin, dass der erforderliche Playbook-/Repository-Kontext
+> im aktuellen Modul 06 noch nicht bereitgestellt wird. Ein solcher Schritt ist
+> als nächster Ausbauschritt zu spezifizieren und zu implementieren.
+
+
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
@@ -309,10 +315,11 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `SMTP_PORT` | SMTP-Port | `587` |
 | `SMTP_USER` | SMTP-Absender | `noreply@data-dna.eu` |
 | `SMTP_PASS` | SMTP-Passwort | Aus Umgebungsvariable `$SMTP_PASS` |
-| `CC_CLI_VERSION` | cc-cli-Version (Pinning) | z. B. `2.3.1` — nicht `latest` |
+| `CC_CLI_VERSION` | cc-cli-Version (Pinning) | `1.5.0` — nicht `latest` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
 | `ADMIN_EMAIL` | Initiale Admin-E-Mail | `admin@data-dna.eu` |
 | `K8S_NAMESPACE` | Ziel-Namespace | `civitas-core` |
+
 
 > **Hinweis SMTP**: Für Keycloak (Bestandteil von CIVITAS/CORE V2) ist
 > eine erreichbare SMTP-Konfiguration zwingend. Ohne gültige SMTP-Verbindung
@@ -320,9 +327,8 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 > Phase 0 geprüft.
 
 > **Hinweis cc-cli-Version**: `CC_CLI_VERSION` ist immer auf eine konkrete
-> Versionsnummer zu setzen (z. B. `2.3.1`), niemals auf `latest`. Breaking
-> Changes durch neue Releases werden so vermieden. Die zum Zeitpunkt des
-> ersten Skriptbaus aktuelle Version wird beim Bau fixiert.
+> Versionsnummer zu setzen (derzeit `1.5.0`), niemals `latest`. Breaking
+> Changes durch neue Releases werden so vermieden.
 
 ### Abnahmekriterien Phase 2
 
@@ -369,9 +375,14 @@ ping -c2 10.10.10.1
 # Erwartung: 0% packet loss
 ```
 
-> **Abnahme Phase 2 bestanden**, wenn alle Pods laufen, Ingress-Ressourcen
-> vorhanden sind, TLS-Zertifikate ausgestellt wurden und beide Endpunkte
-> intern per HTTPS erreichbar sind.
+
+
+> **Abnahme Phase 2 (Zielzustand)**: Phase 2 gilt als bestanden, wenn alle
+> Pods laufen, Ingress-Ressourcen vorhanden sind, TLS-Zertifikate ausgestellt
+> wurden und beide Endpunkte intern per HTTP erreichbar sind.
+> **Aktuelle Einschränkung**: Schritt 2.4 (`cc_cli exec`) scheitert derzeit
+> mit `Could not find any playbook to execute.`. Der Zielzustand ist daher
+> noch nicht erreichbar — siehe „Bekannte Lücke" oben.
 
 ***
 
@@ -436,11 +447,12 @@ protokolliert.
 
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
-| Gast-OS: Debian 12 oder Ubuntu 24.04 LTS? | Offen | Peter König |
+| Gast-OS | **Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code | durch Code festgelegt |
 | Domainname: `civitas.data-dna.eu` oder anderer Vorschlag? | Offen | Peter König |
 | TLS-Strategie: self-signed ClusterIssuer oder interne CA? | Offen | netzwerk-dns-tls.md |
 | Ziel-Namespace für CIVITAS/CORE | Vorschlag: `civitas-core` | Bestätigung Peter König |
-| cc-cli-Version (Pinning) | Beim ersten Skriptbau aus Doku ermitteln | Skriptbau |
+| cc-cli-Version (Pinning) | **Gepinnt auf `1.5.0`** in `01_config.sh` | durch Code festgelegt |
+
 | `servicelb` und `metrics-server`: deaktivieren oder aktiv lassen? | Offen | skriptarchitektur.md |
 
 ***

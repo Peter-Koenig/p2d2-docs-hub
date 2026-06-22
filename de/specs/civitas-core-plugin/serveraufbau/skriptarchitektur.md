@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-23
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -14,8 +14,8 @@ dependencies:
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
 quality:
-  completeness: 85
-  accuracy: 90
+  completeness: 80
+  accuracy: 95
   reviewed: false
   reviewer:
   reviewDate:
@@ -437,10 +437,11 @@ install_civitas() {
   check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
 
   install_cc_cli
-  render_config_yaml
+  render_inventory
   run_cc_cli_validate
   run_cc_cli_exec
   patch_ingress_for_external_tls   # ssl-redirect deaktivieren (TLS via Caddy)
+  setup_wireguard
   wait_pods_ready "${K8S_NAMESPACE}"
 }
 ```
@@ -493,35 +494,68 @@ daher erfolgt die Installation in einem isolierten Virtual Environment
 unter `${CC_CLI_VENV_PATH}`. Alle cc_cli-Aufrufe in Phase 2 nutzen
 den venv-Pfad.
 
-### config.yaml aus Template
+### Inventory aus Template
 
 
-Die `config.yaml` für cc-cli wird aus `templates/config.yaml.tpl` erzeugt.
+Das Inventory `cc_cli_inventory.yml` wird aus `templates/inventory.yml.tpl` erzeugt.
 Alle Platzhalter werden durch die Variablen aus `01_config.sh` ersetzt:
 
 ```bash
-render_config_yaml() {
-  local tpl="${SCRIPT_DIR}/templates/config.yaml.tpl"
-  local out="/tmp/civitas_core_config.yaml"
+render_inventory() {
+  log "Erzeuge Inventory aus Template …"
+
+  local tpl="${SCRIPT_DIR}/templates/inventory.yml.tpl"
+  mkdir -p "${CC_CLI_WORKDIR}"
+  local out="${CC_CLI_WORKDIR}/cc_cli_inventory.yml"
+
+  if [[ ! -f "${tpl}" ]]; then
+    log_error "Template nicht gefunden: ${tpl}"
+    exit 1
+  fi
+
+  # Passwort-Generierung (ADMIN_PASS aus Env, restliche auto-generiert)
+  # ...
 
   sed \
-    -e "s|{{DOMAIN}}|${DOMAIN}|g" \
-    -e "s|{{SMTP_HOST}}|${SMTP_HOST}|g" \
-    -e "s|{{SMTP_PORT}}|${SMTP_PORT}|g" \
-    -e "s|{{SMTP_USER}}|${SMTP_USER}|g" \
-    -e "s|{{SMTP_PASS}}|${SMTP_PASS}|g" \
-    -e "s|{{ADMIN_EMAIL}}|${ADMIN_EMAIL}|g" \
-    -e "s|{{K8S_NAMESPACE}}|${K8S_NAMESPACE}|g" \
-    "$tpl" > "$out"
+    -e "s|PLACEHOLDER_DOMAIN|${DOMAIN}|g" \
+    -e "s|PLACEHOLDER_ENVIRONMENT|${CC_ENVIRONMENT:-cc-prd}|g" \
+    -e "s|PLACEHOLDER_ADMINEMAIL|${ADMIN_EMAIL}|g" \
+    -e "s|PLACEHOLDER_SMTP_HOST|${SMTP_HOST}|g" \
+    -e "s|PLACEHOLDER_SMTP_USER|${SMTP_USER}|g" \
+    -e "s|PLACEHOLDER_SMTP_PASS|${SMTP_PASS}|g" \
+    -e "s|PLACEHOLDER_KEYCLOAK_ADMIN_PASSWORD|${pw_keycloak}|g" \
+    # ... ca. 20 weitere Platzhalter für Secrets und Komponenten ...
+    "${tpl}" > "${out}"
 
-  CONFIG_YAML_PATH="$out"
-  log_ok "config.yaml erzeugt: ${out}"
+  CONFIG_YAML_PATH="${out}"
+  export CONFIG_YAML_PATH
+  log_ok "Inventory erzeugt: ${out}"
+  log_warn "Inventory enthält Secrets im Klartext"
 }
 ```
 
-> Die erzeugte `config.yaml` liegt unter `/tmp/` und enthält das
-> SMTP-Passwort im Klartext. Sie wird nach `cc_cli exec` gelöscht
-> (`trap "rm -f ${CONFIG_YAML_PATH}" EXIT`).
+> Die erzeugte Inventory-Datei liegt unter `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`
+> und enthält Secrets im Klartext. Sie wird nach `cc_cli exec` gelöscht
+> (`trap 'rm -f "${CONFIG_YAML_PATH:-}"; rm -rf "${CC_CLI_WORKDIR:-}"' EXIT`).
+> Der Repository-Workspace (aktuell nicht implementiert) bliebe bei diesem
+> Trap erhalten, da nur das flüchtige Workdir und das Inventory gelöscht werden.
+
+### Bekannte Lücke: fehlender Repository-/Playbook-Kontext
+
+Der aktuelle Fehler `Could not find any playbook to execute.` nach
+`cc_cli exec` weist darauf hin, dass der für `cc_cli exec` offenbar
+benötigte Repository-/Playbook-Kontext im aktuellen Modul 06 noch nicht
+implementiert ist. Ein entsprechender Schritt (Repository klonen,
+Inventory in den Repo-Kontext legen, vor `cc_cli exec` ausführen) ist
+als nächster Ausbauschritt zu spezifizieren und zu implementieren.
+
+Die aktuelle Implementierung arbeitet mit:
+- `CC_CLI_WORKDIR=/tmp/civitas-core-deploy`
+- Inventory-Pfad: `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`
+- `cc_cli validate` und `cc_cli exec` laufen aus `${CC_CLI_WORKDIR}`
+
+Der EXIT-Trap im Entry-Point löscht das gesamte Workdir:
+`trap 'rm -f "${CONFIG_YAML_PATH:-}"; rm -rf "${CC_CLI_WORKDIR:-}"' EXIT`
 
 ***
 
@@ -547,7 +581,7 @@ provision_vm() {
     return 0
   fi
 
-  # Cloud-Image herunterladen (curl, idempotent via Prüfung auf Vorhandensein)
+  # Cloud-Image nach /tmp/${image_name} herunterladen (curl)
   download_cloud_image
 
   # VM mit qm create anlegen (12 vCPU, 40 GiB RAM, 300 GiB Disk)
@@ -556,12 +590,12 @@ provision_vm() {
   # Disk via qm importdisk einspielen und auf Zielgröße resizen
   import_and_resize_disk
 
-  # Cloud-Init: root-Passwort, DHCP-Netzwerk
+  # Cloud-Init: root, SSH-Key, statische IPv4/IPv6
   configure_cloud_init
 
-  # VM starten und auf IP warten
+  # VM starten und auf SSH-Erreichbarkeit warten
   qm start "${VM_ID}"
-  wait_for_vm_ip "${VM_ID}"
+  wait_for_ssh "${VM_IP_STATIC}"
 }
 ```
 
@@ -582,7 +616,7 @@ provision_vm() {
 
 - Cloud-Image wird nur einmal heruntergeladen (Prüfung: Datei existiert).
 - VM wird nur erstellt, wenn `qm status $VM_ID` fehlschlägt.
-- Bei erneuten Skriptdurchläufen wird die VM-IP neu ermittelt.
+- Bei erneuten Skriptdurchläufen wird die SSH-Erreichbarkeit unter der konfigurierten statischen IP geprüft.
 
 ### Secrets
 
@@ -713,12 +747,13 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
-| Gast-OS: Debian 12 oder Ubuntu 24.04 LTS? | Offen | Peter König |
+| Gast-OS | **Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code | durch Code festgelegt |
 | Domainname: `civitas.data-dna.eu`? | Offen | Peter König |
-| `SOHO_GATEWAY`-Adresse | Offen | lokale Netzwerkkonfiguration |
-| Konkrete Versionsnummern (k3s, helm, cert-manager, cc-cli) | Beim Skriptbau ermitteln | Skriptbau |
+| `SOHO_GATEWAY`-Adresse | **Im Code gesetzt** auf `192.168.12.1` (01_config.sh, verwendet in 03_preflight.sh) | durch Code festgelegt |
+| Konkrete Versionsnummern (k3s, helm, cert-manager, cc-cli) | **Gepinnt im Code** (01_config.sh) | durch Code festgelegt |
 | TLS-Strategie: self-signed oder CA? | Offen | netzwerk-dns-tls.md |
 | `servicelb` und `metrics-server`: deaktivieren? | Vorschlag: aktiv lassen | Skriptbau |
+| Repository-Kontext für `cc_cli exec` (Playbook-Bereitstellung) | **Nächster Ausbauschritt** – derzeit nicht implementiert | Nach aktueller Spezifikation |
 
 ***
 
@@ -745,12 +780,12 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
    vor der Aktion und überspringt bereits korrekte Zustände.
 5. `set -euo pipefail` und `trap ERR` sind verbindlich für den gesamten
    Ausführungskontext.
-6. Die `config.yaml` für cc-cli wird aus einem Template erzeugt und nach
-   der Ausführung gelöscht.
+6. Die Inventory-Datei `cc_cli_inventory.yml` wird aus `templates/inventory.yml.tpl` erzeugt und nach
+   der Ausführung gelöscht (Trap löscht `${CC_CLI_WORKDIR}`).
 7. Das Verifikationsmodul führt alle Abnahmetests erneut aus und gibt
    einen eindeutigen Exit-Code zurück (0 = Erfolg, 1 = Fehler).
 8. Alle Versionen werden beim Skriptbau gepinnt. Automatische Upgrades
    sind nicht vorgesehen.
 9. Das Skript bildet die **erste Ausbaustufe** ab: reproduzierbarer,
-   testbarer Prototyp. Produktionsanpassungen (HA, DMZ, externes etcd,
-   Backup) bleiben einer späteren Spezifikation vorbehalten.
+    testbarer Prototyp. Produktionsanpassungen (HA, DMZ, externes etcd,
+    Backup) bleiben einer späteren Spezifikation vorbehalten.
