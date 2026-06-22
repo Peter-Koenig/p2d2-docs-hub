@@ -36,19 +36,27 @@ bereit, dessen Platzhalter durch `render_inventory()` ersetzt werden.
 Das Inventory ist kein einfaches YAML, sondern ein **Ansible-Inventory** mit
 der Standardstruktur `all → vars → children → controller → hosts → vars`.
 
-### Bekannte Lücke: Repository-Kontext für `cc_cli exec`
+### Repository-Integration für `cc_cli exec`
 
 Das Inventory allein genügt nicht für `cc_cli exec`. Die ausführbaren
 Ansible-Playbooks liegen nicht im pip-Paket `cc-cli`, sondern im
-CIVITAS/CORE-Repository. Der aktuelle Fehler `Could not find any playbook
-to execute.` weist darauf hin, dass dieser Kontext im aktuellen Modul 06
-noch nicht bereitgestellt wird.
+CIVITAS/CORE-Repository. Die Bereitstellung des Repository-Arbeitskontexts
+ist wie folgt entschieden:
+
+| Aspekt | Festlegung |
+|---|---|
+| Repository-URL | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
+| Repository-Pfad (VM) | `/opt/civitas-core-v1` |
+| Symlink (aktive Version) | `/opt/civitas-core → /opt/civitas-core-v1` |
+| Inventory-Ablage | `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` |
+| Arbeitsverzeichnis für `cc_cli` | `${CC_CLI_REPO_PATH}` (cd vor validate/exec) |
+| Schema-Datei | `./core_platform/inventory_schema.json` im Repository |
 
 Dieses Dokument spezifiziert den **Inhalt** des Inventorys und den
-**Dateinamen**. Die Bereitstellung des Repository-Arbeitskontexts (Klonen
-des CIVITAS/CORE-Repositorys, Ablegen des Inventorys im Repo-Kontext,
-Prüfung der Schema-Datei `./core_platform/inventory_schema.json` vor
-`cc_cli validate`) ist als nächster Ausbauschritt zu spezifizieren.
+**Dateinamen**. Der **Arbeitskontext** (Repository-Workspace) ist in
+`installationsphasen-und-abnahme.md` (Phase 2, Schritte 2.2–2.4) und
+`skriptarchitektur.md` (Modul 06, Abschnitt „Repository-Workspace")
+spezifiziert.
 
 ## Wizard-Fragen und Antworten
 
@@ -289,24 +297,24 @@ all:
 6. **Schema-Referenz**: Die erste Zeile des Wizard-Outputs enthält einen
    `$schema`-Verweis auf das JSON-Schema des Projekts. Dieser sollte
    im Template erhalten bleiben.
-7. **Repository-Arbeitskontext**: Das Inventory wird aktuell isoliert in
-   `${CC_CLI_WORKDIR}/cc_cli_inventory.yml` verwendet. Ein darüber
-   hinausgehender Repository-Kontext (CIVITAS/CORE-Repository mit
-   Playbooks und Schema-Datei) ist im aktuellen Modul 06 noch nicht
-   implementiert und als nächster Ausbauschritt gesondert zu spezifizieren.
+7. **Repository-Arbeitskontext**: Das Inventory wird im Repository-Workspace
+   unter `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` abgelegt. Der Workspace
+   wird durch Schritt 2.2 (setup_repo_workspace) bereitgestellt. Das Repository
+   liegt unter `/opt/civitas-core-v1`, der Symlink `/opt/civitas-core` zeigt
+   auf die aktive Version.
 
 ## Festlegungen
 
 1. Das Installationsskript verwendet ein Template im Ansible-Inventory-Format.
 2. Der Dateiname lautet `inventory.yml.tpl` (bzw. im Skript `templates/inventory.yml.tpl`).
-3. Die Funktion `render_inventory()` erzeugt die Inventory-Datei aktuell
-   unter `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`.
+3. Die Funktion `render_inventory()` erzeugt die Inventory-Datei unter
+   `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` (im Repository-Workspace,
+   nicht in `/tmp`).
 4. Alle Secrets werden durch Platzhalter ersetzt, die über Env-Vars befüllt werden.
 5. Die Komponenten-Auswahl (enable/disable) wird zunächst als Template-Default
    gesetzt. Eine spätere Externalisierung über Env-Vars ist möglich.
 6. Der Dateiname `cc_cli_inventory.yml` ist verbindlich – `cc_cli` sucht
    diese Datei im Arbeitsverzeichnis.
 7. Das Inventory ist ohne den Repository-Kontext (Playbooks, Schema)
-   nach aktuellem Stand nicht ausführbar (`Could not find any playbook
-   to execute.`). Die Bereitstellung dieses Kontexts ist noch nicht
-   implementiert.
+   nicht ausführbar. Der Kontext wird durch Schritt 2.2 (Repository-Klon
+   nach `/opt/civitas-core-v1`) bereitgestellt.

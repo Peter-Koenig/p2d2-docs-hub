@@ -282,23 +282,26 @@ Cluster installieren.
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
 | 2.0 | DNS erneut prüfen (harter Abbruch wenn nicht auflösbar) | `dig +short idm.$DOMAIN` und `dig +short portal.$DOMAIN` — beide müssen eine IP liefern |
-| 2.1 | `cc-cli` installieren (gepinnte Version) | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
-| 2.2 | Inventory `cc_cli_inventory.yml` aus Template nach `${CC_CLI_WORKDIR}` rendern | Datei `${CC_CLI_WORKDIR}/cc_cli_inventory.yml` vorhanden, Platzhalter geprüft |
-| 2.3 | `cc_cli validate` ausführen (aus `${CC_CLI_WORKDIR}`) | Exit-Code 0 |
-| 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`, aus `${CC_CLI_WORKDIR}`) | **Bekannte Lücke**: aktuell `Could not find any playbook to execute.` |
-| 2.5 | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` vorhanden |
-| 2.6 | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
-| 2.7 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
+| 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
+| 2.2 | Repository-Workspace bereitstellen: CIVITAS/CORE-Repository klonen nach `${CC_CLI_REPO_PATH}`, Symlink `/opt/civitas-core` anlegen | Repository-Verzeichnis vorhanden, `git remote -v` zeigt erwartete URL |
+| 2.3 | Inventory `cc_cli_inventory.yml` aus Template in den Repository-Workspace rendern | Datei `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` vorhanden, Platzhalter geprüft |
+| 2.4 | Repository-Vorbedingungen prüfen: Schema `./core_platform/inventory_schema.json` und Playbook-Struktur vorhanden | Schema-Datei existiert, erwartete Ansible-Verzeichnisse vorhanden |
+| 2.5 | `cc_cli validate` ausführen (aus Repository-Workspace `${CC_CLI_REPO_PATH}`) | Exit-Code 0 |
+| 2.6 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`, aus Repository-Workspace `${CC_CLI_REPO_PATH}`) | Exit-Code 0 |
+| 2.7 | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` vorhanden |
+| 2.8 | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
+| 2.9 | Warten bis alle Pods Ready (`kubectl wait`) | Exit-Code 0 |
 
 > **Hinweis TLS**: Die cc-cli-Konfiguration enthält keinen TLS-Block für
 > Ingress-Ressourcen. TLS wird von Caddy auf OPNsense terminiert. Nach
-> Schritt 2.5 werden alle Ingress-Ressourcen im Namespace mit der Annotation
+> Schritt 2.7 werden alle Ingress-Ressourcen im Namespace mit der Annotation
 > `nginx.ingress.kubernetes.io/ssl-redirect: "false"` versehen.
 
-> **Bekannte Lücke**: Der aktuelle Fehler `Could not find any playbook to execute.`
-> nach `cc_cli exec` weist darauf hin, dass der erforderliche Playbook-/Repository-Kontext
-> im aktuellen Modul 06 noch nicht bereitgestellt wird. Ein solcher Schritt ist
-> als nächster Ausbauschritt zu spezifizieren und zu implementieren.
+> **Entschieden**: Der bisherige Fehler `Could not find any playbook to execute.`
+> wird durch Schritt 2.2 behoben: Das CIVITAS/CORE-Repository wird nach
+> `${CC_CLI_REPO_PATH}` geklont und stellt die Ansible-Playbooks sowie das Schema
+> `./core_platform/inventory_schema.json` für `cc_cli validate` bereit.
+> `cc_cli exec` wird aus diesem Verzeichnis ausgeführt.
 
 
 
@@ -316,6 +319,9 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `SMTP_USER` | SMTP-Absender | `noreply@data-dna.eu` |
 | `SMTP_PASS` | SMTP-Passwort | Aus Umgebungsvariable `$SMTP_PASS` |
 | `CC_CLI_VERSION` | cc-cli-Version (Pinning) | `1.5.0` — nicht `latest` |
+| `CC_CLI_REPO_URL` | Repository-URL für CIVITAS/CORE V1 | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
+| `CC_CLI_REPO_PATH` | Lokaler Pfad des Repository-Workspace auf der Ziel-VM | `/opt/civitas-core-v1` |
+| `CC_CLI_SYMLINK_PATH` | Symlink-Ziel für die aktive Version | `/opt/civitas-core` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
 | `ADMIN_EMAIL` | Initiale Admin-E-Mail | `admin@data-dna.eu` |
 | `K8S_NAMESPACE` | Ziel-Namespace | `civitas-core` |

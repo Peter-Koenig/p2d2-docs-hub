@@ -134,6 +134,9 @@ HELM_VERSION="v3.17.0"             # Beim Skriptbau aus Helm-Release-Doku fixier
 CC_CLI_VERSION="1.5.0"              # cc-cli — aus GitLab Package Registry
 CC_CLI_REGISTRY_URL="https://gitlab.com/api/v4/projects/62227605/packages/pypi/simple"
 CC_CLI_VENV_PATH="/opt/civitas-core-venv"
+CC_CLI_REPO_URL="https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git"  # CIVITAS/CORE V1 Repository
+CC_CLI_REPO_PATH="/opt/civitas-core-v1"     # Dauerhafter Workspace auf der VM (nicht /tmp)
+CC_CLI_SYMLINK_PATH="/opt/civitas-core"     # Symlink auf die aktive Version
 CERT_MANAGER_VERSION="v1.16.0"     # Beim Skriptbau aus cert-manager-Release-Doku fixieren
 NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-Doku fixieren
 
@@ -436,13 +439,15 @@ install_civitas() {
 
   check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
 
-  install_cc_cli
-  render_inventory
-  run_cc_cli_validate
-  run_cc_cli_exec
-  patch_ingress_for_external_tls   # ssl-redirect deaktivieren (TLS via Caddy)
-  setup_wireguard
-  wait_pods_ready "${K8S_NAMESPACE}"
+  install_cc_cli              # Schritt 2.1
+  setup_repo_workspace        # Schritt 2.2: Repository klonen, Symlink anlegen
+  render_inventory            # Schritt 2.3: Inventory in Repo-Verzeichnis rendern
+  check_repo_prerequisites    # Schritt 2.4: Schema + Playbook-Struktur prüfen
+  run_cc_cli_validate         # Schritt 2.5: aus ${CC_CLI_REPO_PATH}
+  run_cc_cli_exec             # Schritt 2.6: aus ${CC_CLI_REPO_PATH}
+  patch_ingress_for_external_tls   # Schritt 2.7: ssl-redirect deaktivieren
+  setup_wireguard             # Schritt 2.8: WireGuard-Tunnel
+  wait_pods_ready "${K8S_NAMESPACE}"  # Schritt 2.9
 }
 ```
 
@@ -504,9 +509,9 @@ Alle Platzhalter werden durch die Variablen aus `01_config.sh` ersetzt:
 render_inventory() {
   log "Erzeuge Inventory aus Template …"
 
-  local tpl="${SCRIPT_DIR}/templates/inventory.yml.tpl"
-  mkdir -p "${CC_CLI_WORKDIR}"
-  local out="${CC_CLI_WORKDIR}/cc_cli_inventory.yml"
+  local tpl="${SCRIPT_DIR}/templates_V1/inventory.yml.tpl"
+  mkdir -p "${CC_CLI_REPO_PATH}"
+  local out="${CC_CLI_REPO_PATH}/cc_cli_inventory.yml"
 
   if [[ ! -f "${tpl}" ]]; then
     log_error "Template nicht gefunden: ${tpl}"
@@ -534,28 +539,59 @@ render_inventory() {
 }
 ```
 
-> Die erzeugte Inventory-Datei liegt unter `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`
+> Die erzeugte Inventory-Datei liegt unter `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml`
 > und enthält Secrets im Klartext. Sie wird nach `cc_cli exec` gelöscht
-> (`trap 'rm -f "${CONFIG_YAML_PATH:-}"; rm -rf "${CC_CLI_WORKDIR:-}"' EXIT`).
-> Der Repository-Workspace (aktuell nicht implementiert) bliebe bei diesem
-> Trap erhalten, da nur das flüchtige Workdir und das Inventory gelöscht werden.
+> (`trap 'rm -f "${CONFIG_YAML_PATH:-}"' EXIT`).
+> Der Repository-Workspace under `${CC_CLI_REPO_PATH}` bleibt erhalten, da nur
+> das Inventory gelöscht wird.
 
-### Bekannte Lücke: fehlender Repository-/Playbook-Kontext
+### Repository-Workspace
 
-Der aktuelle Fehler `Could not find any playbook to execute.` nach
-`cc_cli exec` weist darauf hin, dass der für `cc_cli exec` offenbar
-benötigte Repository-/Playbook-Kontext im aktuellen Modul 06 noch nicht
-implementiert ist. Ein entsprechender Schritt (Repository klonen,
-Inventory in den Repo-Kontext legen, vor `cc_cli exec` ausführen) ist
-als nächster Ausbauschritt zu spezifizieren und zu implementieren.
+Dieser Abschnitt spezifiziert die Funktionen zur Bereitstellung des
+CIVITAS/CORE-Repositorys als Playbook-Kontext für `cc_cli exec`.
 
-Die aktuelle Implementierung arbeitet mit:
-- `CC_CLI_WORKDIR=/tmp/civitas-core-deploy`
-- Inventory-Pfad: `${CC_CLI_WORKDIR}/cc_cli_inventory.yml`
-- `cc_cli validate` und `cc_cli exec` laufen aus `${CC_CLI_WORKDIR}`
+#### Verantwortlichkeiten der Funktion `setup_repo_workspace()`
 
-Der EXIT-Trap im Entry-Point löscht das gesamte Workdir:
-`trap 'rm -f "${CONFIG_YAML_PATH:-}"; rm -rf "${CC_CLI_WORKDIR:-}"' EXIT`
+| Verantwortung | Beschreibung |
+|---|---|
+| Repository-Pfad sicherstellen | Zielverzeichnis `${CC_CLI_REPO_PATH}` anlegen, falls nicht vorhanden |
+| Repository klonen | `git clone ${CC_CLI_REPO_URL} ${CC_CLI_REPO_PATH}` bei Erstinstallation |
+| Repository aktualisieren | `git fetch` + `git checkout` / `git reset --hard` bei erneuten Läufen |
+| Symlink anlegen | `ln -sf ${CC_CLI_REPO_PATH} ${CC_CLI_SYMLINK_PATH}` |
+
+Die Idempotenz-Prüfung erfolgt auf Verzeichnisebene:
+- Existiert `${CC_CLI_REPO_PATH}/.git` → aktualisieren
+- Existiert nicht → klonen
+
+#### Verantwortlichkeiten der Funktion `check_repo_prerequisites()`
+
+Prüft vor `cc_cli validate`, dass der Repository-Kontext vollständig ist:
+
+```bash
+# Schema-Datei vorhanden (Referenz für validate)
+test -f "${CC_CLI_REPO_PATH}/core_platform/inventory_schema.json"
+
+# Erwartete Ansible-Verzeichnisstruktur
+test -d "${CC_CLI_REPO_PATH}/ansible"
+
+# Inventory liegt im Workspace
+test -f "${CC_CLI_REPO_PATH}/cc_cli_inventory.yml"
+```
+
+Fehlschläge führen zum sofortigen Abbruch.
+
+#### Arbeitsverzeichnis für cc_cli
+
+- `render_inventory()` schreibt nach `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml`
+- `cc_cli validate` und `cc_cli exec` laufen mit `cd ${CC_CLI_REPO_PATH}`
+- Das flüchtige `${CC_CLI_WORKDIR}` (`/tmp/civitas-core-deploy`) entfällt
+
+#### Symlink für aktive Version
+
+Der Symlink `/opt/civitas-core` zeigt auf das aktuell aktive
+CIVITAS/CORE-Repository. Aktuell zeigt er auf `/opt/civitas-core-v1`
+(V1). Bei einem zukünftigen Wechsel auf V2 wird der Symlink auf
+`/opt/civitas-core-v2` umgebogen.
 
 ***
 
