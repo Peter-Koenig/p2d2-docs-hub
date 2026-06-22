@@ -28,7 +28,7 @@ Die Spezifikation ist in drei übergeordnete Bereiche gegliedert:
 2. **Plattformintegration** — Anbindung an CIVITAS/CORE-APIs, Authentifizierung und Datenmodell (später)
 3. **Fachintegration** — Abbildung fachlicher Prozesse und Datenflüsse zwischen den Systemen (später)
 
-Der vorliegende Bereich [Serveraufbau](./serveraufbau/) ist die Grundlage für alle nachfolgenden Spezifikationen. Ohne eine entschiedene Serverarchitektur können Plattform- und Fachintegration nicht spezifiziert werden.
+Der vorliegende Bereich [Serveraufbau](./serveraufbau-v1/) ist die Grundlage für alle nachfolgenden Spezifikationen. Ohne eine entschiedene Serverarchitektur können Plattform- und Fachintegration nicht spezifiziert werden.
 
 ## Status
 

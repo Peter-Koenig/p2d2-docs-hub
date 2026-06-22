@@ -645,35 +645,35 @@ export const sidebar_de = {
                             items: [
                                 {
                                     text: "Übersicht",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/",
                                 },
                                 {
                                     text: "Zielbild und Abgrenzung",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/zielbild-und-abgrenzung",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung",
                                 },
                                 {
                                     text: "VM-Sizing und Host-Ressourcen",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/vm-sizing-und-host-ressourcen",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/vm-sizing-und-host-ressourcen",
                                 },
                                 {
                                     text: "Netzwerk, DNS und TLS",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/netzwerk-dns-tls",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/netzwerk-dns-tls",
                                 },
                                 {
                                     text: "Kubernetes-Laufzeit",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/kubernetes-laufzeit",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/kubernetes-laufzeit",
                                 },
                                 {
                                     text: "Installationsphasen und Abnahme",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/installationsphasen-und-abnahme",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/installationsphasen-und-abnahme",
                                 },
                                 {
                                     text: "Skriptarchitektur",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/skriptarchitektur",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/skriptarchitektur",
                                 },
                                 {
                                     text: "cc-cli-Inventar",
-                                    link: "/de/specs/civitas-core-plugin/serveraufbau/cc-cli-inventar",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/cc-cli-inventar",
                                 },
                             ],
                         },
