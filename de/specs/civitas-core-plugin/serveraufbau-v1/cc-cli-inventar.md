@@ -2,7 +2,7 @@
 title: cc-cli-Inventar — Ansible-Inventory für CIVITAS/CORE
 description: Dokumentation des per Wizard erzeugten cc_cli_inventory.yml, seiner Struktur und der daraus abgeleiteten Template-Vorlage für die automatisierte Installation.
 status: draft
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-24
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-cc-cli-inventar
@@ -66,7 +66,7 @@ spezifiziert.
 | Deployment target | `remote production deployment` |
 | Domain | `udp.data-dna.eu` |
 | Environment name | `cc-prd` |
-| Kubernetes context | `k3s` |
+| Kubernetes context | `default` |
 | Ingress controller class | `nginx` |
 | Storage class (RWO/RWX/LOC) | `local-path` |
 | Cert-Manager-Issuer-Name | `selfsigned-issuer` |
@@ -86,6 +86,12 @@ spezifiziert.
 | Datacatalog-Komponenten | *(none)* |
 | Monitoring-Komponenten | `Prometheus`, `Grafana`, `Alertmanager`, `Loki`, `Promtail` |
 | CA cert download from Service Portal? | `No` |
+
+> **Hinweis context**: k3s schreibt `/etc/rancher/k3s/k3s.yaml` mit dem
+> Context-Namen `default`, nicht `k3s`. Der Wizard-Output enthält `k3s` als
+> Antwort — das ist ein bekannter Fehler in der Wizard-UI. Im generierten
+> Inventory und im Template `inventory.yml.tpl` ist `default` verbindlich.
+> Im Inventory-Abschnitt `inv_k8s.config.context` steht entsprechend `"default"`.
 
 ## Inventory-Struktur
 
@@ -107,7 +113,7 @@ all:
       vars:
         inv_k8s:            # Kubernetes-Konfiguration
           config:
-            context: "k3s"
+            context: "default"   # war: "k3s" — k3s verwendet intern den Context-Namen "default"
           storage_class:
             rwo: "local-path"
             rwx: "local-path"
@@ -302,6 +308,12 @@ all:
    wird durch Schritt 2.2 (setup_repo_workspace) bereitgestellt. Das Repository
    liegt unter `/opt/civitas-core-v1`, der Symlink `/opt/civitas-core` zeigt
    auf die aktive Version.
+8. **Velero**: Im Template wird `velero.enable: false` als Default gesetzt.
+   Das Feld wird nur auf `true` geändert, wenn alle fünf Velero-Felder
+   (`access_key`, `bucket`, `region`, `endpoint`, `secret`) als Env-Vars
+   gesetzt und nicht leer sind. Die Prüfung erfolgt in `render_inventory()`
+   vor dem sed-Schritt. Solange ein Feld fehlt oder den Wert `""` hat,
+   bleibt `velero.enable: false` im gerenderten Inventory.
 
 ## Festlegungen
 

@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-24
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -325,19 +325,23 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
 | 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen | Datei vorhanden, Platzhalter geprüft |
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
-| 2.4 | `cc_cli exec` ausführen (mit konfiguriertem Timeout `$TIMEOUT_CC_CLI_EXEC`, aus `/opt/civitas-core-v1`) | Exit-Code 0 |
-| 2.4b | Ingress ssl-redirect deaktivieren (TLS via Caddy auf OPNsense) | `kubectl get ingress -n $K8S_NAMESPACE` — Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` vorhanden |
-| 2.4c | WireGuard konfigurieren und Tunnel aktivieren | `systemctl is-active wg-quick@wg0` |
+| 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
+| 2.4c | `cc_cli exec` ausführen | Exit-Code 0 |
+| 2.4d | Ingress-Patch: `ssl-redirect=false` + `tls`-Sektion entfernen (nach cc_cli exec) | Annotation `ssl-redirect=false` + `kubectl get ingress -o jsonpath='{.spec.tls}'` leer |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
 
-> **Hinweis TLS**: Die cc-cli-Konfiguration enthält keinen TLS-Block für
-> Ingress-Ressourcen. TLS wird von Caddy auf OPNsense terminiert. Nach
-> Schritt 2.4b werden alle Ingress-Ressourcen im Namespace mit der Annotation
-> `nginx.ingress.kubernetes.io/ssl-redirect: "false"` versehen.
+> **Hinweis TLS**: Nach `cc_cli exec` (Schritt 2.4c) werden alle
+> Ingress-Ressourcen im Namespace `${K8S_NAMESPACE}` gepatcht:
+> (1) Annotation `nginx.ingress.kubernetes.io/ssl-redirect: "false"` wird gesetzt,
+> (2) die `spec.tls`-Sektion wird entfernt (außer bei Ingresses mit
+> `backend-protocol: HTTPS`). Ohne Entfernen der `tls`-Sektion antwortet
+> nginx mit HTTP 308 auch bei gesetztem `ssl-redirect=false`.
+> WireGuard (Schritt 2.4b) muss vor `cc_cli exec` aktiv sein, da die
+> Ansible-Health-Checks externe URLs abrufen.
 
 
 
@@ -405,8 +409,8 @@ kubectl get certificate -n civitas-core
 curl -sf -H "Host: idm.$DOMAIN" http://localhost:8080/health
 # Erwartung: HTTP 200 oder Keycloak-Begrüßungsseite
 
-# Portal intern erreichbar (HTTP via localhost:8080 mit Host-Header)
-curl -sf -H "Host: portal.$DOMAIN" http://localhost:8080/
+# Service Portal intern erreichbar (kein Subdomain-Präfix)
+curl -sf -H "Host: udp.data-dna.eu" http://localhost:8080/
 # Erwartung: HTTP 200 oder Redirect auf Login
 
 # WireGuard-Tunnel aktiv

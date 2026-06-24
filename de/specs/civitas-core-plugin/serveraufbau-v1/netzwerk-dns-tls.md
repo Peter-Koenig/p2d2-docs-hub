@@ -2,7 +2,7 @@
 title: Netzwerk, DNS und TLS für das CIVITAS/CORE-Plugin
 description: Spezifikation der Netzwerkanbindung, Namensauflösung und Zertifikatsstrategie für die Plugin-VM
 status: draft
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-23
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-netzwerk
@@ -92,6 +92,24 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   ausschließlich als Env-Vars übergeben. Nach dem Schreiben der Config
   wird der Tunnel mit `systemctl enable --now wg-quick@wg0` aktiviert und
   die Konnektivität zu OPNsense (ping `10.10.10.1`) geprüft.
+
+- **Domain (Ist-Stand)**: Der deployete Basisdomainname lautet `udp.data-dna.eu`.
+  Die Variablen `DOMAIN` in `01_config.sh` und alle `PLACEHOLDER_DOMAIN`-Stellen
+  im Inventory-Template werden auf `udp.data-dna.eu` gesetzt.
+  Die Endpunkte sind damit `idm.udp.data-dna.eu` (Keycloak) und
+  `udp.data-dna.eu` (Service Portal, kein Subdomain-Präfix).
+
+- **Caddy `X-Forwarded-Proto`**: Jeder `reverse_proxy`-Block in der
+  Caddy-Konfiguration enthält `header_up X-Forwarded-Proto https`.
+  Ohne diesen Header lehnt Keycloak HTTPS-Redirects ab (Infinite-Redirect-Loop).
+  Betrifft alle Caddy-Blöcke für Hosts unter `udp.data-dna.eu`.
+
+- **Hetzner DNS**: Vor Phase 2 müssen folgende A-Records in der Hetzner-WebGUI
+  manuell angelegt sein (das Skript legt keine DNS-Records an):
+  - `udp.data-dna.eu` → OPNsense WAN-IP
+  - `idm.udp.data-dna.eu` → OPNsense WAN-IP
+  DNS-Records werden nicht automatisiert. Die Prüfung in Phase 0 (Warnung)
+  und Phase 2 (harter Abbruch) prüft Auflösbarkeit, nicht die Herkunft des Records.
 
 ## Risiken
 
