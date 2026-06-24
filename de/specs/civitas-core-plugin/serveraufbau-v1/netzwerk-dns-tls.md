@@ -83,9 +83,29 @@ Alternativ kann die TLS-Terminierung direkt in der Plugin-VM (z. B. durch den Ku
 Die folgenden Entscheidungen sind gefallen und verbindlich:
 
 - **TLS-Terminierung**: Variante A ist gew&auml;hlt. Caddy auf OPNsense terminiert TLS f&uuml;r `idm.udp.data-dna.eu` und `portal.udp.data-dna.eu`. Die VM betreibt kein TLS.
-- **HTTP-Port**: Der nginx-Ingress-Controller lauscht auf Port 8080 (HTTP). Caddy leitet auf `10.10.10.5:8080` weiter.
+- **HTTP-Port**: Der nginx-Ingress-Controller lauscht auf Port 80 (HTTP). Caddy leitet auf `10.10.10.5:80` weiter.
 - **Kein interner TLS**: Ingress-Ressourcen im `civitas-core`-Namespace erhalten keinen TLS-Block. `ssl-redirect` ist global auf `false` gesetzt.
-- **Caddy-Konfiguration**: Die bestehende Konfiguration in `/usr/local/etc/caddy/caddy.d/civitas.data-dna.eu.conf` ist g&uuml;ltig und wird nicht ge&auml;ndert.
+- **Caddy-Konfiguration**: Die Konfiguration in `/usr/local/etc/caddy/caddy.d/civitas.data-dna.eu.conf` ist verbindlich:
+  ```
+  idm.udp.data-dna.eu {
+      reverse_proxy 10.10.10.5:80 {
+          header_up X-Forwarded-Proto https
+      }
+  }
+
+  portal.udp.data-dna.eu {
+      reverse_proxy 10.10.10.5:80 {
+          header_up X-Forwarded-Proto https
+      }
+  }
+
+  udp.data-dna.eu {
+      reverse_proxy 10.10.10.5:80 {
+          header_up X-Forwarded-Proto https
+      }
+  }
+  ```
+  Diese Konfiguration wird nicht durch das Skript verändert, sondern ist manuell auf OPNsense einzurichten oder zu pflegen.
 - **WireGuard-Konfiguration**: Das Skript schreibt `/etc/wireguard/wg0.conf`
   aus `templates/wg0.conf.tpl` (Phase 2, nach `cc_cli exec`). Die Schlüssel
   `WG_VM_PRIVATE_KEY`, `WG_OPN_PUBLIC_KEY` und `WG_PRESHARED_KEY` werden

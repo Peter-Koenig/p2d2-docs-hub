@@ -403,14 +403,14 @@ kubectl get certificate -n civitas-core
 
 # Hinweis: TLS wird von Caddy auf OPNsense terminiert.
 # Die VM hat keinen direkten HTTPS-Zugang zu den öffentlichen Hostnamen.
-# Die Erreichbarkeit wird intern gegen den nginx-Ingress auf Port 8080 geprüft.
+# Die Erreichbarkeit wird intern gegen den nginx-Ingress auf Port 80 geprüft.
 
 # Keycloak intern erreichbar (HTTP via localhost:8080 mit Host-Header)
-curl -sf -H "Host: idm.$DOMAIN" http://localhost:8080/health
+curl -sf -H "Host: idm.$DOMAIN" http://localhost:80/health
 # Erwartung: HTTP 200 oder Keycloak-Begrüßungsseite
 
 # Service Portal intern erreichbar (kein Subdomain-Präfix)
-curl -sf -H "Host: udp.data-dna.eu" http://localhost:8080/
+curl -sf -H "Host: udp.data-dna.eu" http://localhost:80/
 # Erwartung: HTTP 200 oder Redirect auf Login
 
 # WireGuard-Tunnel aktiv

@@ -412,16 +412,17 @@ spec:
 > Issuer ausgetauscht — Festlegung in `netzwerk-dns-tls.md`.
 
 > **nginx-Ingress-Ports**: Der nginx-Ingress-Controller wird mit `hostNetwork=true`
-> als DaemonSet installiert und lauscht auf HTTP-Port 8080. HTTPS (Port 8443)
+> als DaemonSet installiert und lauscht auf HTTP-Port 80 (Standard). HTTPS (Port 443)
 > ist vorhanden, wird aber nicht genutzt (TLS-Terminierung in Caddy auf OPNsense).
-> Relevante Helm-Values:
-> ```
-> controller.hostNetwork=true
-> controller.kind=DaemonSet
-> controller.service.ports.http=8080
-> controller.service.ports.https=8443
-> controller.containerPort.http=8080
-> controller.containerPort.https=8443
+> Der Kubernetes-Service ist deaktiviert (`service.enabled=false`), da mit
+> `hostNetwork=true` der Controller direkt auf dem Host-Netzwerk bindet.
+> Konfiguration im Values-File:
+> ```yaml
+> controller:
+>   hostNetwork: true
+>   kind: DaemonSet
+>   service:
+>     enabled: false
 > ```
 
 ***
@@ -898,7 +899,7 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 5. `set -euo pipefail` und `trap ERR` sind verbindlich für den gesamten
    Ausführungskontext.
 6. Die Inventory-Datei `cc_cli_inventory.yml` wird aus `templates/inventory.yml.tpl` erzeugt und nach
-   der Ausführung gelöscht (Trap löscht `${CC_CLI_WORKDIR}`).
+   der Ausführung gelöscht (Trap löscht `${CONFIG_YAML_PATH}` im Playbook-Verzeichnis).
 7. Das Verifikationsmodul führt alle Abnahmetests erneut aus und gibt
    einen eindeutigen Exit-Code zurück (0 = Erfolg, 1 = Fehler).
 8. Alle Versionen werden beim Skriptbau gepinnt. Automatische Upgrades
