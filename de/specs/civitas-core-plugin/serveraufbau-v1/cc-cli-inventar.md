@@ -71,7 +71,7 @@ spezifiziert.
 | Storage class (RWO/RWX/LOC) | `local-path` |
 | Cert-Manager-Issuer-Name | `selfsigned-issuer` |
 | CA certificate path | (leer) |
-| Ansible health checks | `Yes` |
+| Ansible health checks | `No` (deaktiviert — TLS endet an Caddy, Health-Check in der VM nicht sinnvoll) |
 | Email server | `mxe92c.netcup.net` |
 | Email user | `admin@data-dna.eu` |
 | Email password | `(maskiert)` |
@@ -248,7 +248,7 @@ all:
           addons: []
 
         inv_checks:
-          enable: true
+          enable: false
           api:
             default_max_retries: 20
           deployment:
@@ -314,6 +314,15 @@ all:
    gesetzt und nicht leer sind. Die Prüfung erfolgt in `render_inventory()`
    vor dem sed-Schritt. Solange ein Feld fehlt oder den Wert `""` hat,
    bleibt `velero.enable: false` im gerenderten Inventory.
+9. **Health-Checks deaktiviert**: `inv_checks.enable` ist auf `false`
+   gesetzt. Der in `cc_cli exec` integrierte Ansible-Health-Check ruft die
+   externen Endpunkte (`https://udp.data-dna.eu/`) auf. Da TLS ausschließlich
+   von Caddy auf OPNsense terminiert wird und der nginx-Ingress in der VM
+   die Anfragen ohne TLS-Sektion und mit `ssl-redirect=false` erhält, würde
+   der Health-Check mit HTTP 308 scheitern. Die Verifikation der Plattform
+   erfolgt in Phase 3 des Installationsskripts (siehe `07_verify.sh`).
+   Sobald `cc_cli` einen konfigurierbaren `accepted_status_codes`-Parameter
+   unterstützt, kann die Prüfung reaktiviert werden.
 
 ## Festlegungen
 

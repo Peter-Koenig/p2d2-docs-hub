@@ -340,8 +340,15 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > (2) die `spec.tls`-Sektion wird entfernt (außer bei Ingresses mit
 > `backend-protocol: HTTPS`). Ohne Entfernen der `tls`-Sektion antwortet
 > nginx mit HTTP 308 auch bei gesetztem `ssl-redirect=false`.
-> WireGuard (Schritt 2.4b) muss vor `cc_cli exec` aktiv sein, da die
-> Ansible-Health-Checks externe URLs abrufen.
+>
+> **Ansible-Health-Checks**: Die integrierten Health-Checks von cc_cli
+> (`inv_checks`) sind im Inventory-Template deaktiviert (`enable: false`).
+> Grund: Die Health-Checks rufen externe URLs (`https://udp.data-dna.eu/`)
+> auf, die über Caddy auf OPNsense zurück in die VM geleitet werden.
+> Da Caddy TLS terminiert und nginx nur HTTP sieht, antwortet nginx bei
+> vorhandener `tls`-Sektion mit HTTP 308 — der Check scheitert, obwohl
+> die Plattform korrekt läuft. Die eigentliche Verifikation erfolgt in
+> Phase 3 nach dem Ingress-Patch.
 
 
 
