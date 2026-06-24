@@ -68,7 +68,7 @@ Das Installationsskript gliedert sich in drei Hauptphasen plus vorgelagerter VM-
 
 ## Lebenszyklus-Hinweis
 
-CIVITAS/CORE V2 befindet sich zum Zeitpunkt der Spezifikation im Beta-Stadium. Die Wartung dieser Spezifikation ist bis ca. 2027 vorgesehen. Ein Upgrade auf eine stabilere V2-Version oder eine spätere V3 wird zu gegebener Zeit gesondert spezifiziert.
+CIVITAS/CORE V2 befindet sich zum Zeitpunkt der Spezifikation im Beta-Stadium. Die Spezifikation wir in dem Maße angepasst, in dem V2 als für p2d2 passend angesehen wird.
 
 ## Abhängigkeiten
 
