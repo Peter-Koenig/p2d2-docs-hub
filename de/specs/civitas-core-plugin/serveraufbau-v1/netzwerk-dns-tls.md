@@ -2,14 +2,14 @@
 title: Netzwerk, DNS und TLS für das CIVITAS/CORE-Plugin
 description: Spezifikation der Netzwerkanbindung, Namensauflösung und Zertifikatsstrategie für die Plugin-VM
 status: draft
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-25
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-netzwerk
 parent: civitas-core-plugin-serveraufbau-index
 dependencies: []
 quality:
-  completeness: 85
+  completeness: 92
   accuracy: 90
   reviewed: false
   reviewer:
@@ -35,6 +35,20 @@ Die IP-Adresse wird statisch aus dem jeweiligen Subnetz vergeben. DHCP ist nicht
 - Ausgehender Traffic der Plugin-VM ins Internet (für Updates, API-Zugriffe auf CIVITAS/CORE) wird über eine definierte Proxy-Regel oder direkt freigegeben.
 - Administrativer Zugriff (SSH) erfolgt ausschließlich über das Management-VPN.
 
+### WireGuard-Netz (Ist-Stand)
+
+Die CIVITAS/CORE-VM ist über einen WireGuard-Tunnel mit OPNsense verbunden.
+Über diesen Tunnel läuft der gesamte externe Traffic für CIVITAS/CORE.
+
+| Komponente | SOHO-LAN (192.168.12.0/24) | WireGuard (10.10.10.0/24) |
+|---|---|---|
+| OPNsense | `192.168.12.1` | `10.10.10.1` |
+| CIVITAS/CORE-VM | `192.168.12.139` | `10.10.10.5` |
+| PBS (Backup-Server) | `192.168.12.36` | `10.10.10.4` |
+
+Der Tunnel bleibt unabhängig vom verwendeten Reverse-Proxy (Caddy oder HAProxy)
+bestehen — beide Dienste nutzen dieselbe WireGuard-Strecke zur VM.
+
 ## Namensauflösung
 
 Die Plugin-VM erhält einen internen DNS-Eintrag im Format:
@@ -47,45 +61,66 @@ Die Auflösung erfolgt über den internen DNS-Server (OPNsense oder separater Un
 
 ## Externe Erreichbarkeit
 
-Sofern das Plugin über eine API extern erreichbar sein muss (z. B. für Webhooks von CIVITAS/CORE), wird ein Reverse-Proxy-Eintrag in OPNsense (HAProxy oder Caddy) konfiguriert:
+Die CIVITAS/CORE-Plattform ist über zwei Wege extern erreichbar, abhängig von der Domain:
 
-- Subdomain: `civitas-core-plugin.data-dna.eu`
-- Ziel: `https://<interne-ip>:<port>`
+| Domain | Proxy | TLS-Terminierung | Ziel in der VM |
+|---|---|---|---|
+| `*.data-dna.eu` (bestehend) | Caddy (OPNsense) | In OPNsense (Let's Encrypt) | `10.10.10.5:80` (HTTP) |
+| `*.udp.projekte-koenig.eu` (NEU) | HAProxy (OPNsense) TCP-Passthrough | In der VM (cert-manager) | `10.10.10.5:443` (HTTPS) |
 
-Die Entscheidung über externe Erreichbarkeit wird mit der Plattformintegration getroffen.
+Der HAProxy TCP-Passthrough leitet den TLS-Handshake 1:1 an den nginx-Ingress
+in der VM weiter. Die VM (cert-manager) stellt eigene Let's-Encrypt-Zertifikate
+für `*.udp.projekte-koenig.eu` aus.
 
 ## Reverse-Proxy-Anbindung
 
-Die Anbindung an den bestehenden Reverse-Proxy erfolgt nach dem gleichen Muster wie die bestehenden p2d2-Dienste:
+Es existieren zwei parallele Proxy-Muster:
 
-1. OPNsense terminiert eingehendes TLS (Port 443).
-2. Der Request wird als HTTP an die interne IP der Plugin-VM weitergeleitet.
-3. Die Plugin-VM antwortet auf dem konfigurierten Port.
+### Muster A: Caddy (HTTP-Proxy, bestehend, für `*.data-dna.eu`)
 
-Alternativ kann die TLS-Terminierung direkt in der Plugin-VM (z. B. durch den Kubernetes-Ingress-Controller) erfolgen. Dies ist eine offene Entscheidung.
+1. Caddy terminiert eingehendes TLS (Port 443) auf OPNsense.
+2. Der Request wird als HTTP an `10.10.10.5:80` weitergeleitet (via WireGuard).
+3. nginx in der VM empfängt HTTP und routet per Ingress-Regel.
+4. `ssl-redirect=false` im nginx-ConfigMap verhindert 308-Weiterleitung.
+
+### Muster B: HAProxy TCP-Passthrough (NEU, für `*.udp.projekte-koenig.eu`)
+
+1. HAProxy auf OPNsense empfängt TLS auf Port 443 (SNI-basiertes Routing).
+2. Der TCP-Strom wird 1:1 an `10.10.10.5:443` weitergeleitet (via WireGuard).
+3. nginx in der VM terminiert TLS (Zertifikat von cert-manager).
+4. Kein 308, da nginx die TLS-Verbindung vollständig selbst handhabt.
 
 ## Zertifikatsstrategie
 
 | Variante | Beschreibung | Status |
 |----------|--------------|--------|
-| **A** | TLS-Terminierung in OPNsense mit Let's Encrypt (Certbot/ACME) | Bevorzugt, da bestehende Infrastruktur genutzt wird |
-| **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich, wenn Ende-zu-Ende-TLS verlangt wird |
+| **A** | TLS-Terminierung in OPNsense mit Let's Encrypt (Caddy) | Bestehend für `*.data-dna.eu` |
+| **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.projekte-koenig.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
+| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.projekte-koenig.eu` |
+
+In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
+(Caddy) auf Variante D (HAProxy TCP-Passthrough) umgestellt. Die bestehenden
+`*.data-dna.eu`-Dienste bleiben unverändert unter Variante A.
 
 ## Offene Entscheidungen
 
-- Ist eine externe Erreichbarkeit des Plugins erforderlich?
-- Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?
-- Wird ein separater DNS-Eintrag f&uuml;r die interne Kommunikation ben&ouml;tigt?
+- ~~Ist eine externe Erreichbarkeit des Plugins erforderlich?~~ → **Ja, über zwei parallele Domains**
+- ~~Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?~~ → **Beides: data-dna.eu über Caddy, projekte-koenig.eu über cert-manager in der VM**
+- ~~Wird ein separater DNS-Eintrag für die interne Kommunikation benötigt?~~ → **Nein, WireGuard-Tunnel ersetzt internes DNS**
+- **Migrationstermin**: Wann erfolgt der Wechsel der CIVITAS/CORE-Endpunkte von `udp.data-dna.eu` auf `udp.projekte-koenig.eu` mit HAProxy? → Offen
+- **cert-manager Let's-Encrypt-Issuer**: DNS-01-Provider konfigurieren (für `*.udp.projekte-koenig.eu`) → Vor der Migration einzurichten
 
 ## Getroffene Entscheidungen
 
 Die folgenden Entscheidungen sind gefallen und verbindlich:
 
-- **TLS-Terminierung**: Variante A ist gew&auml;hlt. Caddy auf OPNsense terminiert TLS f&uuml;r `idm.udp.data-dna.eu` und `portal.udp.data-dna.eu`. Die VM betreibt kein TLS.
-- **HTTP-Port**: Der nginx-Ingress-Controller lauscht auf Port 80 (HTTP). Caddy leitet auf `10.10.10.5:80` weiter.
-- **Kein interner TLS**: Ingress-Ressourcen im `civitas-core`-Namespace erhalten keinen TLS-Block. `ssl-redirect` ist global auf `false` gesetzt.
-- **Caddy-Konfiguration**: Die Konfiguration in `/usr/local/etc/caddy/caddy.d/civitas.data-dna.eu.conf` ist verbindlich:
+- **TLS-Terminierung (bestehend)**: Variante A f&uuml;r `*.data-dna.eu`. Caddy auf OPNsense terminiert TLS f&uuml;r `idm.udp.data-dna.eu` und `portal.udp.data-dna.eu`. Die VM betreibt f&uuml;r diese Domains kein TLS.
+- **TLS-Terminierung (NEU)**: Variante D f&uuml;r `*.udp.projekte-koenig.eu`. HAProxy TCP-Passthrough, TLS wird von nginx in der VM terminiert. cert-manager stellt Let's-Encrypt-Zertifikate per DNS-01 aus.
+- **HTTP-Port (bestehend)**: Der nginx-Ingress-Controller lauscht auf Port 80 (HTTP). Caddy leitet auf `10.10.10.5:80` weiter.
+- **HTTPS-Port (NEU)**: Der nginx-Ingress-Controller lauscht auf Port 443 (HTTPS) f&uuml;r den HAProxy-TCP-Passthrough. nginx terminiert TLS mit cert-manager-Zertifikaten.
+- **Kein interner TLS**: Ingress-Ressourcen in Namespaces erhalten keinen `ssl-redirect`. Der globale `ssl-redirect` im nginx-ConfigMap ist auf `false` gesetzt (bis zur Migration auf HAProxy).
+- **Caddy-Konfiguration (bestehend)**: Die Konfiguration in `/usr/local/etc/caddy/caddy.d/civitas.data-dna.eu.conf` ist verbindlich f&uuml;r `*.data-dna.eu`:
   ```
   idm.udp.data-dna.eu {
       reverse_proxy 10.10.10.5:80 {
@@ -124,12 +159,72 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   Ohne diesen Header lehnt Keycloak HTTPS-Redirects ab (Infinite-Redirect-Loop).
   Betrifft alle Caddy-Blöcke für Hosts unter `udp.data-dna.eu`.
 
-- **Hetzner DNS**: Vor Phase 2 müssen folgende A-Records in der Hetzner-WebGUI
+- **Hetzner DNS (bestehend)**: Vor Phase 2 müssen folgende A-Records in der Hetzner-WebGUI
   manuell angelegt sein (das Skript legt keine DNS-Records an):
   - `udp.data-dna.eu` → OPNsense WAN-IP
   - `idm.udp.data-dna.eu` → OPNsense WAN-IP
   DNS-Records werden nicht automatisiert. Die Prüfung in Phase 0 (Warnung)
   und Phase 2 (harter Abbruch) prüft Auflösbarkeit, nicht die Herkunft des Records.
+- **Neue Domain (geplant)**: F&uuml;r die geplante Migration werden A-Records f&uuml;r
+  `udp.projekte-koenig.eu` und `idm.udp.projekte-koenig.eu` ben&ouml;tigt,
+  ebenfalls zeigend auf die OPNsense WAN-IP (dort &uuml;bernimmt HAProxy das
+  SNI-basierte Routing).
+
+## Geplante Migration: HAProxy + Caddy-Nebeneinander
+
+Die bestehende Architektur (Caddy terminiert TLS f&uuml;r alle Dienste) st&ouml;&szlig;t
+bei CIVITAS/CORE an Grenzen: cc_cli erwartet HTTPS direkt am nginx-Ingress,
+gesunde TLS-Zertifikate in der VM (cert-manager) und einen 200-Statuscode auf
+den Health-Endpunkten. Caddy als vorgeschalteter TLS-Terminator verhindert dies.
+
+### Zielbild
+
+Nach der Migration existieren zwei parallele Proxy-Pfade:
+
+```text
+Port 443 ──→ OPNsense
+                │
+                ├── SNI: *.data-dna.eu
+                │     → Caddy (TLS-Ende) → HTTP → VM:80 → nginx
+                │
+                └── SNI: *.udp.projekte-koenig.eu
+                      → HAProxy (TCP-Passthrough) → VM:443 → nginx (TLS-Ende)
+```
+
+- **Caddy** bleibt f&uuml;r alle bestehenden `*.data-dna.eu`-Dienste zust&auml;ndig
+  (p2d2-Frontend, GeoServer, etc.). Keine &Auml;nderung.
+- **HAProxy** &uuml;bernimmt per SNI-Routing nur die `*.udp.projekte-koenig.eu`-Domains.
+  TCP-Passthrough ohne TLS-Eingriff. Die Zertifikate stellt cert-manager in der VM aus.
+
+### Vorteile der Migration
+
+| Aspekt | Vorher (Caddy-only) | Nachher (Caddy + HAProxy) |
+|---|---|---|
+| TLS f&uuml;r CIVITAS/CORE | Caddy on OPNsense, nur selfsigned in der VM | cert-manager mit Let's Encrypt in der VM |
+| cc_cli-Health-Check | 308 (ssl-redirect) oder 404/302 durch Caddy-Umweg | L&auml;uft sauber durch nginx (TLS direkt) |
+| `ssl-redirect` | ConfigMap-Patch n&ouml;tig | Entf&auml;llt (HTTPS kommt direkt an) |
+| Komplexit&auml;t | Ein Proxy f&uuml;r alle Domains | Zwei Proxys, aber klare Trennung |
+| Domain | `udp.data-dna.eu` | `udp.projekte-koenig.eu` (neu) |
+
+### Voraussetzungen f&uuml;r die Migration
+
+1. DNS-Eintr&auml;ge f&uuml;r `*.udp.projekte-koenig.eu` auf OPNsense WAN-IP setzen
+2. HAProxy auf OPNsense konfigurieren (SNI-Rule f&uuml;r die neue Domain, TCP-Passthrough zu `10.10.10.5:443`)
+3. cert-manager-ClusterIssuer f&uuml;r Let's Encrypt (DNS-01) einrichten
+4. `ssl-redirect` im nginx-ConfigMap wieder auf `true` setzen (optional, f&uuml;r die neue Domain)
+5. cc_cli-Inventory: `inv_checks.enable` wieder auf `true` setzen (Health-Checks funktionieren jetzt)
+6. `DOMAIN` und Inventory-Vorlage auf `udp.projekte-koenig.eu` umstellen
+
+### Risiken der Migration
+
+- HAProxy und Caddy m&uuml;ssen auf demselben Port 43 koexistieren — das SNI-Routing
+  muss vor der Umstellung getestet werden.
+- cert-manager DNS-01-Provider muss konfiguriert und getestet sein
+  (Hetzner DNS-API oder &auml;quivalent).
+- Bestehende `data-dna.eu`-Dienste d&uuml;rfen nicht beeintr&auml;chtigt werden.
+- Ein Rollback auf Caddy-only ist jederzeit m&ouml;glich (DNS zur&uuml;cksetzen).
+
+***
 
 ## Risiken
 
