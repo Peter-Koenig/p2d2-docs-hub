@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-24
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -412,16 +412,17 @@ spec:
 > Issuer ausgetauscht — Festlegung in `netzwerk-dns-tls.md`.
 
 > **nginx-Ingress-Ports**: Der nginx-Ingress-Controller wird mit `hostNetwork=true`
-> als DaemonSet installiert und lauscht auf HTTP-Port 8080. HTTPS (Port 8443)
+> als DaemonSet installiert und lauscht auf HTTP-Port 80 (Standard). HTTPS (Port 443)
 > ist vorhanden, wird aber nicht genutzt (TLS-Terminierung in Caddy auf OPNsense).
-> Relevante Helm-Values:
-> ```
-> controller.hostNetwork=true
-> controller.kind=DaemonSet
-> controller.service.ports.http=8080
-> controller.service.ports.https=8443
-> controller.containerPort.http=8080
-> controller.containerPort.https=8443
+> Der Kubernetes-Service ist deaktiviert (`service.enabled=false`), da mit
+> `hostNetwork=true` der Controller direkt auf dem Host-Netzwerk bindet.
+> Konfiguration im Values-File:
+> ```yaml
+> controller:
+>   hostNetwork: true
+>   kind: DaemonSet
+>   service:
+>     enabled: false
 > ```
 
 ***
@@ -444,9 +445,9 @@ install_civitas() {
   render_inventory            # Schritt 2.3: Inventory in Repo-Verzeichnis rendern
   check_repo_prerequisites    # Schritt 2.4: Schema + Playbook-Struktur prüfen
   run_cc_cli_validate         # Schritt 2.5: aus ${CC_CLI_REPO_PATH}
+  setup_wireguard             # vor cc_cli exec — Health-Check braucht Route
   run_cc_cli_exec             # Schritt 2.6: aus ${CC_CLI_REPO_PATH}
-  patch_ingress_for_external_tls   # Schritt 2.7: ssl-redirect deaktivieren
-  setup_wireguard             # Schritt 2.8: WireGuard-Tunnel
+  patch_ingress_for_external_tls   # nach cc_cli exec — Ingresses werden neu erstellt
   wait_pods_ready "${K8S_NAMESPACE}"  # Schritt 2.9
 }
 ```
@@ -454,32 +455,73 @@ install_civitas() {
 ### Ingress-Patch für externes TLS
 
 Nach `cc_cli exec` werden alle Ingress-Ressourcen im Namespace `${K8S_NAMESPACE}`
-mit der Annotation `nginx.ingress.kubernetes.io/ssl-redirect=false` versehen.
-Damit wird die Weiterleitung von HTTP auf HTTPS im nginx-Ingress deaktiviert,
-da TLS bereits von Caddy auf OPNsense terminiert wird.
+gepatcht: `ssl-redirect=false` und Entfernen der `tls`-Sektion (außer bei
+`backend-protocol: HTTPS`), da TLS ausschließlich von Caddy auf OPNsense
+terminiert wird.
 
 ```bash
 patch_ingress_for_external_tls() {
-  log "Deaktiviere ssl-redirect für alle Ingress-Ressourcen (TLS via Caddy) ..."
+  local namespace="${K8S_NAMESPACE}"
+  log "Patche Ingress-Ressourcen für externes TLS (Caddy) in: ${namespace}"
 
   local ingresses
-  ingresses=$(kubectl get ingress -n "${K8S_NAMESPACE}" \
+  ingresses=$(kubectl get ingress -n "${namespace}" \
     -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || true)
 
   if [[ -z "${ingresses}" ]]; then
-    log_warn "Keine Ingress-Ressourcen in ${K8S_NAMESPACE} gefunden — überspringe Patch"
+    log_warn "Keine Ingress-Ressourcen in ${namespace} — überspringe"
     return 0
   fi
 
   for ingress in ${ingresses}; do
-    kubectl annotate ingress "${ingress}" \
-      -n "${K8S_NAMESPACE}" \
+    # 1. ssl-redirect immer deaktivieren
+    kubectl annotate ingress "${ingress}" -n "${namespace}" \
       nginx.ingress.kubernetes.io/ssl-redirect=false \
       --overwrite
-    log_ok "Ingress ${ingress} — ssl-redirect=false gesetzt"
+    log_ok "Ingress ${ingress}: ssl-redirect=false"
+
+    # 2. tls-Sektion entfernen — außer bei backend-protocol=HTTPS
+    local backend_proto
+    backend_proto=$(kubectl get ingress "${ingress}" -n "${namespace}" \
+      -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/backend-protocol}' \
+      2>/dev/null || true)
+
+    if [[ "${backend_proto}" == "HTTPS" ]]; then
+      log "Ingress ${ingress}: backend-protocol=HTTPS — tls-Sektion bleibt"
+      continue
+    fi
+
+    local has_tls
+    has_tls=$(kubectl get ingress "${ingress}" -n "${namespace}" \
+      -o jsonpath='{.spec.tls}' 2>/dev/null || true)
+
+    if [[ -n "${has_tls}" && "${has_tls}" != "[]" ]]; then
+      kubectl patch ingress "${ingress}" -n "${namespace}" \
+        --type=json \
+        -p='[{"op":"remove","path":"/spec/tls"}]' \
+        && log_ok "Ingress ${ingress}: tls-Sektion entfernt" \
+        || log_warn "Ingress ${ingress}: tls-Sektion konnte nicht entfernt werden"
+    fi
   done
 }
 ```
+
+> **Warum `tls`-Sektion entfernen?** Auch mit `ssl-redirect=false` antwortet
+> nginx bei vorhandener `tls`-Sektion auf HTTP mit HTTP 308, wenn der
+> nginx-Ingress intern TLS terminieren will. Da TLS ausschließlich von Caddy
+> auf OPNsense terminiert wird und der nginx-Ingress nur HTTP intern sieht,
+> muss die `tls`-Sektion aus allen Ingress-Ressourcen entfernt werden.
+> Ausnahme: Ingresses mit `nginx.ingress.kubernetes.io/backend-protocol: HTTPS`
+> (z.B. Keycloak) behalten ihre `tls`-Sektion, da der Backend-Pod selbst HTTPS
+> erwartet.
+
+> **Hinweis WireGuard-Reihenfolge**: `setup_wireguard` wird vor `run_cc_cli_exec`
+> aufgerufen. Die Ansible-Health-Checks am Ende des Playbooks rufen die
+> externen Endpunkte (`https://udp.data-dna.eu/`) ab. Ohne WireGuard-Tunnel
+> hat die VM keine Route zu OPNsense und die Health-Checks scheitern mit
+> Timeout. `patch_ingress_for_external_tls` wird nach `run_cc_cli_exec`
+> aufgerufen, da cc_cli die Ingress-Ressourcen bei jedem Lauf neu anlegt
+> und dabei `ssl-redirect=true` sowie eine `tls`-Sektion setzt.
 
 ### cc-cli-Installation aus GitLab Package Registry
 
@@ -498,6 +540,35 @@ Debian 13 (Trixie) aktiviert PEP 668 (`externally-managed-environment`),
 daher erfolgt die Installation in einem isolierten Virtual Environment
 unter `${CC_CLI_VENV_PATH}`. Alle cc_cli-Aufrufe in Phase 2 nutzen
 den venv-Pfad.
+
+**Pflichtpakete im venv** (`${CC_CLI_VENV_PATH}`):
+
+```
+cc-cli==1.5.0            # via GitLab Package Registry
+ansible==10.6.0          # Ansible-Core + Collection-Paket
+kubernetes               # Python-Client für k8s-Ansible-Module
+```
+
+`install_cc_cli()` installiert alle drei Pakete in einem einzigen pip-Aufruf:
+
+```bash
+"${CC_CLI_VENV_PATH}/bin/pip" install \
+  --index-url "${CC_CLI_REGISTRY_URL}" \
+  "cc-cli==${CC_CLI_VERSION}" \
+  "ansible==10.6.0" \
+  kubernetes
+```
+
+Anschließend werden Symlinks gesetzt, damit `ansible` und `ansible-playbook`
+im PATH liegen (cc_cli ruft sie ohne venv-Prefix auf):
+
+```bash
+ln -sf "${CC_CLI_VENV_PATH}/bin/ansible"          /usr/local/bin/ansible
+ln -sf "${CC_CLI_VENV_PATH}/bin/ansible-playbook" /usr/local/bin/ansible-playbook
+ln -sf "${CC_CLI_VENV_PATH}/bin/ansible-galaxy"   /usr/local/bin/ansible-galaxy
+```
+
+Idempotenz: Symlinks werden mit `-sf` gesetzt (überschreiben bestehende Links).
 
 ### Inventory aus Template
 
@@ -592,6 +663,17 @@ Der Symlink `/opt/civitas-core` zeigt auf das aktuell aktive
 CIVITAS/CORE-Repository. Aktuell zeigt er auf `/opt/civitas-core-v1`
 (V1). Bei einem zukünftigen Wechsel auf V2 wird der Symlink auf
 `/opt/civitas-core-v2` umgebogen.
+
+### Bekannte Stolperfallen
+
+| Symptom | Ursache | Fix |
+|---|---|---|
+| `context "k3s" not found` | `inv_k8s.config.context: "k3s"` im Inventory | Wert auf `"default"` setzen (siehe cc-cli-inventar.md) |
+| `HTTP 308` auf allen Endpunkten | `spec.tls` im Ingress vorhanden trotz `ssl-redirect=false` | `patch_ingress_for_external_tls()` entfernt `tls`-Sektion |
+| `ModuleNotFoundError: kubernetes` im Ansible-Lauf | `kubernetes`-Pip-Paket fehlt im venv | In `install_cc_cli()` zusammen mit `ansible` installieren |
+| Health-Check Timeout für externe URLs | WireGuard nicht aktiv vor `cc_cli exec` | `setup_wireguard` vor `run_cc_cli_exec` aufrufen |
+| `Velero: access_key is required` in cc_cli validate | `velero.enable: true` mit leeren Credentials | Template-Default: `velero.enable: false` |
+| `kubeconfig not found: ./config` | `kubeconfig_file: config` sucht relativ zum CWD | `cc_cli exec` ausschließlich aus `${CC_CLI_REPO_PATH}` aufrufen — ist bereits so spezifiziert |
 
 ***
 
@@ -817,7 +899,7 @@ Commits folgen dem Conventional-Commits-Format auf Englisch:
 5. `set -euo pipefail` und `trap ERR` sind verbindlich für den gesamten
    Ausführungskontext.
 6. Die Inventory-Datei `cc_cli_inventory.yml` wird aus `templates/inventory.yml.tpl` erzeugt und nach
-   der Ausführung gelöscht (Trap löscht `${CC_CLI_WORKDIR}`).
+   der Ausführung gelöscht (Trap löscht `${CONFIG_YAML_PATH}` im Playbook-Verzeichnis).
 7. Das Verifikationsmodul führt alle Abnahmetests erneut aus und gibt
    einen eindeutigen Exit-Code zurück (0 = Erfolg, 1 = Fehler).
 8. Alle Versionen werden beim Skriptbau gepinnt. Automatische Upgrades
