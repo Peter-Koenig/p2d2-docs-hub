@@ -170,12 +170,70 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   ebenfalls zeigend auf die OPNsense WAN-IP (dort &uuml;bernimmt HAProxy das
   SNI-basierte Routing).
 
+## Problem: Caddy-TLS-Terminierung blockiert Ingress-Zertifikate
+
+### Ursache
+
+Die aktuelle Architektur terminiert TLS auf OPNsense (Caddy) und leitet
+Nur-HTTP an den nginx-Ingress in der VM weiter. Dadurch entsteht eine
+Reihe von Folgeproblemen:
+
+**1. nginx sieht nie HTTPS.**  
+Der nginx-Ingress-Controller empfängt ausschließlich HTTP auf Port 80.
+Selbst wenn cert-manager ein gültiges Let's-Encrypt-Zertifikat f&uuml;r
+einen Ingress-Hostnamen ausstellt, kann nginx es nicht pr&auml;sentieren
+— der externe Traffic kommt bereits als HTTP an. Die Ingress-Ressource
+hat zwar eine `tls`-Sektion, aber der TLS-Handshake findet nie statt.
+
+**2. nginx erzwingt 308-Redirect.**  
+Da die Ingress-Ressource eine `tls`-Sektion enth&auml;lt, erwartet nginx
+eigentlich HTTPS. Trifft die Anfrage als HTTP ein (weil Caddy TLS bereits
+terminiert hat), sendet nginx einen HTTP-308-Redirect auf `https://...`
+zur&uuml;ck. Caddy empf&auml;ngt den 308 und kann ihn nicht sinnvoll
+verarbeiten, da der Backend-Proxy nur HTTP spricht — es entsteht eine
+Endlosschleife. Der Workaround (`ssl-redirect=false` im nginx-ConfigMap)
+unterdr&uuml;ckt den Redirect, heilt aber nicht die Ursache.
+
+**3. cc_cli-Health-Checks scheitern.**  
+Die von cc_cli deployten Komponenten (Keycloak, Portal) pr&uuml;fen ihre
+Erreichbarkeit &uuml;ber die produktive URL (`https://idm.udp.data-dna.eu/`).
+Der Request geht durch Caddy (TLS → HTTP) zu nginx. nginx routet zur
+Keycloak-Service, Keycloak antwortet mit 302 (Redirect auf `/admin/`).
+Der erwartete Statuscode 200 wird nie erreicht, der Deployment-Wait
+l&auml;uft ins Leere und muss durch Timeout abgebrochen werden.
+
+**4. Kein g&uuml;ltiges TLS-Zertifikat in der VM.**  
+Da der externe Traffic nie als HTTPS ankommt, kann cert-manager kein
+Let's-Encrypt-Zertifikat per HTTP-01-Challenge ausstellen. Es bleiben
+nur selfsigned-Zertifikate, die von Browsern und externen Diensten
+nicht akzeptiert werden.
+
+### L&ouml;sung: HAProxy TCP-Passthrough
+
+Der HAProxy TCP-Passthrough leitet den TLS-Handshake 1:1 an den
+nginx-Ingress weiter. nginx f&uuml;hrt den TLS-Handshake selbst durch
+und kann das von cert-manager ausgestellte Let's-Encrypt-Zertifikat
+pr&auml;sentieren:
+
+- Der 308-Redirect entf&auml;llt, da nginx das TLS-Terminierung selbst
+  vornimmt und die Anfrage korrekt als HTTPS behandelt.
+- cc_cli-Health-Checks erhalten HTTP-200 (statt 302/308), da der Pfad
+  &uuml;ber nginx direkt zur Ziel-Komponente f&uuml;hrt.
+- cert-manager kann Let's-Encrypt-Zertifikate per DNS-01-Challenge
+  ausstellen (kein HTTP-01 n&ouml;tig, da der Ingress hinter HAProxy
+  nicht direkt aus dem Internet erreichbar sein muss).
+- Der ConfigMap-Patch `ssl-redirect=false` kann entfallen, da nginx
+  HTTPS korrekt handhabt.
+
+Die Migration auf HAProxy-TCP-Passthrough betrifft ausschlie&szlig;lich
+die CIVITAS/CORE-Domains (`*.udp.projekte-koenig.eu`). Die bestehenden
+`*.data-dna.eu`-Dienste bleiben unver&auml;ndert unter Caddy.
+
 ## Geplante Migration: HAProxy + Caddy-Nebeneinander
 
-Die bestehende Architektur (Caddy terminiert TLS f&uuml;r alle Dienste) st&ouml;&szlig;t
-bei CIVITAS/CORE an Grenzen: cc_cli erwartet HTTPS direkt am nginx-Ingress,
-gesunde TLS-Zertifikate in der VM (cert-manager) und einen 200-Statuscode auf
-den Health-Endpunkten. Caddy als vorgeschalteter TLS-Terminator verhindert dies.
+Die Migration f&uuml;hrt die HAProxy-TCP-L&ouml;sung f&uuml;r die
+CIVITAS/CORE-Endpunkte ein. Caddy bleibt parallel f&uuml;r alle
+bestehenden `*.data-dna.eu`-Dienste erhalten.
 
 ### Zielbild
 
