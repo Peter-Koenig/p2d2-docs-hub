@@ -248,7 +248,7 @@ all:
           addons: []
 
         inv_checks:
-          enable: false
+          enable: true
           api:
             default_max_retries: 20
           deployment:
@@ -314,15 +314,15 @@ all:
    gesetzt und nicht leer sind. Die Prüfung erfolgt in `render_inventory()`
    vor dem sed-Schritt. Solange ein Feld fehlt oder den Wert `""` hat,
    bleibt `velero.enable: false` im gerenderten Inventory.
-9. **Health-Checks deaktiviert**: `inv_checks.enable` ist auf `false`
+9. **Health-Checks aktiviert**: `inv_checks.enable` ist auf `true`
    gesetzt. Der in `cc_cli exec` integrierte Ansible-Health-Check ruft die
-   externen Endpunkte (`https://udp.data-dna.eu/`) auf. Da TLS ausschließlich
-   von Caddy auf OPNsense terminiert wird und der nginx-Ingress in der VM
-   die Anfragen ohne TLS-Sektion und mit `ssl-redirect=false` erhält, würde
-   der Health-Check mit HTTP 308 scheitern. Die Verifikation der Plattform
-   erfolgt in Phase 3 des Installationsskripts (siehe `07_verify.sh`).
-   Sobald `cc_cli` einen konfigurierbaren `accepted_status_codes`-Parameter
-   unterstützt, kann die Prüfung reaktiviert werden.
+   externen Endpunkte (`https://idm.${DOMAIN}/`) auf. Dank der HAProxy-
+   TCP-Passthrough-Architektur terminiert nginx in der VM das TLS selbst
+   und routet korrekt zum Ziel-Service (HTTP 200). Der frühere Workaround
+   (ssl-redirect=false, tls-Sektion entfernen) entfällt.
+   Voraussetzung: Das Root-CA-Cert (Variante C, self-signed-CA) muss im
+   certifi-Bundle des venv eingetragen sein (Schritt 1.5d), sonst scheitern
+   die HTTPS-Health-Checks mit `CERTIFICATE_VERIFY_FAILED`.
 
 ## Festlegungen
 
