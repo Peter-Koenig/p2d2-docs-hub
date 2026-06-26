@@ -489,8 +489,9 @@ Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
 > ebenfalls nur bei Bedarf ergänzt (Prüfung via `grep "civitas-core-ca"`).
 
 > **nginx-Ingress-Ports**: Der nginx-Ingress-Controller wird mit `hostNetwork=true`
-> als DaemonSet installiert und lauscht auf HTTP-Port 80 (Standard). HTTPS (Port 443)
-> ist vorhanden, wird aber nicht genutzt (TLS-Terminierung in Caddy auf OPNsense).
+> als DaemonSet installiert und lauscht auf HTTP-Port 80 und HTTPS-Port 443. Port 443
+> wird für den HAProxy-TCP-Passthrough genutzt: nginx terminiert TLS mit
+> cert-manager-Zertifikaten (siehe netzwerk-dns-tls.md, Variante D).
 > Der Kubernetes-Service ist deaktiviert (`service.enabled=false`), da mit
 > `hostNetwork=true` der Controller direkt auf dem Host-Netzwerk bindet.
 > Konfiguration im Values-File:
@@ -524,81 +525,39 @@ install_civitas() {
   run_cc_cli_validate         # Schritt 2.5: aus ${CC_CLI_REPO_PATH}
   setup_wireguard             # vor cc_cli exec — Health-Check braucht Route
   run_cc_cli_exec             # Schritt 2.6: aus ${CC_CLI_REPO_PATH}
-  patch_ingress_for_external_tls   # nach cc_cli exec — Ingresses werden neu erstellt
   wait_pods_ready "${K8S_NAMESPACE}"  # Schritt 2.9
 }
 ```
 
-### Ingress-Patch für externes TLS
+### TLS-Terminierung in der VM (HAProxy-TCP-Passthrough)
 
-Nach `cc_cli exec` werden alle Ingress-Ressourcen im Namespace `${K8S_NAMESPACE}`
-gepatcht: `ssl-redirect=false` und Entfernen der `tls`-Sektion (außer bei
-`backend-protocol: HTTPS`), da TLS ausschließlich von Caddy auf OPNsense
-terminiert wird.
+Die TLS-Terminierung erfolgt in der VM durch nginx, nicht mehr durch Caddy
+auf OPNsense. Der HAProxy auf OPNsense leitet den TLS-Handshake per
+TCP-Passthrough (Layer 4) 1:1 an `10.10.10.5:443` weiter. nginx terminiert
+TLS mit Zertifikaten von cert-manager.
 
-```bash
-patch_ingress_for_external_tls() {
-  local namespace="${K8S_NAMESPACE}"
-  log "Patche Ingress-Ressourcen für externes TLS (Caddy) in: ${namespace}"
+Daraus ergeben sich folgende Konsequenzen für das Skript:
 
-  local ingresses
-  ingresses=$(kubectl get ingress -n "${namespace}" \
-    -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || true)
+1. **Kein Ingress-Patch erforderlich.** Die `tls`-Sektion in Ingress-Ressourcen
+   bleibt erhalten – nginx benötigt sie zur TLS-Terminierung. Die Annotation
+   `ssl-redirect=true` (Helm-Default) ist korrekt.
+2. **`configure_nginx_ssl_redirect_off()` entfällt.** Der globale `ssl-redirect`
+   im nginx-ConfigMap bleibt auf `true`. Anders als in der Caddy-Architektur
+   kommt HTTPS direkt an nginx an – ein Redirect von HTTP auf HTTPS ist
+   erwünscht.
+3. **`inv_checks.enable: true`** im Inventory-Template. Die Ansible-Health-Checks
+   durchlaufen den Pfad VM → WireGuard → OPNsense → HAProxy → TCP-Passthrough
+   → VM:443 → nginx (TLS) → Service und erhalten HTTP 200.
+4. **CA-Trust erforderlich.** Da cert-manager self-signed-CA-Zertifikate
+   ausstellt (Variante C), muss das Root-CA-Cert im certifi-Bundle des
+   venv eingetragen sein (Schritt 1.5d). Andernfalls scheitern die
+   HTTPS-Health-Checks mit `CERTIFICATE_VERIFY_FAILED`.
 
-  if [[ -z "${ingresses}" ]]; then
-    log_warn "Keine Ingress-Ressourcen in ${namespace} — überspringe"
-    return 0
-  fi
-
-  for ingress in ${ingresses}; do
-    # 1. ssl-redirect immer deaktivieren
-    kubectl annotate ingress "${ingress}" -n "${namespace}" \
-      nginx.ingress.kubernetes.io/ssl-redirect=false \
-      --overwrite
-    log_ok "Ingress ${ingress}: ssl-redirect=false"
-
-    # 2. tls-Sektion entfernen — außer bei backend-protocol=HTTPS
-    local backend_proto
-    backend_proto=$(kubectl get ingress "${ingress}" -n "${namespace}" \
-      -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/backend-protocol}' \
-      2>/dev/null || true)
-
-    if [[ "${backend_proto}" == "HTTPS" ]]; then
-      log "Ingress ${ingress}: backend-protocol=HTTPS — tls-Sektion bleibt"
-      continue
-    fi
-
-    local has_tls
-    has_tls=$(kubectl get ingress "${ingress}" -n "${namespace}" \
-      -o jsonpath='{.spec.tls}' 2>/dev/null || true)
-
-    if [[ -n "${has_tls}" && "${has_tls}" != "[]" ]]; then
-      kubectl patch ingress "${ingress}" -n "${namespace}" \
-        --type=json \
-        -p='[{"op":"remove","path":"/spec/tls"}]' \
-        && log_ok "Ingress ${ingress}: tls-Sektion entfernt" \
-        || log_warn "Ingress ${ingress}: tls-Sektion konnte nicht entfernt werden"
-    fi
-  done
-}
-```
-
-> **Warum `tls`-Sektion entfernen?** Auch mit `ssl-redirect=false` antwortet
-> nginx bei vorhandener `tls`-Sektion auf HTTP mit HTTP 308, wenn der
-> nginx-Ingress intern TLS terminieren will. Da TLS ausschließlich von Caddy
-> auf OPNsense terminiert wird und der nginx-Ingress nur HTTP intern sieht,
-> muss die `tls`-Sektion aus allen Ingress-Ressourcen entfernt werden.
-> Ausnahme: Ingresses mit `nginx.ingress.kubernetes.io/backend-protocol: HTTPS`
-> (z.B. Keycloak) behalten ihre `tls`-Sektion, da der Backend-Pod selbst HTTPS
-> erwartet.
-
-> **Hinweis WireGuard-Reihenfolge**: `setup_wireguard` wird vor `run_cc_cli_exec`
-> aufgerufen. Die Ansible-Health-Checks am Ende des Playbooks rufen die
-> externen Endpunkte (`https://udp.data-dna.eu/`) ab. Ohne WireGuard-Tunnel
-> hat die VM keine Route zu OPNsense und die Health-Checks scheitern mit
-> Timeout. `patch_ingress_for_external_tls` wird nach `run_cc_cli_exec`
-> aufgerufen, da cc_cli die Ingress-Ressourcen bei jedem Lauf neu anlegt
-> und dabei `ssl-redirect=true` sowie eine `tls`-Sektion setzt.
+> **Hinweis WireGuard-Reihenfolge**: `setup_wireguard` wird vor
+> `run_cc_cli_exec` aufgerufen. Die Ansible-Health-Checks am Ende des
+> Playbooks rufen die externen Endpunkte (`https://idm.${DOMAIN}/`) auf.
+> Ohne WireGuard-Tunnel hat die VM keine Route zu OPNsense und die
+> Health-Checks scheitern mit Timeout.
 
 ### cc-cli-Installation aus GitLab Package Registry
 

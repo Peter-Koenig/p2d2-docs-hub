@@ -338,7 +338,6 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | `cc_cli exec` ausführen | Exit-Code 0 |
-| 2.4d | Ingress-Patch: `ssl-redirect=false` + `tls`-Sektion entfernen (nach cc_cli exec) | Annotation `ssl-redirect=false` + `kubectl get ingress -o jsonpath='{.spec.tls}'` leer |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
@@ -354,21 +353,21 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > muss nicht per `source activate` aktiviert werden. Das certifi-Bundle
 > jedoch muss das CA-Cert enthalten.
 
-> **Hinweis TLS**: Nach `cc_cli exec` (Schritt 2.4c) werden alle
-> Ingress-Ressourcen im Namespace `${K8S_NAMESPACE}` gepatcht:
-> (1) Annotation `nginx.ingress.kubernetes.io/ssl-redirect: "false"` wird gesetzt,
-> (2) die `spec.tls`-Sektion wird entfernt (außer bei Ingresses mit
-> `backend-protocol: HTTPS`). Ohne Entfernen der `tls`-Sektion antwortet
-> nginx mit HTTP 308 auch bei gesetztem `ssl-redirect=false`.
+> **Hinweis TLS (HAProxy-Architektur)**: Der HAProxy auf OPNsense leitet
+> TLS-Verbindungen f&uuml;r `*.udp.scanea.eu` per TCP-Passthrough (Layer&thinsp;4)
+> direkt an `10.10.10.5:443` weiter. nginx in der VM terminiert TLS
+> selbstst&auml;ndig mit Zertifikaten von cert-manager. Der globale
+> `ssl-redirect=true` (Helm-Default) ist korrekt und erw&uuml;nscht.
+> Anders als in der fr&uuml;heren Caddy-Architektur wird kein Ingress-Patch
+> mehr ben&ouml;tigt &ndash; die `tls`-Sektion in Ingress-Ressourcen bleibt erhalten
+> und wird von nginx zur TLS-Terminierung verwendet.
 >
 > **Ansible-Health-Checks**: Die integrierten Health-Checks von cc_cli
-> (`inv_checks`) sind im Inventory-Template deaktiviert (`enable: false`).
-> Grund: Die Health-Checks rufen externe URLs (`https://udp.data-dna.eu/`)
-> auf, die über Caddy auf OPNsense zurück in die VM geleitet werden.
-> Da Caddy TLS terminiert und nginx nur HTTP sieht, antwortet nginx bei
-> vorhandener `tls`-Sektion mit HTTP 308 — der Check scheitert, obwohl
-> die Plattform korrekt läuft. Die eigentliche Verifikation erfolgt in
-> Phase 3 nach dem Ingress-Patch.
+> (`inv_checks`) sind im Inventory-Template auf `enable: true` gesetzt.
+> Die Checks rufen die externen URLs (`https://idm.udp.scanea.eu/`) auf.
+> Der Pfad f&uuml;hrt vom venv in der VM &uuml;ber WireGuard &rarr; OPNsense &rarr; HAProxy
+> &rarr; TCP-Passthrough zur&uuml;ck zur VM:443 &rarr; nginx (TLS-Ende) &rarr; Service.
+> nginx antwortet mit HTTP&thinsp;200, da TLS korrekt terminiert wird.
 
 
 
@@ -428,16 +427,17 @@ kubectl get ingress -n civitas-core
 kubectl get certificate -n civitas-core
 # Erwartung: READY = True für alle Zertifikate
 
-# Hinweis: TLS wird von Caddy auf OPNsense terminiert.
-# Die VM hat keinen direkten HTTPS-Zugang zu den öffentlichen Hostnamen.
-# Die Erreichbarkeit wird intern gegen den nginx-Ingress auf Port 80 geprüft.
+# Hinweis: TLS wird von nginx in der VM terminiert (HAProxy-TCP-Passthrough,
+# siehe netzwerk-dns-tls.md, Variante D). Die VM hat direkten HTTPS-Zugang.
+# Der interne HTTP-Test bleibt als schnelle Prüfung erhalten; für den vollen
+# TLS-Pfad ist ein externer Test (via OPNsense) erforderlich.
 
-# Keycloak intern erreichbar (HTTP via localhost:8080 mit Host-Header)
+# Keycloak intern erreichbar (HTTP via localhost:80 mit Host-Header)
 curl -sf -H "Host: idm.$DOMAIN" http://localhost:80/health
 # Erwartung: HTTP 200 oder Keycloak-Begrüßungsseite
 
 # Service Portal intern erreichbar (kein Subdomain-Präfix)
-curl -sf -H "Host: udp.data-dna.eu" http://localhost:80/
+curl -sf -H "Host: $DOMAIN" http://localhost:80/
 # Erwartung: HTTP 200 oder Redirect auf Login
 
 # WireGuard-Tunnel aktiv
