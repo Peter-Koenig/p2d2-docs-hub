@@ -522,11 +522,11 @@ protokolliert.
 
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
-| Gast-OS | **Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code | durch Code festgelegt |
-| Domainname: `civitas.data-dna.eu` oder anderer Vorschlag? | Offen | Peter König |
-| TLS-Strategie: self-signed ClusterIssuer oder interne CA? | Offen | netzwerk-dns-tls.md |
-| Ziel-Namespace für CIVITAS/CORE | Vorschlag: `civitas-core` | Bestätigung Peter König |
-| cc-cli-Version (Pinning) | **Gepinnt auf `1.5.0`** in `01_config.sh` | durch Code festgelegt |
+| ~~Gast-OS~~ | ~~**Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code~~ | ~~durch Code festgelegt~~ |
+| ~~Domainname: `civitas.data-dna.eu` oder anderer Vorschlag?~~ | ~~Offen~~ → **Geklärt: `udp.scanea.eu`** | ~~Peter König~~ → durch Code in `01_config.sh` festgelegt |
+| ~~TLS-Strategie: self-signed ClusterIssuer oder interne CA?~~ | ~~Offen~~ → **Geklärt: 3-stufiges CA-Setup (Variante C)** | ~~netzwerk-dns-tls.md~~ → `netzwerk-dns-tls.md` (Variante C) |
+| ~~Ziel-Namespace für CIVITAS/CORE~~ | ~~Vorschlag: `civitas-core`~~ | ~~Bestätigung Peter König~~ → **Bestätigt** |
+| ~~cc-cli-Version (Pinning)~~ | ~~**Gepinnt auf `1.5.0`** in `01_config.sh`~~ | ~~durch Code festgelegt~~ |
 
 | `servicelb` und `metrics-server`: deaktivieren oder aktiv lassen? | Offen | skriptarchitektur.md |
 
