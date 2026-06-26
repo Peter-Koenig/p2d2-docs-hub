@@ -397,6 +397,51 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 
 
 
+### TLS-Zertifikatskette und Issuer-Rollen
+
+Die TLS-Zertifikatskette in der CIVITAS/CORE-VM folgt einem dreistufigen Modell:
+
+| Stufe | Ressource | Rolle |
+|---|---|---|
+| 1 | `ClusterIssuer` `civitas-bootstrap-selfsigned` (`spec.selfSigned: {}`) | Erzeugt die Root-CA. Dient nur zur Signatur des Root-CA-Zertifikats, nicht für Anwendungszertifikate. |
+| 2 | `Certificate` `civitas-core-ca` (Namespace `cert-manager`) | Root-CA mit nicht-leerem Issuer-DN (`CN=civitas-core-ca`, `O=civitas-core`, `C=DE`). Liegt als `Secret` `civitas-core-ca-secret` vor. |
+| 3 | `ClusterIssuer` `selfsigned-issuer` (`spec.ca.secretName: civitas-core-ca-secret`) | Produktiver CA-Issuer. Signiert alle Anwendungszertifikate (Keycloak, Portal). |
+
+Zusätzlich wird langfristig ein dedizierter CA-ClusterIssuer mit aussagekräftigem Namen empfohlen:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: civitas-core-ca-issuer
+spec:
+  ca:
+    secretName: civitas-core-ca-secret
+```
+
+Dieser Issuer kann im Inventory unter `cert_manager.issuer_name` referenziert werden und macht die Rollentrennung explizit: `selfsigned-issuer` bleibt als Alias erhalten, aber neue Installationen sollten `civitas-core-ca-issuer` verwenden.
+
+**Wichtig:** Ein `Certificate` im Namespace `cc-prd-access-stack` (z. B. für Keycloak) muss in seinem `issuerRef` den CA-Issuer referenzieren, nicht den Bootstrap-Issuer:
+
+```yaml
+# Korrekt: Anwendungszertifikat mit CA-Issuer
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: idm.udp.scanea.eu-tls
+  namespace: cc-prd-access-stack
+spec:
+  secretName: idm.udp.scanea.eu-tls
+  commonName: idm.udp.scanea.eu
+  dnsNames:
+    - idm.udp.scanea.eu
+  issuerRef:
+    name: civitas-core-ca-issuer   # oder selfsigned-issuer (CA-Typ)
+    kind: ClusterIssuer
+```
+
+Wird stattdessen fälschlich der Bootstrap-Issuer referenziert, signiert cert-manager das Zertifikat ohne CA-Bezug – der TLS-Handshake scheitert mit `unknown CA`.
+
 ### Konfigurationsvariablen (Pflichtfelder)
 
 Alle Variablen werden im Konfigurationsmodul des Skripts externalisiert.
@@ -416,7 +461,7 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `CC_V1_REPO_BRANCH` | Git-Branch | `main` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
 | `ADMIN_EMAIL` | Initiale Admin-E-Mail | `admin@data-dna.eu` |
-| `K8S_NAMESPACE` | Ziel-Namespace | `civitas-core` |
+| `CERT_MANAGER_ISSUER` | ClusterIssuer-Name für Anwendungszertifikate | `civitas-core-ca-issuer` (CA-Typ) |
 
 
 > **Hinweis SMTP**: Für Keycloak (Bestandteil von CIVITAS/CORE V2) ist
@@ -436,34 +481,36 @@ dig +short idm.$DOMAIN
 dig +short portal.$DOMAIN
 # Erwartung: jeweils eine IP-Adresse
 
-# Namespace vorhanden
-kubectl get namespace civitas-core
-# Erwartung: Status "Active"
+# Namespace-Prüfung über das K8S_NAMESPACES-Array
+for ns in "${K8S_NAMESPACES[@]}"; do
+  kubectl get namespace "$ns"
+done
+# Erwartung: alle drei Namespaces "Active"
 
-# Pods der Plattform (nach kubectl wait)
-kubectl get pods -n civitas-core
-# Erwartung: Alle Pods "Running", kein "Error" / "CrashLoopBackOff"
+# TLS-Zertifikate pro Namespace prüfen
+for ns in "${K8S_NAMESPACES[@]}"; do
+  kubectl get certificate -n "$ns"
+done
+# Erwartung: READY=True für alle Zertifikate, issuerRef zeigt auf CA-Issuer
 
-# Ingress-Ressourcen
-kubectl get ingress -n civitas-core
-# Erwartung: Einträge für idm.$DOMAIN und portal.$DOMAIN
+# IssuerRef-Konsistenz prüfen (Certificates müssen CA-Issuer referenzieren)
+for ns in "${K8S_NAMESPACES[@]}"; do
+  kubectl get certificate -n "$ns" \
+    -o jsonpath='{range .items[*]}{.metadata.name}{" → "}{.spec.issuerRef.name}{"\n"}{end}'
+done
+# Erwartung: issuerRef.name = selfsigned-issuer oder civitas-core-ca-issuer
+#            NICHT: civitas-bootstrap-selfsigned
 
-# TLS-Zertifikate
-kubectl get certificate -n civitas-core
-# Erwartung: READY = True für alle Zertifikate
+# TLS-Endpunkt-Prüfung (HTTPS via HAProxy-Passthrough, --cacert prüft CA-Trust)
+curl -sf --max-time 10 \
+  --cacert /usr/local/share/ca-certificates/civitas-core-ca.crt \
+  "https://idm.${DOMAIN}/realms/master"
+# Erwartung: HTTP 200 oder Keycloak-Response, KEIN "unknown CA" / "self-signed certificate"
 
-# Hinweis: TLS wird von nginx in der VM terminiert (HAProxy-TCP-Passthrough,
-# siehe netzwerk-dns-tls.md, Variante D). Die VM hat direkten HTTPS-Zugang.
-# Der interne HTTP-Test bleibt als schnelle Prüfung erhalten; für den vollen
-# TLS-Pfad ist ein externer Test (via OPNsense) erforderlich.
-
-# Keycloak intern erreichbar (HTTP via localhost:80 mit Host-Header)
-curl -sf -H "Host: idm.$DOMAIN" http://localhost:80/health
-# Erwartung: HTTP 200 oder Keycloak-Begrüßungsseite
-
-# Service Portal intern erreichbar (kein Subdomain-Präfix)
-curl -sf -H "Host: $DOMAIN" http://localhost:80/
-# Erwartung: HTTP 200 oder Redirect auf Login
+curl -sf --max-time 10 \
+  --cacert /usr/local/share/ca-certificates/civitas-core-ca.crt \
+  "https://${DOMAIN}/"
+# Erwartung: HTTP 200 oder Redirect, KEIN "unknown CA"
 
 # WireGuard-Tunnel aktiv
 systemctl is-active wg-quick@wg0
@@ -474,11 +521,17 @@ ping -c2 10.10.10.1
 # Erwartung: 0% packet loss
 ```
 
-
+> **Fehleranalyse bei `unknown CA`:** Tritt dieser Fehler bei `curl --cacert` auf,
+> ist das präsentierte Zertifikat nicht von der erwarteten Root-CA signiert.
+> Maßnahme: `kubectl describe certificate -n <namespace>` ausführen und den
+> `issuerRef` prüfen. Zeigt er auf `civitas-bootstrap-selfsigned` (Stufe 1),
+> muss das Certificate gelöscht werden (cert-manager stellt es mit dem
+> aktuellen Issuer neu aus). Zeigt er auf `selfsigned-issuer` (Stufe 3),
+> prüfen ob dieser Issuer vom Typ `ca:` ist (nicht `selfSigned:`).
 
 > **Abnahme Phase 2 (Zielzustand)**: Phase 2 gilt als bestanden, wenn alle
-> Pods laufen, Ingress-Ressourcen vorhanden sind, TLS-Zertifikate ausgestellt
-> wurden und beide Endpunkte intern per HTTP erreichbar sind.
+> Pods laufen, TLS-Zertifikate von der Root-CA signiert sind und beide
+> Endpunkte per HTTPS mit `--cacert civitas-core-ca.crt` erreichbar sind.
 > **Hinweis:** Phase 2.0 (Repository-Klon) muss vor Phase 2 abgeschlossen sein.
 > Ohne das geklonte Repository in `/opt/civitas-core-v1` scheitert Schritt 2.4
 > mit `Could not find any playbook to execute.`.
@@ -498,8 +551,9 @@ erzeugt einen zusammenfassenden Bericht.
 ```
 verify_phase1()   → Prüft alle Phase-1-Kriterien, zählt Fehler
 verify_phase2()   → Iteriert über K8S_NAMESPACES, prüft pro Namespace:
-                     Existenz, Pods, Ingress-Ressourcen, TLS-Zertifikate
-                   → Domain-Level-Checks: Keycloak, Portal (HTTPS)
+                     Existenz, Pods, Ingress-Ressourcen, TLS-Zertifikate,
+                     IssuerRef-Konsistenz (kein Bootstrap-Issuer)
+                   → Domain-Level-Checks: Keycloak, Portal (HTTPS mit --cacert)
                    → Infrastruktur: WireGuard-Tunnel, OPNsense-Konnektivität
 report_result()   → Gibt Zusammenfassung aus (OK / FAILED + Fehlercount)
 exit_with_code()  → Exit 0 bei Erfolg, Exit 1 bei ≥ 1 Fehler
@@ -538,6 +592,18 @@ Ergebnis: 13/13 Prüfungen bestanden. Installation erfolgreich.
 >   fi
 > done
 > ```
+>
+> **TLS-Endpunkt-Prüfung in Phase 3:** Ein TLS-Endpunkt gilt nur als „OK",
+> wenn `curl --cacert /usr/local/share/ca-certificates/civitas-core-ca.crt
+> https://<domain>/` ohne `unknown CA` oder `self-signed certificate`
+> durchläuft. Schlägt diese Prüfung fehl, ist im entsprechenden Namespace
+> der `issuerRef` des Certificate-Objekts zu prüfen:
+> ```bash
+> kubectl describe certificate -n cc-prd-access-stack idm.udp.scanea.eu-tls
+> ```
+> Erwartet wird ein `issuerRef.name`, der auf den CA-ClusterIssuer zeigt
+> (`selfsigned-issuer` oder `civitas-core-ca-issuer`), nicht auf den
+> Bootstrap-Issuer `civitas-bootstrap-selfsigned`.
 
 ***
 

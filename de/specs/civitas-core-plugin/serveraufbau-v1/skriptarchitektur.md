@@ -792,6 +792,7 @@ abgeleitet wird. F&uuml;r jeden Namespace werden gepr&uuml;ft:
 - **Pods** im Namespace sind alle Running oder Completed (kein CrashLoopBackOff)
 - **Ingress-Ressourcen** sind vorhanden (erwartet z. B. im access-stack)
 - **TLS-Zertifikate** sind ausgestellt und READY (erwartet z. B. im access-stack)
+- **Issuer-Konsistenz** – alle `Certificate`-Objekte in Namespaces mit produktiven Domains (z. B. `cc-prd-access-stack`) m&uuml;ssen im `issuerRef` den CA-ClusterIssuer referenzieren (`selfsigned-issuer` oder `civitas-core-ca-issuer`). Der Bootstrap-Issuer (`civitas-bootstrap-selfsigned`) ist dort nicht zul&auml;ssig.
 
 Zus&auml;tzlich laufen Domain-Level-Pr&uuml;fungen (Keycloak, Portal via HTTPS)
 und Infrastruktur-Pr&uuml;fungen (WireGuard-Tunnel, OPNsense-Konnektivit&auml;t)
