@@ -196,11 +196,14 @@ inklusive aller für CIVITAS/CORE erforderlichen Add-ons.
 | 1.2 | kubeconfig nach `~/.kube/config` kopieren | Datei vorhanden und korrekt (`kubectl cluster-info`) |
 | 1.3 | `helm`-CLI installieren (separat — k3s bringt `helm-controller`, nicht die `helm`-CLI) | `command -v helm` + Versionsvergleich gegen `$HELM_VERSION` |
 | 1.4 | cert-manager via Helm deployen (Namespace `cert-manager`) | `kubectl get pods -n cert-manager` → alle Running |
-| 1.5 | ClusterIssuer konfigurieren (self-signed für Prototyp) | `kubectl get clusterissuer` → READY=True |
+| 1.5a | Bootstrap-ClusterIssuer anlegen (Namespace cert-manager) | `kubectl get clusterissuer civitas-bootstrap-selfsigned` |
+| 1.5b | Root-CA-Certificate anlegen (Namespace cert-manager) | `kubectl get certificate civitas-core-ca -n cert-manager` → READY=True |
+| 1.5c | Produktiver ClusterIssuer `selfsigned-issuer` mit CA-Referenz | `kubectl get clusterissuer selfsigned-issuer` → READY=True |
+| 1.5d | CA-Trust: cert in System-Store + certifi im venv | `curl -sf https://idm.${DOMAIN}/` ohne `--insecure` |
 | 1.6 | nginx-Ingress via Helm deployen (Namespace `ingress-nginx`) | `kubectl get pods -n ingress-nginx` → controller Running |
 | 1.7 | Storage Class prüfen (`local-path-provisioner` durch k3s mitgeliefert, **nicht deaktivieren**) | `kubectl get storageclass` → `local-path` als Default |
 
-> **Wichtig (Reihenfolge)**: cert-manager und ClusterIssuer (Schritte 1.4–1.5)
+> **Wichtig (Reihenfolge)**: cert-manager und ClusterIssuer (Schritte 1.4–1.5d)
 > werden vor nginx-Ingress (Schritt 1.6) installiert, damit der Ingress-Controller
 > bei Bedarf sofort TLS-fähig ist.
 
@@ -255,6 +258,14 @@ kubectl get pods -n ingress-nginx
 kubectl get storageclass
 # Erwartung: "local-path" vorhanden, als Default markiert
 #   (Annotation: storageclass.kubernetes.io/is-default-class=true)
+
+# CA-Issuer-DN nicht leer
+openssl x509 -in /usr/local/share/ca-certificates/civitas-core-ca.crt \
+  -noout -issuer | grep "CN=civitas-core-ca"
+
+# CA-ClusterIssuer READY
+kubectl get clusterissuer selfsigned-issuer \
+  -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' | grep True
 ```
 
 > **Abnahme Phase 1 bestanden**, wenn alle Prüfungen den beschriebenen
@@ -333,6 +344,15 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
+
+> **Hinweis: certifi-CA-Bundle**
+> Das Python-venv unter `${CC_CLI_VENV_PATH}` enthält `certifi` mit einem
+> eigenen CA-Bundle. Dieser enthält per Default keine selbst-signierten CAs.
+> Das Root-CA-Cert muss vor `cc_cli validate` / `cc_cli exec` in das
+> certifi-Bundle eingetragen sein (erfolgt durch Schritt 1.5d).
+> Das Skript ruft `${CC_CLI_VENV_PATH}/bin/cc_cli` direkt auf — das venv
+> muss nicht per `source activate` aktiviert werden. Das certifi-Bundle
+> jedoch muss das CA-Cert enthalten.
 
 > **Hinweis TLS**: Nach `cc_cli exec` (Schritt 2.4c) werden alle
 > Ingress-Ressourcen im Namespace `${K8S_NAMESPACE}` gepatcht:
@@ -494,6 +514,7 @@ protokolliert.
 | Timeout `cc_cli exec` | Abbruch mit Hinweis auf `$TIMEOUT_CC_CLI_EXEC` |
 | Verifikationsfehler (Phase 3) | Keine Systemänderung, Fehlerbericht + Exit 1 |
 | Bereits installierte Komponente (Idempotenz) | Kein Fehler, Meldung „bereits vorhanden, überspringe" |
+| HTTP 404 bei Keycloak DELETE (z.B. Default-Resource) | Ressource bereits entfernt = Ziel erreicht. Bekanntes Problem bei Wiederholung nach abgebrochenem Run. Workaround: `kubectl delete namespace cc-prd-access-stack` und neu starten. |
 
 ***
 
