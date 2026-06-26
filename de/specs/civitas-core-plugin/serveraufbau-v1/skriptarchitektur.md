@@ -49,7 +49,7 @@ Das Installationsskript wird im Repository `civitas_einrichtung` abgelegt:
 │   ├── 02_lib.sh                    ← Hilfsfunktionen (log, check, wait, …)
 │   ├── 03_preflight.sh              ← Phase 0: Vorbedingungsprüfungen
 │   ├── 04_k3s.sh                    ← Phase 1a: k3s installieren
-│   ├── 05_addons.sh                 ← Phase 1b: helm, cert-manager, nginx, storage
+│   ├── 05_addons.sh                 ← Phase 1b: helm, cert-manager, CA-Issuer (3-stufig), CA-Trust, nginx
 │   ├── 06_civitas.sh                ← Phase 2: cc-cli, config.yaml, deploy
 │   └── 07_verify.sh                 ← Phase 3: Verifikation, Fehlerreport
 ├── templates/
@@ -351,8 +351,9 @@ install_k3s() {
 ## Modul 05 — Add-ons (`05_addons.sh`)
 
 Implementiert `install_addons()`. Installiert in dieser Reihenfolge:
-helm-CLI, cert-manager, ClusterIssuer, nginx-Ingress. Storage Class ist
-durch k3s bereits vorhanden.
+helm-CLI, cert-manager, Bootstrap-Issuer, Root-CA-Certificate, produktiver
+ClusterIssuer, CA-Trust-Integration (System- + certifi-Store) und
+nginx-Ingress. Storage Class ist durch k3s bereits vorhanden.
 
 ### Reihenfolge und Idempotenz
 
@@ -365,7 +366,10 @@ install_addons() {
   # Warten bis cert-manager-Webhook Ready ist, sonst Race-Condition bei CRDs
   kubectl wait pods --all -n "${CERT_MANAGER_NAMESPACE}" \
     --for=condition=Ready --timeout=120s
-  configure_cluster_issuer
+  configure_bootstrap_issuer            # Stufe 1: selfsigned Bootstrap
+  create_root_ca_certificate            # Stufe 2: Root-CA mit commonName
+  configure_production_issuer           # Stufe 3: produktiver ClusterIssuer mit CA-Ref
+  configure_ca_trust                    # System-Store + certifi
   install_nginx_ingress
   verify_storage_class
 }
@@ -375,7 +379,10 @@ install_addons() {
 |---|---|
 | `install_helm` | `is_installed helm && helm version | grep $HELM_VERSION` |
 | `install_cert_manager` | `k8s_ready deployment cert-manager cert-manager` |
-| `configure_cluster_issuer` | `kubectl get clusterissuer selfsigned-issuer` |
+| `configure_bootstrap_issuer` | `kubectl get clusterissuer civitas-bootstrap-selfsigned` |
+| `create_root_ca_certificate` | `kubectl get certificate civitas-core-ca -n cert-manager` → READY=True |
+| `configure_production_issuer` | `kubectl get clusterissuer selfsigned-issuer` → READY=True |
+| `configure_ca_trust` | `openssl x509 -in /usr/local/share/ca-certificates/civitas-core-ca.crt -noout -issuer \| grep -q "CN=civitas-core-ca"` |
 | `install_nginx_ingress` | `k8s_ready deployment ingress-nginx-controller ingress-nginx` |
 | `verify_storage_class` | `kubectl get storageclass local-path` |
 
@@ -396,20 +403,90 @@ install_addons() {
 > an und aktualisiert es bei erneuten Aufrufen – damit ist die Idempotenz auf
 > Helm-Ebene sichergestellt, ohne dass eine separate Prüfung nötig ist.
 
-### ClusterIssuer (self-signed, Prototyp)
+### CA-Issuer (3-stufig, self-signed-CA für Entwicklung/Evaluation)
+
+Java-basierte Komponenten (Frost-Server, Apache Tomcat) lehnen Zertifikate
+mit leerem Issuer-DN ab (`CertificateParsingException: Empty issuer DN not
+allowed in X509Certificates`). Ein reiner `selfSigned: {}`-Issuer stellt
+solche leeren Zertifikate aus. Daher wird ein zweistufiges CA-Setup
+verwendet:
+
+| Stufe | Funktion | Ressource | Beschreibung |
+|---|---|---|---|
+| 1 | `configure_bootstrap_issuer()` | `ClusterIssuer civitas-bootstrap-selfsigned` | `spec: selfSigned: {}` — nur zur Ausstellung des Root-CA-Zertifikats |
+| 2 | `create_root_ca_certificate()` | `Certificate civitas-core-ca` (namespace `cert-manager`) | `commonName: "civitas-core-ca"`, `subject.organizations: ["civitas-core"]` |
+| 3 | `configure_production_issuer()` | `ClusterIssuer selfsigned-issuer` | `spec: ca: secretName: civitas-core-ca-secret` |
+
+Der Name `selfsigned-issuer` bleibt erhalten, da das cc-cli-Inventory
+diesen Namen im Feld `cert_manager.issuer_name` erwartet.
 
 ```yaml
-# wird aus templates/ angewendet
+# Stufe 1: Bootstrap-Issuer
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: civitas-bootstrap-selfsigned
+spec:
+  selfSigned: {}
+---
+# Stufe 2: Root-CA-Zertifikat
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: civitas-core-ca
+  namespace: cert-manager
+spec:
+  commonName: "civitas-core-ca"
+  organization:
+    - "civitas-core"
+  isCA: true
+  duration: 87600h  # 10 Jahre
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: civitas-bootstrap-selfsigned
+    kind: ClusterIssuer
+---
+# Stufe 3: Produktiver ClusterIssuer mit CA-Referenz
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: selfsigned-issuer
 spec:
-  selfSigned: {}
+  ca:
+    secretName: civitas-core-ca-secret
 ```
 
-> Für eine spätere Produktionsstrategie (ACME, interne CA) wird dieser
-> Issuer ausgetauscht — Festlegung in `netzwerk-dns-tls.md`.
+### CA-Trust-Integration (`configure_ca_trust()`)
+
+Das Root-CA-Zertifikat muss nach der Ausstellung in zwei Stores
+eingetragen werden, damit TLS-Verbindungen innerhalb der VM ohne
+`--insecure` oder `CERTIFICATE_VERIFY_FAILED` funktionieren:
+
+1. **System-Store** (`update-ca-certificates`):
+   ```bash
+   kubectl get secret civitas-core-ca-secret -n cert-manager \
+     -o jsonpath='{.data.ca\.crt}' | base64 -d \
+     > /usr/local/share/ca-certificates/civitas-core-ca.crt
+   update-ca-certificates
+   ```
+
+2. **Python-venv certifi** (für Ansible im venv):
+   ```bash
+   kubectl get secret civitas-core-ca-secret -n cert-manager \
+     -o jsonpath='{.data.ca\.crt}' | base64 -d \
+     >> ${CC_CLI_VENV_PATH}/lib/python*/site-packages/certifi/cacert.pem
+   ```
+
+Grund: Ansible im venv nutzt certifi als CA-Bundle, nicht den System-Store.
+Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
+
+> **Hinweis**: Bei einem erneuten Skriptdurchlauf (Idempotenz) prüft
+> `configure_ca_trust()`, ob das CA-Cert bereits im System-Store vorhanden
+> ist (via `openssl x509 -in ... -noout -issuer | grep "CN=civitas-core-ca"`).
+> Ist es vorhanden, wird der Schritt übersprungen. Der certifi-Eintrag wird
+> ebenfalls nur bei Bedarf ergänzt (Prüfung via `grep "civitas-core-ca"`).
 
 > **nginx-Ingress-Ports**: Der nginx-Ingress-Controller wird mit `hostNetwork=true`
 > als DaemonSet installiert und lauscht auf HTTP-Port 80 (Standard). HTTPS (Port 443)
