@@ -368,6 +368,31 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > Der Pfad f&uuml;hrt vom venv in der VM &uuml;ber WireGuard &rarr; OPNsense &rarr; HAProxy
 > &rarr; TCP-Passthrough zur&uuml;ck zur VM:443 &rarr; nginx (TLS-Ende) &rarr; Service.
 > nginx antwortet mit HTTP&thinsp;200, da TLS korrekt terminiert wird.
+>
+> **Hinweis: Namespace-Konvention**: `cc_cli exec` legt keine Namespaces mit
+> festen Namen an, sondern leitet diese aus dem Inventory-Feld
+> `all.vars.ENVIRONMENT` (z. B. `cc-prd`) ab. Pro Stack-Komponente entsteht
+> ein Namespace nach dem Muster `{ENVIRONMENT}-{stack}`:
+>
+> | Namespace | Stack | Enth&auml;lt typischerweise |
+> |---|---|---|
+> | `cc-prd-access-stack` | Access | Keycloak, APISIX, Service Portal |
+> | `cc-prd-database-stack` | Database | PostgreSQL, ggf. weitere Datenbanken |
+> | `cc-prd-operation-stack` | Operation | Prometheus, Grafana, Loki, PGAdmin, Velero |
+>
+> Das Installationsskript definiert in `01_config.sh` das Array
+> `K8S_NAMESPACES`, das aus `CC_ENVIRONMENT` abgeleitet wird:
+> ```bash
+> CC_ENVIRONMENT="${CC_ENVIRONMENT:-cc-prd}"
+> K8S_NAMESPACES=(
+>   "${CC_ENVIRONMENT}-access-stack"
+>   "${CC_ENVIRONMENT}-database-stack"
+>   "${CC_ENVIRONMENT}-operation-stack"
+> )
+> ```
+> Der fr&uuml;here Einzel-Namespace `K8S_NAMESPACE` (z. B. `civitas-core`)
+> existiert nicht mehr &ndash; alle Pr&uuml;fungen in Phase 2 und Phase 3
+> iterieren &uuml;ber das `K8S_NAMESPACES`-Array.
 
 
 
@@ -472,7 +497,10 @@ erzeugt einen zusammenfassenden Bericht.
 
 ```
 verify_phase1()   → Prüft alle Phase-1-Kriterien, zählt Fehler
-verify_phase2()   → Prüft alle Phase-2-Kriterien, zählt Fehler
+verify_phase2()   → Iteriert über K8S_NAMESPACES, prüft pro Namespace:
+                     Existenz, Pods, Ingress-Ressourcen, TLS-Zertifikate
+                   → Domain-Level-Checks: Keycloak, Portal (HTTPS)
+                   → Infrastruktur: WireGuard-Tunnel, OPNsense-Konnektivität
 report_result()   → Gibt Zusammenfassung aus (OK / FAILED + Fehlercount)
 exit_with_code()  → Exit 0 bei Erfolg, Exit 1 bei ≥ 1 Fehler
 ```
@@ -480,22 +508,36 @@ exit_with_code()  → Exit 0 bei Erfolg, Exit 1 bei ≥ 1 Fehler
 ### Ausgabeformat (Beispiel)
 
 ```
-[2026-06-20 22:00:00] [PHASE 1] k3s Node Ready              ... OK
-[2026-06-20 22:00:01] [PHASE 1] cert-manager Running         ... OK
-[2026-06-20 22:00:02] [PHASE 1] nginx-Ingress Running        ... OK
-[2026-06-20 22:00:03] [PHASE 1] Storage Class local-path     ... OK
-[2026-06-20 22:00:10] [PHASE 2] Namespace civitas-core       ... OK
-[2026-06-20 22:00:11] [PHASE 2] Pods Running                 ... OK
-[2026-06-20 22:00:12] [PHASE 2] TLS Certificates Ready       ... OK
-[2026-06-20 22:00:13] [PHASE 2] idm.civitas.data-dna.eu      ... OK
-[2026-06-20 22:00:14] [PHASE 2] portal.civitas.data-dna.eu   ... OK
+[2026-06-27 00:00:00] [PHASE 1] k3s Node Ready                     ... OK
+[2026-06-27 00:00:00] [PHASE 1] cert-manager Running                ... OK
+[2026-06-27 00:00:00] [PHASE 1] nginx-Ingress (DaemonSet) Running   ... OK
+[2026-06-27 00:00:00] [PHASE 1] Storage Class local-path (Default)  ... OK
+[2026-06-27 00:00:00] [PHASE 1] CA-Issuer-DN korrekt                ... OK
+[2026-06-27 00:00:10] [PHASE 2] Namespace cc-prd-access-stack       ... OK
+[2026-06-27 00:00:11] [PHASE 2] cc-prd-access-stack: Pods Running   ... OK
+[2026-06-27 00:00:12] [PHASE 2] Namespace cc-prd-database-stack     ... OK
+[2026-06-27 00:00:13] [PHASE 2] cc-prd-database-stack: Pods Running ... OK
+[2026-06-27 00:00:14] [PHASE 2] Namespace cc-prd-operation-stack    ... OK
+[2026-06-27 00:00:15] [PHASE 2] cc-prd-operation-stack: Pods Running... OK
+[2026-06-27 00:00:16] [PHASE 2] Keycloak https://idm.udp.scanea.eu  ... OK
+[2026-06-27 00:00:17] [PHASE 2] Portal https://udp.scanea.eu        ... OK
+[2026-06-27 00:00:18] [PHASE 2] WireGuard-Tunnel wg0 aktiv          ... OK
 ------------------------------------------------------------
-Ergebnis: 9/9 Prüfungen bestanden. Installation erfolgreich.
+Ergebnis: 13/13 Prüfungen bestanden. Installation erfolgreich.
 ```
 
-> **Hinweis**: Vor der Endprüfung wartet das Skript, bis alle Pods den
-> Ready-Status erreicht haben:
-> `kubectl wait --for=condition=Ready pods --all -n civitas-core --timeout=300s`
+> **Hinweis**: Vor der Endprüfung wartet das Skript in Phase 2 auf den
+> Ready-Status aller Pods in jedem Namespace aus `K8S_NAMESPACES`. Die
+> Warteschleife ist als Best-Effort ausgelegt &ndash; auch bei Timeout
+> wird Phase 3 (Verify) durchlaufen, um eine detaillierte Diagnose zu
+> liefern:
+> ```bash
+> for ns in "${K8S_NAMESPACES[@]}"; do
+>   if ! wait_pods_ready "${ns}"; then
+>     log_warn "Nicht alle Pods in ${ns} wurden Ready - Details in Phase 3."
+>   fi
+> done
+> ```
 
 ***
 
