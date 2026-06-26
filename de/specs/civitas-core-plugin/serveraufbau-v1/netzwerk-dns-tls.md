@@ -103,6 +103,42 @@ In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
 (Caddy) auf Variante D (HAProxy TCP-Passthrough) umgestellt. Die bestehenden
 `*.data-dna.eu`-Dienste bleiben unverändert unter Variante A.
 
+### Variante C — Self-Signed-CA (Entwicklung/Evaluation)
+
+**Technische Anforderung: Nicht-leerer Issuer-DN**
+
+Java-basierte Komponenten (Frost-Server, Apache Tomcat) parsen TLS-Zertifikate
+via JDK `sun.security.x509.X509CertInfo`. Diese Implementierung lehnt
+Zertifikate mit leerem Subject/Issuer-DN mit folgendem Fehler ab:
+
+  `CertificateParsingException: Empty issuer DN not allowed in X509Certificates`
+
+Ein cert-manager `ClusterIssuer` mit `spec: selfSigned: {}` stellt Zertifikate
+mit leerem Subject aus. Dies ist von cert-manager so dokumentiert und korrekt,
+aber mit Java/Tomcat nicht kompatibel.
+
+**Festlegung:** Auch Variante C erfordert ein zweistufiges CA-Setup:
+
+| Stufe | Ressource | Beschreibung |
+|---|---|---|
+| 1 | Bootstrap-`ClusterIssuer` | `spec: selfSigned: {}` — nur zur Ausstellung des Root-CA-Zertifikats |
+| 2 | Root-CA-`Certificate` (namespace `cert-manager`) | `commonName: "civitas-core-ca"`, `subject.organizations: ["civitas-core"]` |
+| 3 | Produktiver `ClusterIssuer` `selfsigned-issuer` | `spec: ca: secretName: civitas-core-ca-secret` (Name bleibt, da cc-cli-Inventory diesen Namen erwartet) |
+
+Abnahmekriterium:
+```bash
+openssl x509 -in /usr/local/share/ca-certificates/civitas-core-ca.crt \
+  -noout -issuer | grep -q "CN=civitas-core-ca"
+```
+
+**CA-Trust-Integration:**
+Das Root-CA-Cert muss nach Ausstellung in zwei Stores eingetragen werden:
+1. System: `update-ca-certificates`
+2. Python-venv certifi: `cat ca.crt >> ${VENV}/lib/python*/site-packages/certifi/cacert.pem`
+
+Grund: Ansible im venv nutzt certifi als CA-Bundle, nicht den System-Store.
+Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
+
 ## Offene Entscheidungen
 
 - ~~Ist eine externe Erreichbarkeit des Plugins erforderlich?~~ → **Ja, über zwei parallele Domains**
