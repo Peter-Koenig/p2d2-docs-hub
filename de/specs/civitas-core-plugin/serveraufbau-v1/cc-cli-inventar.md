@@ -323,6 +323,101 @@ all:
    Voraussetzung: Das Root-CA-Cert (Variante C, self-signed-CA) muss im
    certifi-Bundle des venv eingetragen sein (Schritt 1.5d), sonst scheitern
    die HTTPS-Health-Checks mit `CERTIFICATE_VERIFY_FAILED`.
+## Secrets-Management und Admin-Accounts
+
+### Datenbankpasswörter: vollautomatisch via Zalando-Operator
+
+Alle Komponenten (Keycloak, Frost, Stellio, QuantumLeap, Superset, GeoData)
+folgen demselben Schema:
+
+1. Zalando Postgres-Operator erstellt einen PostgreSQL-Cluster.
+2. Ein Kubernetes-Secret wird automatisch mit `username` und `password` (base64) generiert.
+3. Das Ansible-Playbook liest das Secret via `kubernetes.core.k8s_info` und dekodiert es.
+4. Die Werte werden per `set_fact` als `COMPONENT_POSTGRES_USERNAME` / `PASSWORD` bereitgestellt.
+5. Helm-Values und Deployment-Templates greifen auf diese decodierten Werte zu.
+
+**Kein einziges Datenbankpasswort** wird im Inventory oder in `.env.local`
+konfiguriert. Der Zalando-Operator generiert sämtliche DB-Credentials
+vollautomatisch. Dies betrifft:
+
+- Keycloak-Datenbank
+- Frost-Server-Datenbank
+- Superset-Datenbank
+- GeoServer-Datenbank
+- Grafana-Datenbank
+- QuantumLeap-Datenbank (inkl. separatem Superuser-Secret für TimescaleDB)
+- Stellio-Datenbank
+
+Diese Passwörter dürfen **nicht** als Umgebungsvariablen externalisiert werden.
+
+### Die drei Admin-Accounts im Inventory
+
+Aus der Analyse der Playbook-Struktur ergeben sich genau drei Accounts,
+die im Inventory konfiguriert werden müssen:
+
+| Account | Inventory-Schlüssel | Zweck |
+|---|---|---|
+| Keycloak Master-Admin | `inv_access.platform.master_username` | Keycloak-Admin-UI + API während des Deployments |
+| | `inv_access.platform.master_password` | |
+| Platform-Admin (IAM) | `inv_access.platform.admin_email` | Erster Realm-User in Keycloak (Template `platform_admin.json`); |
+| | `inv_access.platform.admin_first_name` | wird auch als pgAdmin-Login verwendet |
+| | `inv_access.platform.admin_surname` | |
+| Tenant-Admin | `inv_access.tenant.tenant_email` | Tenant-Verwaltung im Realm; OIDC-Login |
+| | `inv_access.tenant.tenant_username` | |
+| | `inv_access.tenant.tenant_password` | |
+
+### pgAdmin-Login-Mechanismus
+
+Der pgAdmin-Admin-Account wird **nicht** separat konfiguriert. Das Playbook
+`tasks/operation/pgadmin.yml` setzt:
+
+```yaml
+pgadmin_admin_email: >-
+  {{ inv_access.tenant.tenant_email if configure_central_idm | default(false)
+     else inv_access.platform.admin_email }}
+```
+
+pgAdmin verwendet also denselben Account wie der Platform-Admin
+(`inv_access.platform.admin_email`). Ein separater Wert ist nicht erforderlich.
+
+### Keycloak-Master-Secret in Kubernetes
+
+Frost und Superset lesen das Keycloak-Master-Credentials-Secret aus Kubernetes:
+
+```yaml
+inv_access.platform.k8s_secret_name: "{{ ENVIRONMENT }}-keycloak-admin"
+```
+
+Dieses Secret wird vom Keycloak-Playbook während Phase 2 angelegt und enthält
+`MASTER_USERNAME` und `MASTER_PASSWORD` (base64). Voraussetzung: die Felder
+`master_username` und `master_password` im Inventory müssen korrekt gesetzt sein.
+
+### Konsequenzen für `.env.local` und `render_inventory()`
+
+Die `.env.local`-Datei benötigt exakt diese Passwort-Variablen (keine weiteren):
+
+```bash
+export ADMIN_EMAIL="admin@scanea.eu"      # → platform.admin_email + master_username
+export ADMIN_PASS="..."                    # → master_password + platform admin password
+export TENANT_ADMIN_PASS="..."             # → tenant_password
+```
+
+Alle anderen Passwörter (pgAdmin, APISIX, Superset, Grafana, GeoServer,
+Piveau, Redis) werden in `render_inventory()` automatisch via
+`gen_policy_password()` generiert. Sie sind flüchtig: das Inventory wird
+nach `cc_cli exec` gelöscht.
+
+**Mapping der Platzhalter in `render_inventory()`:**
+
+| Platzhalter | Env-Var / Quelle | Zweck |
+|---|---|---|
+| `PLACEHOLDER_DOMAIN` | `${DOMAIN}` | Basis-Domain |
+| `PLACEHOLDER_ENVIRONMENT` | `${CC_ENVIRONMENT}` | Environment-Name |
+| `PLACEHOLDER_ADMIN_EMAIL` | `${ADMIN_EMAIL}` | Platform-Admin-E-Mail + master_username |
+| `PLACEHOLDER_KC_MASTER_PASS` | `${ADMIN_PASS}` | Keycloak-Master-Password |
+| `PLACEHOLDER_KC_ADMIN_PASS` | `${ADMIN_PASS}` | Platform-Admin-Passwort (identisch) |
+| `PLACEHOLDER_TENANT_PASS` | `${TENANT_ADMIN_PASS}` | Tenant-Admin-Passwort |
+| Alle weiteren | `gen_policy_password()` | Auto-generiert, flüchtig |
 
 ## Festlegungen
 
