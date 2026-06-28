@@ -366,6 +366,27 @@ die im Inventory konfiguriert werden müssen:
 | | `inv_access.tenant.tenant_username` | |
 | | `inv_access.tenant.tenant_password` | |
 
+### Keycloak Master-Admin + Platform-Admin: Ein gemeinsamer Wert
+
+Die Recherche in den Ansible-Playbooks ergibt einen durchgehenden Flow ohne
+zweites Inventory-Feld:
+
+```
+Inventory                           → K8S-Secret                  → Ansible-Fact
+inv_access.platform.master_username  ──b64encode──→ MASTER_USERNAME ──b64decode──→ ADMIN_USERNAME
+inv_access.platform.master_password  ──b64encode──→ MASTER_PASSWORD ──b64decode──→ ADMIN_PASSWORD
+```
+
+`ADMIN_PASSWORD` erfüllt beide Rollen:
+
+1. **API-Login** bei der Keycloak Admin-REST-API (setup\_keycloak\_tenant.yml, Zeile 21-23)
+2. **Initiales Passwort** des platform\_admin-Realm-Users (keycloak\_8\_users.yml, Zeile 163-166)
+
+Es existiert **kein separates Inventory-Feld** `admin_password`. Wird im Inventory
+`inv_access.platform.master_password` gesetzt, ist dieser Wert automatisch auch
+das initiale Passwort des platform\_admin-Users. Eine abweichende Konfiguration
+ist nicht vorgesehen.
+
 ### pgAdmin-Login-Mechanismus
 
 Der pgAdmin-Admin-Account wird **nicht** separat konfiguriert. Das Playbook
@@ -397,15 +418,37 @@ Dieses Secret wird vom Keycloak-Playbook während Phase 2 angelegt und enthält
 Die `.env.local`-Datei benötigt exakt diese Passwort-Variablen (keine weiteren):
 
 ```bash
-export ADMIN_EMAIL="admin@scanea.eu"      # → platform.admin_email + master_username
-export ADMIN_PASS="..."                    # → master_password + platform admin password
-export TENANT_ADMIN_PASS="..."             # → tenant_password
+export ADMIN_EMAIL="admin@scanea.eu"
+# → inv_access.platform.master_username (auch admin_email im platform_admin-User)
+export ADMIN_PASS="..."
+# → inv_access.platform.master_password (auch initiales platform_admin-Passwort, identisch!)
+export TENANT_ADMIN_PASS="..."
+# → inv_access.tenant.tenant_password (separat, nur bei configure_central_idm aktiv)
 ```
 
-Alle anderen Passwörter (pgAdmin, APISIX, Superset, Grafana, GeoServer,
-Piveau, Redis) werden in `render_inventory()` automatisch via
-`gen_policy_password()` generiert. Sie sind flüchtig: das Inventory wird
-nach `cc_cli exec` gelöscht.
+**Passwort-Policy für ADMIN_PASS**: Das Passwort muss die Keycloak-Policy
+erfüllen, die im Inventory konfiguriert ist:
+- Mindestens 12 Zeichen
+- Mindestens 1 Ziffer
+- Mindestens 1 Großbuchstabe
+- Mindestens 1 Kleinbuchstabe
+- Mindestens 1 Sonderzeichen
+
+**Hinweis zu TENANT_ADMIN_PASS**: Der Tenant-Admin wird nur angelegt, wenn
+der Keycloak-Flow mit `--tags tenant` läuft (`configure_central_idm: true`).
+Die Inventory-Felder (`tenant_email`, `tenant_username`, `tenant_password`)
+sollten trotzdem immer gesetzt sein, da das Playbook sie beim Einlesen des
+Inventars erwartet.
+
+Alle anderen Passwörter (APISIX, Superset, Grafana, GeoServer, Piveau,
+Redis) werden in `render_inventory()` automatisch via `gen_policy_password()`
+generiert. Sie sind flüchtig: das Inventory wird nach `cc_cli exec` gelöscht.
+
+**Wichtig:** Es gibt **keinen separaten Platzhalter** für das Passwort des
+platform\_admin-Users. `master_password` übernimmt beide Rollen, daher
+erscheint `${ADMIN_PASS}` im Inventory-Template nur einmal (an der Stelle
+von `master_password`). Die frühere Annahme eines zweiten Platzhalters
+`PLACEHOLDER_KC_ADMIN_PASS` war falsch und wurde entfernt.
 
 **Mapping der Platzhalter in `render_inventory()`:**
 
@@ -413,10 +456,9 @@ nach `cc_cli exec` gelöscht.
 |---|---|---|
 | `PLACEHOLDER_DOMAIN` | `${DOMAIN}` | Basis-Domain |
 | `PLACEHOLDER_ENVIRONMENT` | `${CC_ENVIRONMENT}` | Environment-Name |
-| `PLACEHOLDER_ADMIN_EMAIL` | `${ADMIN_EMAIL}` | Platform-Admin-E-Mail + master_username |
-| `PLACEHOLDER_KC_MASTER_PASS` | `${ADMIN_PASS}` | Keycloak-Master-Password |
-| `PLACEHOLDER_KC_ADMIN_PASS` | `${ADMIN_PASS}` | Platform-Admin-Passwort (identisch) |
-| `PLACEHOLDER_TENANT_PASS` | `${TENANT_ADMIN_PASS}` | Tenant-Admin-Passwort |
+| `PLACEHOLDER_ADMIN_EMAIL` | `${ADMIN_EMAIL}` | Platform-Admin-E-Mail (= master_username) |
+| `PLACEHOLDER_KC_MASTER_PASS` | `${ADMIN_PASS}` | Keycloak-Master-Password (auch platform\_admin-Passwort) |
+| `PLACEHOLDER_TENANT_PASS` | `${TENANT_ADMIN_PASS}` | Tenant-Admin-Passwort (separat) |
 | Alle weiteren | `gen_policy_password()` | Auto-generiert, flüchtig |
 
 ## Festlegungen

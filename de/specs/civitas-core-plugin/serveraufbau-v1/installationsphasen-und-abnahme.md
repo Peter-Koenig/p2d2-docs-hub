@@ -461,8 +461,8 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `CC_V1_REPO_BRANCH` | Git-Branch | `main` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
 | `ADMIN_EMAIL` | Platform-Admin-E-Mail (auch Keycloak-master_username) | `admin@scanea.eu` |
-| `ADMIN_PASS` | Keycloak-Master-Password + Platform-Admin-Passwort (Doppelrolle) | Aus `.env.local` |
-| `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort für Realm-Verwaltung | Aus `.env.local` |
+| `ADMIN_PASS` | Keycloak-Master-Password + initiales platform\_admin-Passwort (identisch, kein separater Wert). Muss Keycloak-Policy erfüllen: ≥12 Zeichen, 1 Ziffer, 1 Groß-/Kleinbuchstabe, 1 Sonderzeichen | Aus `.env.local` |
+| `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort (separat von ADMIN\_PASS). Nur bei `--tags tenant` aktiv (`configure_central_idm: true`). Trotzdem immer setzen, da das Playbook das Feld erwartet | Aus `.env.local` |
 | `CERT_MANAGER_ISSUER` | ClusterIssuer-Name für Anwendungszertifikate | `civitas-core-ca-issuer` (CA-Typ) |
 
 
