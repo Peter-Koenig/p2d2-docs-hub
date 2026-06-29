@@ -416,6 +416,15 @@ install_addons() {
 > ```bash
 > kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml
 > ```
+>
+> > **Hinweis Gateway-Class (`inv_k8s.gateway_class`)**: Die Playbooks von
+> > `cc_cli` erzeugen derzeit ausschließlich standard Kubernetes Ingress-Ressourcen,
+> > keine Gateway-API-Ressourcen. Das Feld `gateway_class` im Inventory wird daher
+> > nicht aktiv ausgewertet und ist im Template auskommentiert (`# gateway_class: ""`).
+> > nginx handelt als Ingress-Controller. Sollte eine zukünftige Playbook-Version
+> > Gateway-API-Routen nutzen, muss hier der passende Wert (z. B. `traefik` oder
+> > `nginx`) gesetzt werden.
+
 
 
 ### CA-Issuer (3-stufig, self-signed-CA für Entwicklung/Evaluation)
