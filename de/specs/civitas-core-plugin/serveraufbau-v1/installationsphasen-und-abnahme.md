@@ -352,21 +352,27 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **Phase 2a — Basis:** `cc_cli exec --tags "base"` (Postgres, Keycloak, Monitoring, pgAdmin) | Exit-Code 0 (404 in Keycloak-Config wird toleriert) |
-| 2.4d | **Phase 2b — Tenant:** `cc_cli exec --skip-tags "acc_keycloak"` (Portal, APISIX, Superset, Frost, Geodata) | Exit-Code 0 |
+| 2.4d | **Phase 2b — Rest:** `cc_cli exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,da_superset,cm_frost,geodata"` (Portal, APISIX, Superset, Frost, Geodata ohne Keycloak) | Exit-Code 0 |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
 
-> **Hinweis Zweiphasen-cc_cli-exec (Basis + Tenant):** Das Ansible-Playbook
+> **Hinweis Zweiphasen-cc_cli-exec (Basis + Rest):** Das Ansible-Playbook
 > verwendet Tags (`base`, `tenant`), um Komponentengruppen zu steuern. Das
 > Skript führt daher zwei getaggte cc_cli exec-Durchläufe aus:
 > 1. `--tags "base"` – installiert Postgres-Operator, Central DB, Keycloak
 >    (Install + Tenant-Konfiguration), Monitoring und pgAdmin.
-> 2. `--skip-tags "acc_keycloak"` – installiert Service Portal, APISIX,
->    Superset, Frost, Geodata (alles was `tenant`-Tag hat, aber ohne die
->    Keycloak-Tenant-Config, die bereits in Phase 2a erfolgte).
+> 2. `--tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,da_superset,cm_frost,geodata"`
+>    – installiert Service Portal, APISIX, Superset, Frost, Geodata, Monitoring
+>    und pgAdmin (die restlichen Komponenten, die nach dem Keycloak-Block im
+>    Playbook stehen, jedoch ohne die Keycloak-Tenant-Config).
+>
+> **Warum nicht `--skip-tags "acc_keycloak"`?** `cc_cli` unterstützt nach
+> aktuellem Kenntnisstand nur `--tags`, nicht `--skip-tags`. Die explizite
+> Auflistung der benötigten Tags in Phase 2b vermeidet einen sofortigen
+> Abbruch durch unbekannte CLI-Optionen.
 >
 > **Bekanntes Problem:** Die Keycloak-Tenant-Konfiguration enthält einen Task
 > "Delete piveau-hub-repo default resource", der bei Erstinstallation
@@ -374,7 +380,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > (Ressource bereits gelöscht). Dieser 404-Fehler bricht das gesamte Playbook
 > ab – alle nachfolgenden Tasks (Service Portal, APISIX, etc.) werden nicht
 > mehr ausgeführt. Durch die Aufteilung in zwei getrennte cc_cli exec-Durchläufe
-> ist sichergestellt, dass die Tenant-Komponenten auch bei toleriertem 404
+> ist sichergestellt, dass die restlichen Komponenten auch bei toleriertem 404
 > installiert werden.
 
 > **Hinweis cc_cli-Installation**: Die Installation erfolgt in einem isolierten
