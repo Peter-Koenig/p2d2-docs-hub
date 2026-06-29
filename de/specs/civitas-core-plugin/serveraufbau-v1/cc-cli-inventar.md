@@ -2,7 +2,7 @@
 title: cc-cli-Inventar — Ansible-Inventory für CIVITAS/CORE
 description: Dokumentation des per Wizard erzeugten cc_cli_inventory.yml, seiner Struktur und der daraus abgeleiteten Template-Vorlage für die automatisierte Installation.
 status: draft
-lastUpdated: 2026-06-24
+lastUpdated: 2026-06-26
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-cc-cli-inventar
@@ -11,7 +11,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
   - civitas-core-plugin-serveraufbau-skriptarchitektur
 quality:
-  completeness: 85
+  completeness: 87
   accuracy: 95
   reviewed: false
   reviewer:
@@ -323,6 +323,17 @@ all:
    Voraussetzung: Das Root-CA-Cert (Variante C, self-signed-CA) muss im
    certifi-Bundle des venv eingetragen sein (Schritt 1.5d), sonst scheitern
    die HTTPS-Health-Checks mit `CERTIFICATE_VERIFY_FAILED`.
+10. **Python-Abhängigkeiten im venv**: Zusätzlich zu `cc-cli` und `ansible`
+    werden die Pakete `kubernetes`, `openshift` (für k8s-Ansible-Module) und
+    `jmespath` (für `json_query`-Filter in Playbooks) im venv installiert.
+11. **Ansible-Collections**: Nach der pip-Installation müssen die benötigten
+    Ansible-Collections über `ansible-galaxy collection install` bezogen werden:
+    - `kubernetes.core` – Kubernetes-Ansible-Module
+    - `community.grafana` – Grafana-Integration
+    - `community.mongodb==1.3.2` – MongoDB-Integration
+    Ohne diese Collections schlagen Playbooks, die die entsprechenden Module
+    verwenden, mit `module not found`-Fehlern fehl.
+
 ## Secrets-Management und Admin-Accounts
 
 ### Datenbankpasswörter: vollautomatisch via Zalando-Operator

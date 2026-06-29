@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-06-24
+lastUpdated: 2026-06-26
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -13,8 +13,8 @@ dependencies:
   - civitas-core-plugin-serveraufbau-netzwerk
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
 quality:
-  completeness: 85
-  accuracy: 90
+  completeness: 88
+  accuracy: 92
   reviewed: false
   reviewer:
   reviewDate:
@@ -195,7 +195,8 @@ inklusive aller für CIVITAS/CORE erforderlichen Add-ons.
 | 1.1 | k3s installieren — **`--disable traefik`** muss beim Start gesetzt werden, nicht nachträglich: `curl -sfL https://get.k3s.io \| INSTALL_K3S_VERSION="$K3S_VERSION" INSTALL_K3S_EXEC="--disable traefik" sh -` | `systemctl is-active k3s` + Versionsvergleich gegen `$K3S_VERSION` |
 | 1.2 | kubeconfig nach `~/.kube/config` kopieren | Datei vorhanden und korrekt (`kubectl cluster-info`) |
 | 1.3 | `helm`-CLI installieren (separat — k3s bringt `helm-controller`, nicht die `helm`-CLI) | `command -v helm` + Versionsvergleich gegen `$HELM_VERSION` |
-| 1.4 | cert-manager via Helm deployen (Namespace `cert-manager`) | `kubectl get pods -n cert-manager` → alle Running |
+| 1.3a | Kubernetes Gateway API CRDs installieren (Voraussetzung für cert-manager Gateway-Support) | `kubectl get crd gateways.gateway.networking.k8s.io` |
+| 1.4 | cert-manager via Helm deployen (Namespace `cert-manager`, mit `--set config.enableGatewayAPI=true`) | `kubectl get pods -n cert-manager` → alle Running |
 | 1.5a | Bootstrap-ClusterIssuer anlegen (Namespace cert-manager) | `kubectl get clusterissuer civitas-bootstrap-selfsigned` |
 | 1.5b | Root-CA-Certificate anlegen (Namespace cert-manager) | `kubectl get certificate civitas-core-ca -n cert-manager` → READY=True |
 | 1.5c | Produktiver ClusterIssuer `selfsigned-issuer` mit CA-Referenz | `kubectl get clusterissuer selfsigned-issuer` → READY=True |
@@ -203,9 +204,11 @@ inklusive aller für CIVITAS/CORE erforderlichen Add-ons.
 | 1.6 | nginx-Ingress via Helm deployen (Namespace `ingress-nginx`) | `kubectl get pods -n ingress-nginx` → controller Running |
 | 1.7 | Storage Class prüfen (`local-path-provisioner` durch k3s mitgeliefert, **nicht deaktivieren**) | `kubectl get storageclass` → `local-path` als Default |
 
-> **Wichtig (Reihenfolge)**: cert-manager und ClusterIssuer (Schritte 1.4–1.5d)
-> werden vor nginx-Ingress (Schritt 1.6) installiert, damit der Ingress-Controller
-> bei Bedarf sofort TLS-fähig ist.
+> **Wichtig (Reihenfolge)**: Die Gateway-API-CRDs (Schritt 1.3a) werden vor
+> cert-manager (Schritt 1.4) installiert, da cert-manager die CRDs beim Start
+> erwartet. cert-manager und ClusterIssuer (Schritte 1.4–1.5d) werden vor
+> nginx-Ingress (Schritt 1.6) installiert, damit der Ingress-Controller bei
+> Bedarf sofort TLS-fähig ist.
 
 > **Wichtig (local-path-provisioner)**: Der `local-path-provisioner` ist
 > Bestandteil von k3s und stellt die Default-StorageClass bereit. Er darf
@@ -222,6 +225,7 @@ externalisiert und gelten phasenübergreifend:
 |---|---|---|
 | `K3S_VERSION` | k3s-Release-Version (Pinning) | `v1.32.3+k3s1` |
 | `HELM_VERSION` | Helm-CLI-Version | `v3.17.0` |
+| `GATEWAY_API_VERSION` | Kubernetes Gateway API CRDs (standard channel) | `v1.2.1` |
 
 > Die Versionen werden beim ersten Skriptbau aus der aktuellen
 > Release-Dokumentation von k3s und Helm ermittelt und im
@@ -245,6 +249,10 @@ kubectl get pods -A
 kubectl get pods -n cert-manager
 # Erwartung: cert-manager, cert-manager-cainjector,
 #            cert-manager-webhook jeweils "Running"
+
+# Gateway API CRDs
+kubectl get crd gateways.gateway.networking.k8s.io
+# Erwartung: CRD vorhanden (kein "NotFound")
 
 # ClusterIssuer
 kubectl get clusterissuer
@@ -270,7 +278,11 @@ kubectl get clusterissuer selfsigned-issuer \
 
 > **Abnahme Phase 1 bestanden**, wenn alle Prüfungen den beschriebenen
 > Zustand aufweisen. Das Skript protokolliert die Ergebnisse und bricht
-> bei Abweichungen ab.
+> bei Abweichungen ab. Die neu hinzugekommene Gateway-API-CRD-Prüfung
+> (`gateways.gateway.networking.k8s.io`) ist für den Betrieb von cert-manager
+> mit Gateway-API-Support und für die korrekte Verarbeitung von Gateway-Routen
+> durch cc_cli erforderlich.
+
 
 ***
 
@@ -333,7 +345,8 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
 | 2.0 | DNS erneut prüfen (harter Abbruch wenn nicht auflösbar) | `dig +short idm.$DOMAIN` und `dig +short portal.$DOMAIN` — beide müssen eine IP liefern |
-| 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
+| 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) + `ansible`, `kubernetes`, `openshift`, `jmespath` im venv | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
+| 2.1b | Ansible-Collections installieren: `kubernetes.core`, `community.grafana`, `community.mongodb` | `ansible-galaxy collection list \| grep kubernetes.core` |
 | 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen | Datei vorhanden, Platzhalter geprüft |
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
@@ -343,6 +356,15 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
+
+> **Hinweis cc_cli-Installation**: Die Installation erfolgt in einem isolierten
+> Python-venv unter `${CC_CLI_VENV_PATH}`. Zusätzlich zu `cc-cli` werden die
+> Pakete `ansible`, `kubernetes`, `openshift` (für k8s-Ansible-Module) und
+> `jmespath` (für `json_query`-Filter in Playbooks) installiert. Nach der
+> pip-Installation werden die benötigten Ansible-Collections über
+> `ansible-galaxy collection install` bezogen. Ohne diese Collections schlagen
+> Playbooks, die `kubernetes.core`, `community.grafana` oder `community.mongodb`
+> verwenden, fehl.
 
 > **Hinweis: certifi-CA-Bundle**
 > Das Python-venv unter `${CC_CLI_VENV_PATH}` enthält `certifi` mit einem

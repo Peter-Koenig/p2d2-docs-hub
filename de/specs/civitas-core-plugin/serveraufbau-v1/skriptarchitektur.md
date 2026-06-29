@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-06-24
+lastUpdated: 2026-06-26
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -14,7 +14,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
 quality:
-  completeness: 80
+  completeness: 85
   accuracy: 95
   reviewed: false
   reviewer:
@@ -131,6 +131,7 @@ könnten.
 # ── Versionspinning ──────────────────────────────────────────────────────────
 K3S_VERSION="v1.32.3+k3s1"         # Beim Skriptbau aus k3s-Release-Doku fixieren
 HELM_VERSION="v3.17.0"             # Beim Skriptbau aus Helm-Release-Doku fixieren
+ANSIBLE_VERSION="10.6.0"           # Ansible-Community-Distribution (kompatibel mit cc-cli 1.5.0)
 CC_CLI_VERSION="1.5.0"              # cc-cli — aus GitLab Package Registry
 CC_CLI_REGISTRY_URL="https://gitlab.com/api/v4/projects/62227605/packages/pypi/simple"
 CC_CLI_VENV_PATH="/opt/civitas-core-venv"
@@ -139,6 +140,7 @@ CC_CLI_REPO_PATH="/opt/civitas-core-v1"     # Dauerhafter Workspace auf der VM (
 CC_CLI_SYMLINK_PATH="/opt/civitas-core"     # Symlink auf die aktive Version
 CERT_MANAGER_VERSION="v1.16.0"     # Beim Skriptbau aus cert-manager-Release-Doku fixieren
 NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-Doku fixieren
+GATEWAY_API_VERSION="v1.2.1"      # Kubernetes Gateway API CRDs (standard channel)
 
 # ── Plattform ────────────────────────────────────────────────────────────────
 DOMAIN="civitas.data-dna.eu"       # Offener Punkt: Freigabe durch Peter König
@@ -351,7 +353,8 @@ install_k3s() {
 ## Modul 05 — Add-ons (`05_addons.sh`)
 
 Implementiert `install_addons()`. Installiert in dieser Reihenfolge:
-helm-CLI, cert-manager, Bootstrap-Issuer, Root-CA-Certificate, produktiver
+helm-CLI, Kubernetes Gateway API CRDs, cert-manager (mit Gateway-API-Support),
+Bootstrap-Issuer, Root-CA-Certificate, produktiver
 ClusterIssuer, CA-Trust-Integration (System- + certifi-Store) und
 nginx-Ingress. Storage Class ist durch k3s bereits vorhanden.
 
@@ -362,7 +365,8 @@ install_addons() {
   log "=== Phase 1b: Add-ons ==="
 
   install_helm
-  install_cert_manager
+  install_gateway_api_crds          # NEU: Kubernetes Gateway API CRDs
+  install_cert_manager              # Helm: --set config.enableGatewayAPI=true
   # Warten bis cert-manager-Webhook Ready ist, sonst Race-Condition bei CRDs
   kubectl wait pods --all -n "${CERT_MANAGER_NAMESPACE}" \
     --for=condition=Ready --timeout=120s
@@ -378,6 +382,7 @@ install_addons() {
 | Funktion | Idempotenz-Prüfung |
 |---|---|
 | `install_helm` | `is_installed helm && helm version | grep $HELM_VERSION` |
+| `install_gateway_api_crds` | `kubectl get crd gateways.gateway.networking.k8s.io` |
 | `install_cert_manager` | `k8s_ready deployment cert-manager cert-manager` |
 | `configure_bootstrap_issuer` | `kubectl get clusterissuer civitas-bootstrap-selfsigned` |
 | `create_root_ca_certificate` | `kubectl get certificate civitas-core-ca -n cert-manager` → READY=True |
@@ -402,6 +407,16 @@ install_addons() {
 > statt `helm install`. `helm upgrade --install` legt das Chart beim ersten Aufruf
 > an und aktualisiert es bei erneuten Aufrufen – damit ist die Idempotenz auf
 > Helm-Ebene sichergestellt, ohne dass eine separate Prüfung nötig ist.
+
+> **cert-manager mit Gateway-API-Support**: Die cert-manager-Helm-Installation
+> setzt `--set config.enableGatewayAPI=true`, damit cert-manager Gateway-API-
+> Ressourcen verarbeiten kann. Die Gateway-API-CRDs müssen vor cert-manager
+> installiert werden, da cert-manager beim Start die CRDs erwartet. Die CRDs
+> werden aus dem offiziellen Kubernetes-SIG-Release-Bezug installiert:
+> ```bash
+> kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml
+> ```
+
 
 ### CA-Issuer (3-stufig, self-signed-CA für Entwicklung/Evaluation)
 
@@ -517,15 +532,21 @@ install_civitas() {
   log "=== Phase 2: CIVITAS/CORE ==="
 
   check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
+  clone_civitas_repo          # Schritt 2.0: Repository klonen, Symlink anlegen
 
-  install_cc_cli              # Schritt 2.1
-  setup_repo_workspace        # Schritt 2.2: Repository klonen, Symlink anlegen
-  render_inventory            # Schritt 2.3: Inventory in Repo-Verzeichnis rendern
-  check_repo_prerequisites    # Schritt 2.4: Schema + Playbook-Struktur prüfen
-  run_cc_cli_validate         # Schritt 2.5: aus ${CC_CLI_REPO_PATH}
+  install_cc_cli              # Schritt 2.1: cc-cli, ansible, openshift, jmespath
+                              #             + Ansible-Collections installieren
+  render_inventory            # Schritt 2.2: Inventory aus Template erzeugen
   setup_wireguard             # vor cc_cli exec — Health-Check braucht Route
-  run_cc_cli_exec             # Schritt 2.6: aus ${CC_CLI_REPO_PATH}
-  wait_pods_ready "${K8S_NAMESPACE}"  # Schritt 2.9
+  run_cc_cli_validate         # Schritt 2.3: aus ${CC_CLI_PLAYBOOK_DIR}
+  run_cc_cli_exec             # Schritt 2.4: aus ${CC_CLI_PLAYBOOK_DIR}
+  for ns in "${K8S_NAMESPACES[@]}"; do
+    if ! wait_pods_ready "${ns}"; then
+      log_warn "Nicht alle Pods in ${ns} wurden Ready – Details in Phase 3"
+    fi
+  done
+  ensure_tls_certificates     # Schritt 2.5: Certificate-Objekte für Ingress-Hosts
+  wait_portal_tls             # Schritt 2.6: HTTPS-Erreichbarkeit prüfen
 }
 ```
 
@@ -581,21 +602,35 @@ den venv-Pfad.
 
 ```
 cc-cli==1.5.0            # via GitLab Package Registry
-ansible==10.6.0          # Ansible-Core + Collection-Paket
+ansible==10.6.0          # Ansible-Community-Distribution
 kubernetes               # Python-Client für k8s-Ansible-Module
+openshift                # Python-Client für OpenShift/k8s-API
+jmespath                 # JSON-Query-Filter für Ansible-Playbooks
 ```
 
-`install_cc_cli()` installiert alle drei Pakete in einem einzigen pip-Aufruf:
+`install_cc_cli()` installiert cc-cli, ansible, kubernetes, openshift und jmespath
+in einem isolierten venv:
 
 ```bash
 "${CC_CLI_VENV_PATH}/bin/pip" install \
-  --index-url "${CC_CLI_REGISTRY_URL}" \
+  --extra-index-url "${CC_CLI_REGISTRY_URL}" \
   "cc-cli==${CC_CLI_VERSION}" \
-  "ansible==10.6.0" \
-  kubernetes
+  "ansible==${ANSIBLE_VERSION}" \
+  kubernetes \
+  openshift \
+  jmespath
 ```
 
-Anschließend werden Symlinks gesetzt, damit `ansible` und `ansible-playbook`
+Anschließend werden die erforderlichen Ansible-Collections installiert:
+
+```bash
+"${CC_CLI_VENV_PATH}/bin/ansible-galaxy" collection install \
+  kubernetes.core \
+  community.grafana \
+  "community.mongodb:==1.3.2"
+```
+
+Danach werden Symlinks gesetzt, damit `ansible` und `ansible-playbook`
 im PATH liegen (cc_cli ruft sie ohne venv-Prefix auf):
 
 ```bash
