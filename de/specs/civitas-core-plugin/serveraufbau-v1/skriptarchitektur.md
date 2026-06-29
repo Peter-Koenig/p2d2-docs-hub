@@ -557,12 +557,8 @@ install_civitas() {
 
   # Phase 2b1: Komponenten ohne bekannte 404-Probleme (Service Portal, APISIX,
   #            Monitoring, pgAdmin, Geodata – Keycloak-Tenant ist bereits
-  #            durch Phase 2a konfiguriert; Frost ist deaktiviert)
+  #            durch Phase 2a konfiguriert; Frost und Superset sind deaktiviert)
   run_cc_cli_exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,geodata"
-
-  # Phase 2b2: Superset separat (bekannter 404 bei Rollenzuweisung wuerde
-  #            sonst Frost und Geodata blockieren)
-  run_cc_cli_exec --tags "da_superset"
 
   for ns in "${K8S_NAMESPACES[@]}"; do
     if ! wait_pods_ready "${ns}"; then
