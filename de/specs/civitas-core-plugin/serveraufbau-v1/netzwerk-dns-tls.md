@@ -2,14 +2,14 @@
 title: Netzwerk, DNS und TLS für das CIVITAS/CORE-Plugin
 description: Spezifikation der Netzwerkanbindung, Namensauflösung und Zertifikatsstrategie für die Plugin-VM
 status: draft
-lastUpdated: 2026-06-25
+lastUpdated: 2026-06-29
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-netzwerk
 parent: civitas-core-plugin-serveraufbau-index
 dependencies: []
 quality:
-  completeness: 92
+  completeness: 93
   accuracy: 90
   reviewed: false
   reviewer:
@@ -58,6 +58,38 @@ civitas-core-plugin.int.data-dna.eu
 ```
 
 Die Auflösung erfolgt über den internen DNS-Server (OPNsense oder separater Unbound-Container). Ein öffentlicher DNS-Eintrag ist in dieser Phase nicht vorgesehen.
+
+### Erforderliche Subdomains
+
+Die CIVITAS/CORE-Plattform erzeugt eine Reihe von Ingress-Ressourcen, die
+über Subdomains erreichbar sein müssen. Je nach aktivierten Komponenten
+(Inventory: `enable: true/false`) sind folgende Einträge nötig:
+
+| Subdomain | Komponente | Status |
+|---|---|---|
+| `udp.scanea.eu` | Service Portal | ✅ Aktiv (`service_portal.enable: true`) |
+| `idm.udp.scanea.eu` | Keycloak | ✅ Aktiv (`keycloak.enable: true`) |
+| `api.udp.scanea.eu` | APISIX Data Plane | ✅ Aktiv (`apisix.enable: true`) |
+| `api-admin.udp.scanea.eu` | APISIX Control Plane | ✅ Aktiv (`apisix.enable: true`) |
+| `monitoring.udp.scanea.eu` | Grafana / Prometheus | ✅ Aktiv (`monitoring.enable: true`) |
+| `alertmanager.udp.scanea.eu` | Alertmanager | ✅ Aktiv (`alertmanager.enable: true`) |
+| `pgadmin.udp.scanea.eu` | pgAdmin | ✅ Aktiv (`pgadmin.enable: true`) |
+| `superset.udp.scanea.eu` | Apache Superset | ✅ Aktiv (`superset.enable: true`) |
+| `geoportal.udp.scanea.eu` | Masterportal | ✅ Aktiv (`gd_components.enable: true`) |
+| `geoserver.udp.scanea.eu` | GeoServer | ✅ Aktiv (`geoserver.enable: true`) |
+| `frost.udp.scanea.eu` | Frost-Server (SensorThings) | ✅ Aktiv (`frost.enable: true`) |
+| `apim.udp.scanea.eu` | APISIX Dashboard | ⬜ Derzeit deaktiviert (`dashboard.enable: false`) |
+| `oauth.udp.scanea.eu` | OAuth-Endpunkt | ⬜ Optional, je nach Keycloak-Konfiguration |
+| `mqtt.udp.scanea.eu` | Frost MQTT | ❌ Deaktiviert (`frost.mqtt.enable: false`) |
+| `datacatalog.udp.scanea.eu` | Piveau Hub | ❌ Deaktiviert (`piveau.enable: false`) |
+| `search.datacatalog.udp.scanea.eu` | Piveau Hub Search | ❌ Deaktiviert (`piveau.enable: false`) |
+
+> **DNS-Auflösung:** Die Subdomains müssen sowohl intern (PiHole/Unbound im
+> SOHO-LAN, Auflösung auf `192.168.12.139`) als auch extern (netcup-DNS,
+> Auflösung auf die OPNsense-WAN-IP) eingetragen sein. Einträge für
+> deaktivierte Komponenten (`❌`) können weggelassen werden. Optionale
+> Einträge (`⬜`) sollten vorsorglich gesetzt werden, falls die Komponente
+> später aktiviert wird.
 
 ## Externe Erreichbarkeit
 
