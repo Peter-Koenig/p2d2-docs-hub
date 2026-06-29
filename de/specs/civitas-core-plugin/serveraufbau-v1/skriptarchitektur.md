@@ -560,7 +560,10 @@ install_civitas() {
   # Phase 2b1: Komponenten ohne bekannte 404-Probleme (Service Portal, APISIX,
   #            Monitoring, pgAdmin, Geodata – Keycloak-Tenant ist bereits
   #            durch Phase 2a konfiguriert; Frost und Superset sind deaktiviert)
+  # GeoData-Ingress bereinigen, falls vorhanden (Admission-Webhook-Konflikt)
+  cleanup_geodata_ingress
   run_cc_cli_exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,geodata"
+
 
   for ns in "${K8S_NAMESPACES[@]}"; do
     if ! wait_pods_ready "${ns}"; then
@@ -816,7 +819,18 @@ patch_playbook_urls() {
   )
 
   for f in "${files[@]}"; do
+    # Patch 1: POST to role-mappings (Rollenzuweisung)
     sed -i '/role-mappings\/clients/,/status_code:/{
+      /status_code:/a\    follow_redirects: yes
+    }' "${CC_CLI_PLAYBOOK_DIR}/${f}"
+
+    # Patch 2: POST to /admin/realms/.../users (User-Erzeugung)
+    sed -i '/admin\/realms\/.*\/users$/,/status_code:/{
+      /status_code:/a\    follow_redirects: yes
+    }' "${CC_CLI_PLAYBOOK_DIR}/${f}"
+
+    # Patch 3: POST to /admin/realms/.../clients (Client-Erzeugung)
+    sed -i '/admin\/realms\/.*\/clients$/,/status_code:/{
       /status_code:/a\    follow_redirects: yes
     }' "${CC_CLI_PLAYBOOK_DIR}/${f}"
   done
@@ -831,10 +845,28 @@ Keycloak-Tenant (keycloak_8_users.yml, keycloak_5_clients.yml), Superset
 Da `follow_redirects: yes` bereits in der Datei steht, fügt sed die Zeile
 nicht erneut hinzu (keine Duplikate).
 
-**Wirkung:** Alle `uri`-Tasks, die Keycloak-Client-Rollen zuweisen, folgen
-jetzt dem Redirect auf `/auth/admin/realms/...` und erhalten HTTP 204 statt
-404. Dadurch laufen die Keycloak-Konfigurationen von GeoData, Superset und
-dem Keycloak-Tenant vollständig durch.
+**Wirkung:** Alle `uri`-Tasks mit POST zur Keycloak-Admin-API (Rollenzuweisung,
+User-Erzeugung, Client-Erzeugung) folgen jetzt dem Redirect auf
+`/auth/admin/realms/...`. Dadurch laufen die Keycloak-Konfigurationen von
+GeoData, Superset und dem Keycloak-Tenant vollständig durch.
+
+#### Ingress-Bereinigung (`cleanup_geodata_ingress()`)
+
+Bei Wiederholung von `--tags geodata` kann der nginx-Admission-Webhook die
+Ingress-Erstellung mit `"host geoportal.udp.scanea.eu is already defined"`
+ablehnen. Die Funktion `cleanup_geodata_ingress()` entfernt daher vor Phase 2b1
+das GeoData-Ingress, falls es aus einem vorherigen Lauf noch existiert:
+
+```bash
+cleanup_geodata_ingress() {
+  local ns="${CC_ENVIRONMENT:-cc-prd}-geodata-stack"
+  if kubectl get ingress geodata-ingress -n "${ns}" &>/dev/null; then
+    log_warn "Entferne bestehendes GeoData-Ingress …"
+    kubectl delete ingress geodata-ingress -n "${ns}"
+  fi
+}
+```
+
 
 ### Bekannte Stolperfallen
 
