@@ -542,8 +542,10 @@ install_civitas() {
 
   check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
   clone_civitas_repo          # Schritt 2.0: Repository klonen, Symlink anlegen
+  patch_playbook_urls         # Schritt 2.1: follow_redirects für Keycloak-
+                              #   Admin-API (sonst 404 bei POST-Rollenzuweisung)
 
-  install_cc_cli              # Schritt 2.1: cc-cli, ansible, openshift, jmespath
+  install_cc_cli              # Schritt 2.2: cc-cli, ansible, openshift, jmespath
                               #             + Ansible-Collections installieren
   update_ca_trust_certifi     # certifi-Eintrag nach venv-Erstellung (Phase 1b
                               #   konnte es noch nicht, venv fehlte)
@@ -788,6 +790,51 @@ Der Symlink `/opt/civitas-core` zeigt auf das aktuell aktive
 CIVITAS/CORE-Repository. Aktuell zeigt er auf `/opt/civitas-core-v1`
 (V1). Bei einem zukünftigen Wechsel auf V2 wird der Symlink auf
 `/opt/civitas-core-v2` umgebogen.
+
+#### Playbook-URLs patchen (`patch_playbook_urls()`)
+
+Die Ansible-Playbooks von CIVITAS/CORE verwenden für die Keycloak-Admin-API
+URLs ohne `/auth`-Prefix, z.B. `{{ hostname }}/admin/realms/...` statt
+`{{ hostname }}/auth/admin/realms/...`. Keycloak redirectet diese Aufrufe
+auf die korrekte URL mit `/auth`. Ansible's `uri`-Modul folgt Redirects bei
+POST standardmäßig **nicht** (`follow_redirects=safe`), sodass alle POST-
+Aufrufe zur Rollenzuweisung mit HTTP 404 scheitern.
+
+Die Funktion `patch_playbook_urls()` fügt daher nach `clone_civitas_repo()`
+in den betroffenen Playbook-Dateien über `sed` den Parameter
+`follow_redirects: yes` ein:
+
+```bash
+patch_playbook_urls() {
+  local files=(
+    "tasks/geodata/configure/integrated_keycloak.yml"
+    "tasks/geodata/install/geoserver_setup_role_service.yml"
+    "tasks/access/keycloak/idm-config/keycloak_8_users.yml"
+    "tasks/access/keycloak/idm-config/keycloak_5_clients.yml"
+    "tasks/dashboard/superset.yml"
+    "tasks/datacatalog/piveau.yml"
+  )
+
+  for f in "${files[@]}"; do
+    sed -i '/role-mappings\/clients/,/status_code:/{
+      /status_code:/a\    follow_redirects: yes
+    }' "${CC_CLI_PLAYBOOK_DIR}/${f}"
+  done
+}
+```
+
+**Betroffene Dateien:** GeoData (integrated_keycloak.yml, geoserver_setup_role_service.yml),
+Keycloak-Tenant (keycloak_8_users.yml, keycloak_5_clients.yml), Superset
+(superset.yml) und Piveau (piveau.yml).
+
+**Idempotenz:** Der sed-Patch wird bei jedem Skriptdurchlauf neu angewandt.
+Da `follow_redirects: yes` bereits in der Datei steht, fügt sed die Zeile
+nicht erneut hinzu (keine Duplikate).
+
+**Wirkung:** Alle `uri`-Tasks, die Keycloak-Client-Rollen zuweisen, folgen
+jetzt dem Redirect auf `/auth/admin/realms/...` und erhalten HTTP 204 statt
+404. Dadurch laufen die Keycloak-Konfigurationen von GeoData, Superset und
+dem Keycloak-Tenant vollständig durch.
 
 ### Bekannte Stolperfallen
 
