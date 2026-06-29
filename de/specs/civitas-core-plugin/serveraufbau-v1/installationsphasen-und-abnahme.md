@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-06-26
+lastUpdated: 2026-06-29
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -13,8 +13,8 @@ dependencies:
   - civitas-core-plugin-serveraufbau-netzwerk
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
 quality:
-  completeness: 88
-  accuracy: 92
+  completeness: 90
+  accuracy: 93
   reviewed: false
   reviewer:
   reviewDate:
@@ -347,15 +347,35 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.0 | DNS erneut prüfen (harter Abbruch wenn nicht auflösbar) | `dig +short idm.$DOMAIN` und `dig +short portal.$DOMAIN` — beide müssen eine IP liefern |
 | 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) + `ansible`, `kubernetes`, `openshift`, `jmespath` im venv | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
 | 2.1b | Ansible-Collections installieren: `kubernetes.core`, `community.grafana`, `community.mongodb` | `ansible-galaxy collection list \| grep kubernetes.core` |
+| 2.1c | CA-Trust im certifi-Bundle aktualisieren (venv existiert jetzt) | `grep "civitas-core-ca" "${certifi_bundle}"` |
 | 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen | Datei vorhanden, Platzhalter geprüft |
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
-| 2.4c | `cc_cli exec` ausführen | Exit-Code 0 |
+| 2.4c | **Phase 2a — Basis:** `cc_cli exec --tags "base"` (Postgres, Keycloak, Monitoring, pgAdmin) | Exit-Code 0 (404 in Keycloak-Config wird toleriert) |
+| 2.4d | **Phase 2b — Tenant:** `cc_cli exec --skip-tags "acc_keycloak"` (Portal, APISIX, Superset, Frost, Geodata) | Exit-Code 0 |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
+
+> **Hinweis Zweiphasen-cc_cli-exec (Basis + Tenant):** Das Ansible-Playbook
+> verwendet Tags (`base`, `tenant`), um Komponentengruppen zu steuern. Das
+> Skript führt daher zwei getaggte cc_cli exec-Durchläufe aus:
+> 1. `--tags "base"` – installiert Postgres-Operator, Central DB, Keycloak
+>    (Install + Tenant-Konfiguration), Monitoring und pgAdmin.
+> 2. `--skip-tags "acc_keycloak"` – installiert Service Portal, APISIX,
+>    Superset, Frost, Geodata (alles was `tenant`-Tag hat, aber ohne die
+>    Keycloak-Tenant-Config, die bereits in Phase 2a erfolgte).
+>
+> **Bekanntes Problem:** Die Keycloak-Tenant-Konfiguration enthält einen Task
+> "Delete piveau-hub-repo default resource", der bei Erstinstallation
+> erwartungsgemäß HTTP 204 zurückgibt, bei Wiederholung jedoch HTTP 404
+> (Ressource bereits gelöscht). Dieser 404-Fehler bricht das gesamte Playbook
+> ab – alle nachfolgenden Tasks (Service Portal, APISIX, etc.) werden nicht
+> mehr ausgeführt. Durch die Aufteilung in zwei getrennte cc_cli exec-Durchläufe
+> ist sichergestellt, dass die Tenant-Komponenten auch bei toleriertem 404
+> installiert werden.
 
 > **Hinweis cc_cli-Installation**: Die Installation erfolgt in einem isolierten
 > Python-venv unter `${CC_CLI_VENV_PATH}`. Zusätzlich zu `cc-cli` werden die
@@ -370,7 +390,10 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > Das Python-venv unter `${CC_CLI_VENV_PATH}` enthält `certifi` mit einem
 > eigenen CA-Bundle. Dieser enthält per Default keine selbst-signierten CAs.
 > Das Root-CA-Cert muss vor `cc_cli validate` / `cc_cli exec` in das
-> certifi-Bundle eingetragen sein (erfolgt durch Schritt 1.5d).
+> certifi-Bundle eingetragen sein. Schritt 1.5d (Phase 1b) kann dies noch
+> nicht leisten, da das venv zu dem Zeitpunkt noch nicht existiert. Daher
+> wiederholt Schritt 2.1c (`update_ca_trust_certifi()`) den certifi-Eintrag
+> unmittelbar nach der venv-Erstellung.
 > Das Skript ruft `${CC_CLI_VENV_PATH}/bin/cc_cli` direkt auf — das venv
 > muss nicht per `source activate` aktiviert werden. Das certifi-Bundle
 > jedoch muss das CA-Cert enthalten.

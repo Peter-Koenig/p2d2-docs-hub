@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-06-26
+lastUpdated: 2026-06-29
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -14,7 +14,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-kubernetes-laufzeit
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
 quality:
-  completeness: 85
+  completeness: 88
   accuracy: 95
   reviewed: false
   reviewer:
@@ -536,10 +536,21 @@ install_civitas() {
 
   install_cc_cli              # Schritt 2.1: cc-cli, ansible, openshift, jmespath
                               #             + Ansible-Collections installieren
+  update_ca_trust_certifi     # certifi-Eintrag nach venv-Erstellung (Phase 1b
+                              #   konnte es noch nicht, venv fehlte)
+
   render_inventory            # Schritt 2.2: Inventory aus Template erzeugen
   setup_wireguard             # vor cc_cli exec — Health-Check braucht Route
+
+  # Phase 2a: Basis-Komponenten (Postgres, Keycloak, Monitoring, pgAdmin)
   run_cc_cli_validate         # Schritt 2.3: aus ${CC_CLI_PLAYBOOK_DIR}
-  run_cc_cli_exec             # Schritt 2.4: aus ${CC_CLI_PLAYBOOK_DIR}
+  run_cc_cli_exec --tags "base"
+
+  # Phase 2b: Tenant-Komponenten ohne Keycloak (Service Portal, APISIX,
+  #           Superset, Frost, Geodata – Keycloak-Tenant ist bereits durch
+  #           Phase 2a konfiguriert)
+  run_cc_cli_exec --skip-tags "acc_keycloak"
+
   for ns in "${K8S_NAMESPACES[@]}"; do
     if ! wait_pods_ready "${ns}"; then
       log_warn "Nicht alle Pods in ${ns} wurden Ready – Details in Phase 3"
@@ -629,6 +640,40 @@ Anschließend werden die erforderlichen Ansible-Collections installiert:
   community.grafana \
   "community.mongodb:==1.3.2"
 ```
+
+### CA-Trust im certifi-Bundle (venv-abhängig)
+
+`setup_ca_trust()` in Phase 1b (Modul 05) schreibt das Root-CA-Zertifikat in
+den System-Trust-Store und in das certifi-Bundle des Python-venv. Da das venv
+zu diesem Zeitpunkt noch nicht existiert (es wird erst in Phase 2 durch
+`install_cc_cli()` erstellt), schlägt der certifi-Eintrag in Phase 1b still
+fehl. Dies wird durch die Warnung `certifi cacert.pem nicht gefunden` im Log
+angezeigt. Ohne den certifi-Eintrag scheitern die HTTPS-Health-Checks von
+`cc_cli validate` und `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
+
+Die Funktion `update_ca_trust_certifi()` in Modul 06 wiederholt daher den
+certifi-Teil nach der Erstellung des venv:
+
+```bash
+update_ca_trust_certifi() {
+  local ca_cert="/usr/local/share/ca-certificates/civitas-core-ca.crt"
+
+  if [[ ! -f "${ca_cert}" ]]; then
+    log_warn "CA-Zertifikat nicht gefunden – certifi-Update übersprungen"
+    return 0
+  fi
+
+  certifi_bundle=$(find "${CC_CLI_VENV_PATH}" -name "cacert.pem" | head -1)
+  if [[ -n "${certifi_bundle}" ]]; then
+    if ! grep -q "civitas-core-ca" "${certifi_bundle}"; then
+      cat "${ca_cert}" >> "${certifi_bundle}"
+    fi
+  fi
+}
+```
+
+**Idempotenz:** Prüft via `grep "civitas-core-ca"` ob der Eintrag bereits
+vorhanden ist und überspringt ggf.
 
 Danach werden Symlinks gesetzt, damit `ansible` und `ansible-playbook`
 im PATH liegen (cc_cli ruft sie ohne venv-Prefix auf):
@@ -832,6 +877,19 @@ abgeleitet wird. F&uuml;r jeden Namespace werden gepr&uuml;ft:
 Zus&auml;tzlich laufen Domain-Level-Pr&uuml;fungen (Keycloak, Portal via HTTPS)
 und Infrastruktur-Pr&uuml;fungen (WireGuard-Tunnel, OPNsense-Konnektivit&auml;t)
 einmalig, nicht pro Namespace.
+
+> **WireGuard-Reconnect vor Prüfung:** Da `cc_cli exec` je nach aktivierten
+> Komponenten 2–5 Minuten oder länger läuft, kann der WireGuard-Tunnel durch
+> Inaktivität abreißen (insbesondere hinter NAT/FritzBox). Vor der Infrastruktur-
+> Prüfung in `verify_phase2()` wird daher der Tunnel-Status geprüft und der
+> Tunnel bei Bedarf neu gestartet:
+> ```bash
+> if ! systemctl is-active --quiet "wg-quick@${WG_INTERFACE}"; then
+>   log_warn "WireGuard-Tunnel ${WG_INTERFACE} inaktiv – reaktiviere ..."
+>   systemctl restart "wg-quick@${WG_INTERFACE}"
+>   sleep 3
+> fi
+> ```
 
 ### Ablauf
 
