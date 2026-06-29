@@ -352,22 +352,25 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **Phase 2a — Basis:** `cc_cli exec --tags "base"` (Postgres, Keycloak, Monitoring, pgAdmin) | Exit-Code 0 (404 in Keycloak-Config wird toleriert) |
-| 2.4d | **Phase 2b — Rest:** `cc_cli exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,da_superset,cm_frost,geodata"` (Portal, APISIX, Superset, Frost, Geodata ohne Keycloak) | Exit-Code 0 |
+| 2.4d | **Phase 2b1 — Rest (ohne Superset):** `cc_cli exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,cm_frost,geodata"` (Portal, APISIX, Frost, Geodata, Monitoring, pgAdmin ohne Keycloak) | Exit-Code 0 |
+| 2.4e | **Phase 2b2 — Superset isoliert:** `cc_cli exec --tags "da_superset"` (Superset separat, damit ein 404 bei der Rollenzuweisung nicht Frost/Geodata blockiert) | Exit-Code 0 (404 wird toleriert) |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
 
-> **Hinweis Zweiphasen-cc_cli-exec (Basis + Rest):** Das Ansible-Playbook
-> verwendet Tags (`base`, `tenant`), um Komponentengruppen zu steuern. Das
-> Skript führt daher zwei getaggte cc_cli exec-Durchläufe aus:
+> **Hinweis cc_cli-exec in drei Phasen:** Das Ansible-Playbook verwendet Tags
+> (`base`, `tenant`), um Komponentengruppen zu steuern. Da mehrere Komponenten
+> 404-Fehler in der Keycloak-Integration produzieren, die das Playbook vorzeitig
+> abbrechen, wird cc_cli exec in drei getrennten Durchläufen ausgeführt:
 > 1. `--tags "base"` – installiert Postgres-Operator, Central DB, Keycloak
 >    (Install + Tenant-Konfiguration), Monitoring und pgAdmin.
-> 2. `--tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,da_superset,cm_frost,geodata"`
->    – installiert Service Portal, APISIX, Superset, Frost, Geodata, Monitoring
->    und pgAdmin (die restlichen Komponenten, die nach dem Keycloak-Block im
->    Playbook stehen, jedoch ohne die Keycloak-Tenant-Config).
+> 2. `--tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,cm_frost,geodata"`
+>    – installiert Service Portal, APISIX, Frost, Geodata, Monitoring und pgAdmin
+>    (die restlichen Komponenten nach dem Keycloak-Block, jedoch ohne Superset).
+> 3. `--tags "da_superset"` – Superset isoliert. Bekannter 404 bei der
+>    Rollenzuweisung blockiert so nicht mehr die nachfolgenden Komponenten.
 >
 > **Warum nicht `--skip-tags "acc_keycloak"`?** `cc_cli` unterstützt nach
 > aktuellem Kenntnisstand nur `--tags`, nicht `--skip-tags`. Die explizite
