@@ -556,9 +556,9 @@ install_civitas() {
   run_cc_cli_exec --tags "base"
 
   # Phase 2b1: Komponenten ohne bekannte 404-Probleme (Service Portal, APISIX,
-  #            Monitoring, pgAdmin, Frost, Geodata – Keycloak-Tenant ist bereits
-  #            durch Phase 2a konfiguriert)
-  run_cc_cli_exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,cm_frost,geodata"
+  #            Monitoring, pgAdmin, Geodata – Keycloak-Tenant ist bereits
+  #            durch Phase 2a konfiguriert; Frost ist deaktiviert)
+  run_cc_cli_exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,geodata"
 
   # Phase 2b2: Superset separat (bekannter 404 bei Rollenzuweisung wuerde
   #            sonst Frost und Geodata blockieren)

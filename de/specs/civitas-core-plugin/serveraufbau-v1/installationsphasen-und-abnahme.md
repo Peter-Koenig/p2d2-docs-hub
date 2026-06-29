@@ -352,7 +352,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **Phase 2a — Basis:** `cc_cli exec --tags "base"` (Postgres, Keycloak, Monitoring, pgAdmin) | Exit-Code 0 (404 in Keycloak-Config wird toleriert) |
-| 2.4d | **Phase 2b1 — Rest (ohne Superset):** `cc_cli exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,cm_frost,geodata"` (Portal, APISIX, Frost, Geodata, Monitoring, pgAdmin ohne Keycloak) | Exit-Code 0 |
+| 2.4d | **Phase 2b1 — Rest (ohne Superset, Frost deaktiviert):** `cc_cli exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,geodata"` (Portal, APISIX, Geodata, Monitoring, pgAdmin ohne Keycloak) | Exit-Code 0 |
 | 2.4e | **Phase 2b2 — Superset isoliert:** `cc_cli exec --tags "da_superset"` (Superset separat, damit ein 404 bei der Rollenzuweisung nicht Frost/Geodata blockiert) | Exit-Code 0 (404 wird toleriert) |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
