@@ -2,7 +2,7 @@
 title: cc-cli-Inventar — Ansible-Inventory für CIVITAS/CORE
 description: Dokumentation des per Wizard erzeugten cc_cli_inventory.yml, seiner Struktur und der daraus abgeleiteten Template-Vorlage für die automatisierte Installation.
 status: draft
-lastUpdated: 2026-06-26
+lastUpdated: 2026-06-29
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-cc-cli-inventar
@@ -470,6 +470,7 @@ von `master_password`). Die frühere Annahme eines zweiten Platzhalters
 | `PLACEHOLDER_ADMIN_EMAIL` | `${ADMIN_EMAIL}` | Platform-Admin-E-Mail (= master_username) |
 | `PLACEHOLDER_KC_MASTER_PASS` | `${ADMIN_PASS}` | Keycloak-Master-Password (auch platform\_admin-Passwort) |
 | `PLACEHOLDER_TENANT_PASS` | `${TENANT_ADMIN_PASS}` | Tenant-Admin-Passwort (separat) |
+| `PLACEHOLDER_SMTP_PORT` | `${SMTP_PORT:-587}` | SMTP-Port (Standard 587) |
 | Alle weiteren | `gen_policy_password()` | Auto-generiert, flüchtig |
 
 ## Festlegungen
