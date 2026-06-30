@@ -88,13 +88,16 @@ Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
 
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
-| -1.1 | Cloud-Image herunterladen (`debian-13-genericcloud-amd64-daily.qcow2`) | Datei `/tmp/${image_name}` vorhanden |
-| -1.2 | VM mit qm create anlegen (`VM_ID=2010`, 12 vCPU, 40 GiB RAM, Bridge vmbr0) | `qm status ${VM_ID}` — VM existiert |
+| -1.1 | Cloud-Image herunterladen (24h-Cache mit Altersprüfung) | Datei im Cache (`/var/lib/vz/template/qcow/`) vorhanden und < 24h alt |
+| -1.2 | VM mit qm create anlegen (`VM_ID=2010`, 12 vCPU, 40 GiB RAM, Bridge vmbr0, QEMU-GA, serielle Konsole) | `qm status ${VM_ID}` — VM existiert |
 | -1.3 | Disk aus Cloud-Image importieren (300 GiB, ZFS-thin) | `qm config ${VM_ID}` — Disk zugewiesen |
 | -1.4 | Cloud-Init konfigurieren (root, SSH-Key, statische IPv4/IPv6) | `qm config ${VM_ID}` — ciuser, sshkeys, ipconfig0 gesetzt |
 | -1.5 | VM starten | `qm status ${VM_ID}` → running |
 | -1.6 | Warten auf SSH-Erreichbarkeit unter der konfigurierten statischen VM-IP | `ssh root@${VM_IP_STATIC} true` erreichbar |
 | -1.7 | Anleitung für nächste Schritte ausgeben | — |
+| -1.8 | Skript-Dateien, Module und Templates per scp in die VM kopieren (nach `${VM_REMOTE_INSTALL_DIR}`) | Dateien existieren in der VM |
+| -1.9 | `.env.local` (falls vorhanden) per scp in die VM kopieren | Datei `.env.local` im Skript-Verzeichnis |
+| -1.10 | SSH-Hop: Skript in der VM mit `CIVITAS_CONTEXT=vm` neu starten (Secrets aus `.env.local` werden gesourct) | — |
 
 ### Abnahmekriterien Phase -1
 
@@ -116,7 +119,8 @@ ssh root@VM_IP 'ls -la install_civitas_core.sh'
 ```
 
 > **Abnahme Phase -1 bestanden**, wenn die VM läuft, per SSH erreichbar ist
-> und das Installationsskript in die VM übertragen wurde.
+> und der SSH-Hop (`CIVITAS_CONTEXT=vm`) das Installationsskript erfolgreich
+> in der VM gestartet hat.
 
 ### Konfigurationsvariablen Phase -1
 
@@ -125,7 +129,7 @@ externalisiert:
 
 | Variable | Beschreibung | Beispielwert |
 |---|---|---|
-| `VM_ID` | Proxmox VM-ID | `100` |
+| `VM_ID` | Proxmox VM-ID | `2010` |
 | `VM_NAME` | Anzeigename in Proxmox | `civitas-core` |
 | `VM_RAM_MB` | RAM in MiB | `40960` |
 | `VM_CORES` | vCPUs | `12` |
@@ -133,10 +137,23 @@ externalisiert:
 | `VM_BRIDGE` | Bridge-Netzwerk | `vmbr0` |
 | `PROXMOX_STORAGE` | Proxmox-Storage für VM-Disk | `local-zfs-civitas` |
 | `CLOUD_IMAGE_URL` | URL zum Debian-13-Cloud-Image | siehe Quellcode |
+| `VM_IP_STATIC` | Statische IPv4-Adresse der VM | `192.168.12.139` |
+| `VM_IP_PREFIX` | IPv4-Präfixlänge | `24` |
+| `VM_GW` | IPv4-Gateway | `192.168.12.1` |
+| `VM_IP6_STATIC` | Statische IPv6-Adresse der VM | `fd01:1:1:1::139` |
+| `VM_IP6_PREFIX` | IPv6-Präfixlänge | `64` |
+| `VM_GW6` | IPv6-Gateway | `fd01:1:1:1:de39:6fff:febe:9962` |
+| `SSH_PUBKEY_PATH` | Pfad zum SSH-Public-Key für root-Zugang | `${HOME}/.ssh/authorized_keys` |
+| `VM_REMOTE_INSTALL_DIR` | Zielverzeichnis in der VM für scp/SSH | `/root/civitas-install` |
 
 > **Hinweis**: `ROOT_PASSWORD` wird ausschließlich als Umgebungsvariable
 > übergeben und nie hartcodiert. Das Skript bricht ab, wenn die Variable
 > nicht gesetzt ist.
+>
+> **Secrets aus `.env.local`:** Liegt die Datei `.env.local` im Skript-Verzeichnis,
+> wird sie beim SSH-Hop (Schritt -1.9) automatisch in die VM übertragen und
+> dort vor dem Skriptstart gesourct. Ohne `.env.local` müssen alle Secrets
+> separat als Umgebungsvariablen gesetzt werden.
 
 ***
 
@@ -151,6 +168,7 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 
 | Prüfpunkt | Erwarteter Zustand | Befehl / Methode | Fehlerverhalten |
 |---|---|---|---|
+| apt-Lock (cloud-init) | Kein laufender apt-Prozess (lock frei) | `fuser /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend` >/dev/null 2>&1; Warte max. 120s | Abbruch |
 | Betriebssystem | Debian 13 (Trixie), x86_64 | `/etc/os-release` (ID=debian, VERSION_ID=13) | Abbruch |
 | vCPU | ≥ 4 (empfohlen: 12) | `nproc` | Abbruch |
 | RAM | ≥ 16384 MiB (empfohlen: 40 GiB) | `free -m` (numerischer Vergleich) | Abbruch |
@@ -158,12 +176,14 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 | Swap | Deaktiviert | `swapon --show` muss leer sein | Abbruch |
 | Netzwerk (intern) | VM erreicht SOHO-Gateway | `ping -c2 <gateway>` | Abbruch |
 | DNS `idm.<domain>` / `portal.<domain>` | Auflösbar | `dig +short idm.$DOMAIN` | **Warnung** (kein Abbruch, DNS wird manuell vor Phase 2 gesetzt) |
+| Zeitzone | `Europe/Berlin` gesetzt | `timedatectl show --property=Timezone --value` – wird automatisch gesetzt falls abweichend | Wird korrigiert (kein Abbruch) |
 | `curl` vorhanden | Binary verfügbar | `command -v curl` | Abbruch |
 | `python3` / `pip3` vorhanden | Binaries verfügbar | `command -v python3 && command -v pip3` | Abbruch |
 | `wg` (wireguard-tools) | Binary verfügbar | `command -v wg` | Abbruch (wird automatisch installiert) |
 | SMTP erreichbar | TCP-Verbindung zu `$SMTP_HOST:$SMTP_PORT` | `nc -z -w5 $SMTP_HOST $SMTP_PORT` | Abbruch |
 | `k3s / kubectl` | Noch nicht installiert ODER bereits korrekte Version | Versionsvergleich gegen `$K3S_VERSION` | Abbruch bei falscher Version |
 | Pflicht-Env-Vars | Alle mandatory Secrets gesetzt | Prüfung in `01_config.sh` via `${VAR:?}` | Abbruch |
+| PBS-Storage | PBS `$PBS_STORAGE` im Proxmox-Host konfiguriert | `pvesm status \| grep $PBS_STORAGE` (nur auf Proxmox-Host) | **Warnung** (kein Abbruch – Backup auf Host-Ebene prüfen) |
 
 > **Hinweis DNS**: Die DNS-Prüfung in Phase 0 gibt eine Warnung aus,
 > bricht aber nicht ab. Hintergrund: Die DNS-Einträge für `idm.<domain>`
@@ -193,6 +213,8 @@ inklusive aller für CIVITAS/CORE erforderlichen Add-ons.
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
 | 1.1 | k3s installieren — **`--disable traefik`** muss beim Start gesetzt werden, nicht nachträglich: `curl -sfL https://get.k3s.io \| INSTALL_K3S_VERSION="$K3S_VERSION" INSTALL_K3S_EXEC="--disable traefik" sh -` | `systemctl is-active k3s` + Versionsvergleich gegen `$K3S_VERSION` |
+| 1.1a | Warten auf k3s-API: kubeconfig-Datei `/etc/rancher/k3s/k3s.yaml` vorhanden (max. 60s, 2s-Intervall) | `test -f /etc/rancher/k3s/k3s.yaml` |
+| 1.1b | Warten auf Node-Registrierung: `kubectl get nodes` liefert Eintrag (max. 60s, 3s-Intervall) | `kubectl get nodes --no-headers` – mind. ein Node vorhanden |
 | 1.2 | kubeconfig nach `~/.kube/config` kopieren | Datei vorhanden und korrekt (`kubectl cluster-info`) |
 | 1.3 | `helm`-CLI installieren (separat — k3s bringt `helm-controller`, nicht die `helm`-CLI) | `command -v helm` + Versionsvergleich gegen `$HELM_VERSION` |
 | 1.3a | Kubernetes Gateway API CRDs installieren (Voraussetzung für cert-manager Gateway-Support) | `kubectl get crd gateways.gateway.networking.k8s.io` |
@@ -428,11 +450,13 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > `all.vars.ENVIRONMENT` (z. B. `cc-prd`) ab. Pro Stack-Komponente entsteht
 > ein Namespace nach dem Muster `{ENVIRONMENT}-{stack}`:
 >
-> | Namespace | Stack | Enth&auml;lt typischerweise |
-> |---|---|---|
-> | `cc-prd-access-stack` | Access | Keycloak, APISIX, Service Portal |
-> | `cc-prd-database-stack` | Database | PostgreSQL, ggf. weitere Datenbanken |
-> | `cc-prd-operation-stack` | Operation | Prometheus, Grafana, Loki, PGAdmin, Velero |
+| Namespace | Stack | Enth&auml;lt typischerweise |
+|---|---|---|
+| `cc-prd-access-stack` | Access | Keycloak, APISIX, Service Portal |
+| `cc-prd-context-stack` | Context | Frost-Server (SensorThings), QuantumLeap, Stellio |
+| `cc-prd-dashboard-stack` | Dashboard | Apache Superset, Grafana |
+| `cc-prd-database-stack` | Database | PostgreSQL, ggf. weitere Datenbanken |
+| `cc-prd-operation-stack` | Operation | Prometheus, Grafana, Loki, PGAdmin, Velero |
 >
 > Das Installationsskript definiert in `01_config.sh` das Array
 > `K8S_NAMESPACES`, das aus `CC_ENVIRONMENT` abgeleitet wird:
@@ -440,6 +464,8 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > CC_ENVIRONMENT="${CC_ENVIRONMENT:-cc-prd}"
 > K8S_NAMESPACES=(
 >   "${CC_ENVIRONMENT}-access-stack"
+>   "${CC_ENVIRONMENT}-context-stack"
+>   "${CC_ENVIRONMENT}-dashboard-stack"
 >   "${CC_ENVIRONMENT}-database-stack"
 >   "${CC_ENVIRONMENT}-operation-stack"
 > )
@@ -504,14 +530,16 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 
 | Variable | Beschreibung | Beispielwert |
 |---|---|---|
-| `DOMAIN` | Basis-Domain für `idm.` und `portal.` | `civitas.data-dna.eu` |
-| `SMTP_HOST` | SMTP-Server (netcup) | `mx2fab.netcup.net` (exakter Hostname aus WCP) |
+| `DOMAIN` | Basis-Domain für `idm.` und `portal.` | `udp.scanea.eu` |
+| `SMTP_HOST` | SMTP-Server (netcup) | `mx92c.netcup.net` (exakter Hostname aus WCP) |
 | `SMTP_PORT` | SMTP-Port | `587` |
-| `SMTP_USER` | SMTP-Absender | `noreply@data-dna.eu` |
+| `SMTP_USER` | SMTP-Absender | `noreply@scanea.eu` |
 | `SMTP_PASS` | SMTP-Passwort | Aus Umgebungsvariable `$SMTP_PASS` |
+| `SMTP_FROM` | SMTP-Absenderadresse für E-Mails | `no-reply@scanea.eu` |
 | `CC_CLI_VERSION` | cc-cli-Version (Pinning) | `1.5.0` — nicht `latest` |
 | `CC_V1_REPO_URL` | Repository-URL des CIVITAS/CORE V1-Monorepos | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
 | `CC_V1_REPO_PATH` | Lokaler Pfad des geklonten Repositorys | `/opt/civitas-core-v1` |
+| `CC_CLI_PLAYBOOK_DIR` | Verzeichnis mit `playbook.yml` (cc_cli CWD) | `${CC_V1_REPO_PATH}/core_platform` |
 | `CC_V1_REPO_BRANCH` | Git-Branch | `main` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
 | `ADMIN_EMAIL` | Platform-Admin-E-Mail (auch Keycloak-master_username) | `admin@scanea.eu` |

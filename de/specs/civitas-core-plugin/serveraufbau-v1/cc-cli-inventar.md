@@ -283,38 +283,48 @@ all:
 
 ## Konsequenzen für das Installationsskript
 
-1. **Template-Datei**: `templates/config.yaml.tpl` muss durch
-   `templates/inventory.yml.tpl` ersetzt werden (oder umbenannt).
-2. **`render_inventory()`** muss alle Platzhalter des Inventars ersetzen,
-   insbesondere `{{DOMAIN}}`, `{{ENVIRONMENT}}`, `{{SMTP_HOST}}`,
-   `{{SMTP_USER}}`, `{{SMTP_PASS}}`, `{{ADMIN_EMAIL}}`.
-3. **Passwörter**: Das Inventory enthält viele Passwort-Felder. Die
-   auto-generierten Werte aus dem Wizard sind beim ersten Template-Bau
-   zu übernehmen. Bei Bedarf können sie später als Env-Vars externalisiert
-   werden.
+1. **Template-Datei**: Die Vorlage liegt als `templates_V1/inventory.yml.tpl`
+   und wird durch `render_inventory()` in Module 06 zu `cc_cli_inventory.yml`
+   verarbeitet. Ursprünglich als `config.yaml.tpl` geplant, wurde der Name
+   zur besseren Unterscheidbarkeit auf `inventory.yml.tpl` geändert.
+2. **`render_inventory()`** ersetzt alle Platzhalter (`PLACEHOLDER_*`) des
+   Inventars, insbesondere `PLACEHOLDER_DOMAIN`, `PLACEHOLDER_ENVIRONMENT`,
+   `PLACEHOLDER_SMTP_HOST`, `PLACEHOLDER_SMTP_USER`, `PLACEHOLDER_SMTP_PASS`,
+   `PLACEHOLDER_ADMIN_EMAIL` sowie alle Komponenten-Passwörter.
+3. **Passwörter**: Das Inventory enthält viele Passwort-Felder. Von außen
+   gesetzte Passwörter (`ADMIN_PASS`, `TENANT_ADMIN_PASS`) werden aus
+   Umgebungsvariablen übernommen; alle weiteren Passwörter werden pro
+   Skriptlauf via `gen_policy_password()` frisch generiert. Die Inventory-Datei
+   wird nach `cc_cli exec` durch den EXIT-Trap gelöscht.
 4. **Komponenten-Auswahl**: Die im Wizard gewählten Komponenten
-   (`enable: true/false`) sind als Template-Defaults zu setzen. Eine
-   Externalisierung als Env-Vars ist für eine spätere Ausbaustufe
-   vorgesehen.
-5. **`config.yaml` → `inventory.yml`**: Der Dateiname in
-   `render_inventory()` sollte von `civitas_core_config.yaml` auf
-   `civitas_core_inventory.yml` geändert werden, da es sich um ein
-   Ansible-Inventory handelt.
-6. **Schema-Referenz**: Die erste Zeile des Wizard-Outputs enthält einen
+   (`enable: true/false`) sind als Template-Defaults gesetzt. Werte, die
+   vom Zielsystem abhängen (z. B. Velero-Credentials), bleiben als
+   Platzhalter (`CHANGE_ME`) erhalten und müssen vor dem ersten Skriptlauf
+   manuell gesetzt werden.
+5. **`PLACEHOLDER_*` statt `{{VARS}}`**: Anders als im initialen Entwurf
+   (Jinja-Notation `{{DOMAIN}}`) verwendet das Template das Schema
+   `PLACEHOLDER_UPPER_CASE`, da die Inventory-Datei im YAML-Format vorliegt
+   und `{{ }}`-Klammern mit YAML-/Ansible-Syntax kollidieren würden. Die
+   Ersetzung erfolgt ausschließlich durch `sed` in `render_inventory()`.
+6. **Ausgabepfad**: `render_inventory()` schreibt die fertige Inventory-Datei
+   nach `${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml` (d. h.
+   `/opt/civitas-core-v1/core_platform/cc_cli_inventory.yml`). Der EXIT-Trap
+   des Entry-Points löscht diese Datei nach Skriptende (`rm -f "${CONFIG_YAML_PATH:-}"`).
+7. **Schema-Referenz**: Die erste Zeile des Wizard-Outputs enthält einen
    `$schema`-Verweis auf das JSON-Schema des Projekts. Dieser sollte
    im Template erhalten bleiben.
-7. **Repository-Arbeitskontext**: Das Inventory wird im Repository-Workspace
-   unter `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` abgelegt. Der Workspace
+8. **Repository-Arbeitskontext**: Das Inventory wird im Repository-Workspace
+   unter `${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml` abgelegt. Der Workspace
    wird durch Schritt 2.2 (setup_repo_workspace) bereitgestellt. Das Repository
    liegt unter `/opt/civitas-core-v1`, der Symlink `/opt/civitas-core` zeigt
    auf die aktive Version.
-8. **Velero**: Im Template wird `velero.enable: false` als Default gesetzt.
+9. **Velero**: Im Template wird `velero.enable: false` als Default gesetzt.
    Das Feld wird nur auf `true` geändert, wenn alle fünf Velero-Felder
    (`access_key`, `bucket`, `region`, `endpoint`, `secret`) als Env-Vars
    gesetzt und nicht leer sind. Die Prüfung erfolgt in `render_inventory()`
    vor dem sed-Schritt. Solange ein Feld fehlt oder den Wert `""` hat,
    bleibt `velero.enable: false` im gerenderten Inventory.
-9. **Health-Checks aktiviert**: `inv_checks.enable` ist auf `true`
+10. **Health-Checks aktiviert**: `inv_checks.enable` ist auf `true`
    gesetzt. Der in `cc_cli exec` integrierte Ansible-Health-Check ruft die
    externen Endpunkte (`https://idm.${DOMAIN}/`) auf. Dank der HAProxy-
    TCP-Passthrough-Architektur terminiert nginx in der VM das TLS selbst
@@ -323,10 +333,10 @@ all:
    Voraussetzung: Das Root-CA-Cert (Variante C, self-signed-CA) muss im
    certifi-Bundle des venv eingetragen sein (Schritt 1.5d), sonst scheitern
    die HTTPS-Health-Checks mit `CERTIFICATE_VERIFY_FAILED`.
-10. **Python-Abhängigkeiten im venv**: Zusätzlich zu `cc-cli` und `ansible`
+11. **Python-Abhängigkeiten im venv**: Zusätzlich zu `cc-cli` und `ansible`
     werden die Pakete `kubernetes`, `openshift` (für k8s-Ansible-Module) und
     `jmespath` (für `json_query`-Filter in Playbooks) im venv installiert.
-11. **Ansible-Collections**: Nach der pip-Installation müssen die benötigten
+12. **Ansible-Collections**: Nach der pip-Installation müssen die benötigten
     Ansible-Collections über `ansible-galaxy collection install` bezogen werden:
     - `kubernetes.core` – Kubernetes-Ansible-Module
     - `community.grafana` – Grafana-Integration

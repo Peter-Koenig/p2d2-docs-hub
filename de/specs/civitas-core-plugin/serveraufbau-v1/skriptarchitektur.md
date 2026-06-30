@@ -53,7 +53,7 @@ Das Installationsskript wird im Repository `civitas_einrichtung` abgelegt:
 │   ├── 06_civitas.sh                ← Phase 2: cc-cli, config.yaml, deploy
 │   └── 07_verify.sh                 ← Phase 3: Verifikation, Fehlerreport
 ├── templates/
-│   ├── config.yaml.tpl              ← cc-cli-Konfigurationsvorlage
+│   ├── inventory.yml.tpl             ← cc-cli-Inventory-Vorlage (cc_cli_inventory.yml)
 │   └── wg0.conf.tpl                 ← WireGuard-Konfigurationsvorlage
 └── .env.example                     ← Beispiel für Umgebungsvariablen (kein Secret)
 ```
@@ -72,34 +72,87 @@ Das Installationsskript wird im Repository `civitas_einrichtung` abgelegt:
 
 ## Entry-Point: `install_civitas_core.sh`
 
-Der Entry-Point lädt alle Module in definierter Reihenfolge, ruft die
-Phasenfunktionen auf und gibt am Ende einen Gesamtstatus aus.
+Der Entry-Point lädt alle Module in definierter Reihenfolge. Er kennt zwei
+Ausführungskontexte, gesteuert durch die Umgebungsvariable `CIVITAS_CONTEXT`:
 
-### Struktur
+- **`CIVITAS_CONTEXT=host`** (Default) — Läuft auf dem Proxmox-Host.
+  Führt Phase -1 (VM-Provisionierung) aus, kopiert dann alle Skript-Dateien
+  per scp in die VM und startet einen SSH-Hop (`run_in_vm()`), der das Skript
+  innerhalb der VM mit `CIVITAS_CONTEXT=vm` neu startet.
+- **`CIVITAS_CONTEXT=vm`** — Läuft innerhalb der CIVITAS/CORE-VM.
+  Führt die Phasen 0–3 (Vorbedingungen, k3s, Add-ons, cc_cli, Verifikation)
+  direkt aus, ohne VM-Provisionierung.
+
+### Ausführungskontext
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
+CIVITAS_CONTEXT="${CIVITAS_CONTEXT:-host}"
+```
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+### SSH-Hop (`run_in_vm()`)
 
+Die Funktion `run_in_vm()` wird auf dem Proxmox-Host nach erfolgreicher
+VM-Provisionierung aufgerufen. Sie:
+
+1. Entfernt den alten SSH-Host-Key der VM (wird bei jedem Scratch-Lauf neu erstellt)
+2. Kopiert das gesamte Installationsskript, alle Module und Templates per scp
+   in die VM unter `${VM_REMOTE_INSTALL_DIR}` (`/root/civitas-install`)
+3. Kopiert die Datei `.env.local` (falls vorhanden) per scp in die VM — diese
+   enthält alle Secrets (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel)
+4. Startet `install_civitas_core.sh` in der VM mit `CIVITAS_CONTEXT=vm`
+   und sourced dabei `.env.local` vor dem Skriptaufruf
+
+```bash
+run_in_vm() {
+  ssh-keygen -f "${HOME}/.ssh/known_hosts" -R "${VM_IP_STATIC}" 2>/dev/null || true
+  log "Kopiere Skript-Dateien in die VM (${VM_IP_STATIC}) …"
+  ssh -o StrictHostKeyChecking=no \
+      "root@${VM_IP_STATIC}" \
+      "mkdir -p ${VM_REMOTE_INSTALL_DIR}"
+  scp -o StrictHostKeyChecking=no -r \
+    "${SCRIPT_DIR}/install_civitas_core_V1.sh" \
+    "${SCRIPT_DIR}/modules_V1" \
+    "${SCRIPT_DIR}/templates_V1" \
+    "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/"
+
+  # .env.local transferieren, falls vorhanden
+  if [[ -f "${SCRIPT_DIR}/.env.local" ]]; then
+    scp -o StrictHostKeyChecking=no \
+      "${SCRIPT_DIR}/.env.local" \
+      "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
+  fi
+
+  ssh -o StrictHostKeyChecking=no \
+      "root@${VM_IP_STATIC}" \
+      "CIVITAS_CONTEXT=vm bash -lc '
+        cd ${VM_REMOTE_INSTALL_DIR}
+        if [[ -f .env.local ]]; then
+          set -a; source .env.local; set +a
+        fi
+        ./install_civitas_core_V1.sh
+      '"
+}
+```
+
+### Struktur (vereinfacht)
+
+```bash
+# Traps setzen (ERR, INT, TERM, EXIT)
 # Module laden
-source "${SCRIPT_DIR}/modules/01_config.sh"
-source "${SCRIPT_DIR}/modules/02_lib.sh"
-source "${SCRIPT_DIR}/modules/00_provision_vm.sh"
-source "${SCRIPT_DIR}/modules/03_preflight.sh"
-source "${SCRIPT_DIR}/modules/04_k3s.sh"
-source "${SCRIPT_DIR}/modules/05_addons.sh"
-source "${SCRIPT_DIR}/modules/06_civitas.sh"
-source "${SCRIPT_DIR}/modules/07_verify.sh"
+source ...
+source ...
 
-# Phasen ausführen
-provision_vm        # Phase -1: VM erstellen (auf Proxmox-Host)
-run_preflight        # Phase 0
-install_k3s          # Phase 1a
-install_addons       # Phase 1b
-install_civitas      # Phase 2
-run_verification     # Phase 3
+# Phasen ausführen (Kontext-abhängig)
+if [[ "${CIVITAS_CONTEXT}" == "host" ]]; then
+  provision_vm          # Phase -1: VM erstellen (auf Proxmox-Host)
+  run_in_vm             # SSH-Hop: Skript in VM starten
+else
+  run_preflight         # Phase 0: Vorbedingungen
+  install_k3s           # Phase 1a: k3s installieren
+  install_addons        # Phase 1b: Add-ons deployen
+  install_civitas       # Phase 2: CIVITAS/CORE-Plattform
+  run_verification      # Phase 3: Verifikation
+fi
 ```
 
 ### Konventionen
@@ -108,10 +161,15 @@ run_verification     # Phase 3
   aufheben.
 - Jede Phase ist eine Funktion mit klar definiertem Namen und
   Rückgabeverhalten.
-- Der Entry-Point enthält keine Geschäftslogik — nur Laden und Aufrufen.
+- Der Entry-Point enthält keine Geschäftslogik — nur Laden, Kontext-Prüfung
+  und Aufrufen.
 - **`ROOT_PASSWORD`** muss vor dem Skriptaufruf als Umgebungsvariable gesetzt
   sein. Ohne diesen Wert bricht das Skript bereits beim Laden von `01_config.sh`
   mit einer Fehlermeldung ab.
+- **Secrets aus `.env.local`:** Liegt die Datei `.env.local` im Skript-Verzeichnis,
+  wird sie beim SSH-Hop automatisch in die VM übertragen und dort vor dem
+  Skriptstart gesourct. Alternativ können alle Secrets als Umgebungsvariablen
+  gesetzt werden.
 - **Das Skript wird als `root` ausgeführt** (oder via `sudo`). Der kubeconfig-Pfad
   (`KUBECONFIG_PATH`) bezieht sich auf das Homeverzeichnis des root-Users
   (`/root/.kube/config`). Die Berechtigung der kubeconfig-Datei wird mit
@@ -138,16 +196,26 @@ CC_CLI_VENV_PATH="/opt/civitas-core-venv"
 CC_CLI_REPO_URL="https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git"  # CIVITAS/CORE V1 Repository
 CC_CLI_REPO_PATH="/opt/civitas-core-v1"     # Dauerhafter Workspace auf der VM (nicht /tmp)
 CC_CLI_SYMLINK_PATH="/opt/civitas-core"     # Symlink auf die aktive Version
+CC_CLI_PLAYBOOK_DIR="${CC_V1_REPO_PATH}/core_platform"  # Verzeichnis mit playbook.yml (cc_cli CWD)
 CERT_MANAGER_VERSION="v1.16.0"     # Beim Skriptbau aus cert-manager-Release-Doku fixieren
 NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-Doku fixieren
 GATEWAY_API_VERSION="v1.2.1"      # Kubernetes Gateway API CRDs (standard channel)
 
 # ── Plattform ────────────────────────────────────────────────────────────────
-DOMAIN="civitas.data-dna.eu"       # Offener Punkt: Freigabe durch Peter König
-K8S_NAMESPACE="civitas-core"
+DOMAIN="udp.scanea.eu"             # Basis-Domain (Freigabe: Peter König)
 KUBECONFIG_PATH="${HOME}/.kube/config"
 export KUBECONFIG="${KUBECONFIG_PATH}"
 K3S_DATA_DIR="/var/lib/rancher/k3s"
+
+# Von cc_cli angelegte Namespaces (Muster: {ENVIRONMENT}-{stack})
+CC_ENVIRONMENT="${CC_ENVIRONMENT:-cc-prd}"       # Ansible-Environment-Name
+K8S_NAMESPACES=(
+  "${CC_ENVIRONMENT}-access-stack"
+  "${CC_ENVIRONMENT}-context-stack"
+  "${CC_ENVIRONMENT}-dashboard-stack"
+  "${CC_ENVIRONMENT}-database-stack"
+  "${CC_ENVIRONMENT}-operation-stack"
+)
 
 # ── k3s-Installationsoptionen ────────────────────────────────────────────────
 # Traefik wird deaktiviert (nginx-Ingress wird nachinstalliert).
@@ -164,16 +232,76 @@ SMTP_HOST="${SMTP_HOST:?'SMTP_HOST muss als Umgebungsvariable gesetzt sein'}"
 SMTP_PORT="${SMTP_PORT:-587}"
 SMTP_USER="${SMTP_USER:?'SMTP_USER muss als Umgebungsvariable gesetzt sein'}"
 SMTP_PASS="${SMTP_PASS:?'SMTP_PASS muss als Umgebungsvariable gesetzt sein'}"
+SMTP_FROM="${SMTP_FROM:-no-reply@scanea.eu}"    # Absenderadresse für E-Mails
 
-# ── Admin (Wert aus Umgebungsvariable) ───────────────────────────────────────
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@data-dna.eu}"
+# ── Admin (Werte aus Umgebungsvariablen) ────────────────────────────────────
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@scanea.eu}"
+ADMIN_PASS="${ADMIN_PASS:?'ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
+# → master_password + initiales platform_admin-Passwort (identisch, kein separater Wert)
+TENANT_ADMIN_PASS="${TENANT_ADMIN_PASS:?'TENANT_ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
+# → inv_access.tenant.tenant_password (separat von ADMIN_PASS)
 
 # ── Timeouts ─────────────────────────────────────────────────────────────────
 TIMEOUT_CC_CLI_EXEC=600            # Sekunden
 TIMEOUT_POD_READY=300              # Sekunden für kubectl wait
 
+# ── PBS (Proxmox Backup Server) ─────────────────────────────────────────────
+PBS_STORAGE="backup-p2d2-kinglui"              # PBS-Storage für VM-Backups
+
+# ── cc-cli: Inventory-Parameter ──────────────────────────────────────────────
+K8S_CONTEXT="${K8S_CONTEXT:-default}"               # kubectl context aus kubeconfig
+STORAGECLASS_RWO="${STORAGECLASS_RWO:-local-path}"
+STORAGECLASS_RWX="${STORAGECLASS_RWX:-local-path}"
+STORAGECLASS_LOC="${STORAGECLASS_LOC:-local-path}"
+INGRESS_CLASS="${INGRESS_CLASS:-nginx}"
+CERT_MANAGER_ISSUER="${CERT_MANAGER_ISSUER:-civitas-core-ca-issuer}"
+
+# ── Phase 2.0 — Repository ───────────────────────────────────────────────────
+CC_V1_REPO_URL="https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git"
+CC_V1_REPO_PATH="/opt/civitas-core-v1"
+CC_V1_REPO_BRANCH="main"
+
 # ── Netzwerk ─────────────────────────────────────────────────────────────────
-SOHO_GATEWAY="${SOHO_GATEWAY:-192.168.1.1}"   # Anpassen an lokale Topologie
+SOHO_GATEWAY="192.168.12.1"                    # Gateway des SOHO-VLANs
+
+# ── VM-Provisionierung ─────────────────────────────────────────────────────
+VM_ID="2010"                                     # Proxmox VM-ID
+VM_NAME="civitas-core"                           # Anzeigename in Proxmox
+VM_RAM_MB="40960"                                # RAM in MiB (40 GiB)
+VM_CORES="12"                                    # vCPUs
+VM_DISK_GB="300"                                 # Disk-Größe in GiB
+VM_BRIDGE="vmbr0"                                # Bridge-Netzwerk
+PROXMOX_STORAGE="local-zfs-civitas"              # Proxmox-Storage für VM-Disk
+CLOUD_IMAGE_URL="https://cloud.debian.org/images/cloud/trixie/daily/latest/debian-13-genericcloud-amd64-daily.qcow2"
+
+# ── VM-Netzwerk (statisch) ──────────────────────────────────────────────────
+VM_IP_STATIC="192.168.12.139"                    # IPv4-Adresse der VM
+VM_IP_PREFIX="24"                                # IPv4-Präfixlänge
+VM_GW="192.168.12.1"                             # IPv4-Gateway
+VM_IP6_STATIC="fd01:1:1:1::139"                 # IPv6-Adresse der VM
+VM_IP6_PREFIX="64"                               # IPv6-Präfixlänge
+VM_GW6="fd01:1:1:1:de39:6fff:febe:9962"         # IPv6-Gateway
+SSH_PUBKEY_PATH="${HOME}/.ssh/authorized_keys"   # SSH-Public-Key für root-Zugang
+
+# ── Remote-Ausführung in der VM ────────────────────────────────────────────
+VM_REMOTE_INSTALL_DIR="/root/civitas-install"    # Zielverzeichnis für scp/SSH in der VM
+
+# ROOT_PASSWORD wird aus Umgebungsvariable gelesen — nie hartcoden!
+ROOT_PASSWORD="${ROOT_PASSWORD:?'ROOT_PASSWORD muss als Umgebungsvariable gesetzt sein'}"
+
+# ── WireGuard-Secrets (aus Umgebungsvariablen — nie hartcoden) ────────────────
+WG_VM_PRIVATE_KEY="${WG_VM_PRIVATE_KEY:?'WG_VM_PRIVATE_KEY muss als Umgebungsvariable gesetzt sein'}"
+WG_OPN_PUBLIC_KEY="${WG_OPN_PUBLIC_KEY:?'WG_OPN_PUBLIC_KEY muss als Umgebungsvariable gesetzt sein'}"
+WG_PRESHARED_KEY="${WG_PRESHARED_KEY:-}"  # optional
+WG_OPN_ENDPOINT="${WG_OPN_ENDPOINT:?'WG_OPN_ENDPOINT muss als Umgebungsvariable gesetzt sein'}"
+
+# ── WireGuard-Netzwerk (Klartext) ────────────────────────────────────────────
+WG_INTERFACE="wg0"
+WG_VM_IP="10.10.10.5/24"
+WG_OPN_IP="10.10.10.1"
+WG_LISTEN_PORT="${WG_LISTEN_PORT:-51820}"
+WG_ALLOWED_IPS="10.10.10.0/24"
+WG_CONF_PATH="/etc/wireguard/${WG_INTERFACE}.conf"
 ```
 
 > **Versionspinning-Regel**: Alle `*_VERSION`-Variablen werden beim ersten
@@ -192,8 +320,10 @@ Umgebungsvariablen gesetzt sein. Sie werden in `01_config.sh` mit
 | Variable | Beschreibung | Beispielwert / Hinweis |
 |---|---|---|
 | `ROOT_PASSWORD` | root-Passwort der VM | Sicheres Zufallspasswort |
-| `SMTP_PASS` | SMTP-Passwort für no-reply@data-dna.eu | Aus netcup WCP |
+| `SMTP_PASS` | SMTP-Passwort für no-reply@scanea.eu | Aus netcup WCP |
+| `SMTP_FROM` | SMTP-Absenderadresse | `no-reply@scanea.eu` (Default) |
 | `ADMIN_PASS` | Keycloak Initial-Admin-Passwort | Sicheres Zufallspasswort, min. 12 Zeichen |
+| `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort (separat von ADMIN_PASS) | Sicheres Zufallspasswort, min. 12 Zeichen |
 | `WG_VM_PRIVATE_KEY` | WireGuard PrivateKey der VM (`wg genkey`) | Base64-String, 44 Zeichen |
 | `WG_OPN_PUBLIC_KEY` | WireGuard PublicKey von OPNsense (`wg pubkey`) | Base64-String, 44 Zeichen |
 | `WG_PRESHARED_KEY` | WireGuard PreSharedKey (`wg genpsk`) | **Optional** — leer lassen wenn nicht verwendet |
@@ -249,9 +379,20 @@ check() {
     (( VERIFY_ERRORS++ )) || true
   fi
 }
+
+# ── Prüfe Exit-Code mit Abbruch ──────────────────────────────────────────────
+assert_success() {
+  local message="$1"
+  local result="$2"
+  if [[ "$result" -ne 0 ]]; then
+    log_error "${message} — Abbruch"
+    exit 1
+  fi
+}
 ```
 
 ### Passwort-Generierung nach Policy
+
 
 ```bash
 # Erzeugt ein policy-konformes Passwort:
@@ -293,16 +434,19 @@ Implementiert `run_preflight()` gemäß den Prüfungen aus
 run_preflight() {
   log "=== Phase 0: Vorbedingungen ==="
 
+  wait_for_apt_lock       # Cloud-Init-Apt-Lock abwarten (max. 120s)
   check_os
   check_cpu
   check_ram
   check_disk
   check_swap
   check_network
-  check_dns_warn          # Warnung, kein Abbruch
-  check_tools             # curl, python3, pip3
+  check_timezone           # Zeitzone auf Europe/Berlin setzen
+  check_dns_warn           # Warnung, kein Abbruch
+  check_tools              # curl, python3, pip3, dig, wg, git
   check_smtp
-  check_k3s_version       # Idempotenz: bereits korrekte Version → OK
+  check_k3s_version        # Idempotenz: bereits korrekte Version → OK
+  check_pbs_backup         # PBS-Storage prüfen (Warnung, kein Abbruch)
 }
 ```
 
@@ -327,7 +471,7 @@ mit den festgelegten Startparametern.
 install_k3s() {
   log "=== Phase 1a: k3s ==="
 
-  if systemd_active k3s; then
+  if [[ "${K3S_ALREADY_INSTALLED:-false}" == "true" ]] || systemd_active k3s; then
     log_ok "k3s bereits aktiv — überspringe Installation"
     return 0
   fi
@@ -338,15 +482,33 @@ install_k3s() {
       INSTALL_K3S_EXEC="${K3S_EXEC_ARGS}" \
       sh -
 
-  # kubeconfig bereitstellen
+  # Warten bis k3s-API antwortet (kubeconfig-Datei vorhanden)
+  wait_k3s_api
+
+  # kubeconfig bereitstellen (erst nach API-Start)
   mkdir -p "$(dirname "${KUBECONFIG_PATH}")"
   install -m 600 /etc/rancher/k3s/k3s.yaml "${KUBECONFIG_PATH}"
+
+  # Warten bis Node im API-Server registriert ist
+  wait_k3s_node
 
   # Warten bis Node Ready
   kubectl wait node --all --for=condition=Ready --timeout=120s
   log_ok "k3s installiert und Node Ready"
 }
 ```
+
+Nach der k3s-Installation wird nicht direkt auf Node-Ready gewartet, sondern
+zuerst auf die k3s-API und die Node-Registrierung. Zwei Hilfsfunktionen
+stellen sicher, dass die Warteschleifen nicht blockieren:
+
+**`wait_k3s_api()`** — Wartet maximal 60s auf die kubeconfig-Datei
+`/etc/rancher/k3s/k3s.yaml` (2s-Intervall). Ohne diese Datei kann
+`kubectl` keine API-Abfragen stellen.
+
+**`wait_k3s_node()`** — Wartet maximal 60s (3s-Intervall), bis ein Node im
+API-Server registriert ist. Dies verhindert Race-Conditions zwischen
+k3s-Start und dem anschließenden `kubectl wait node --all`.
 
 ***
 
@@ -715,8 +877,8 @@ render_inventory() {
   log "Erzeuge Inventory aus Template …"
 
   local tpl="${SCRIPT_DIR}/templates_V1/inventory.yml.tpl"
-  mkdir -p "${CC_CLI_REPO_PATH}"
-  local out="${CC_CLI_REPO_PATH}/cc_cli_inventory.yml"
+  mkdir -p "${CC_CLI_PLAYBOOK_DIR}"
+  local out="${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml"
 
   if [[ ! -f "${tpl}" ]]; then
     log_error "Template nicht gefunden: ${tpl}"
@@ -744,10 +906,10 @@ render_inventory() {
 }
 ```
 
-> Die erzeugte Inventory-Datei liegt unter `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml`
+> Die erzeugte Inventory-Datei liegt unter `${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml`
 > und enthält Secrets im Klartext. Sie wird nach `cc_cli exec` gelöscht
 > (`trap 'rm -f "${CONFIG_YAML_PATH:-}"' EXIT`).
-> Der Repository-Workspace under `${CC_CLI_REPO_PATH}` bleibt erhalten, da nur
+> Der Repository-Workspace unter `${CC_V1_REPO_PATH}` bleibt erhalten, da nur
 > das Inventory gelöscht wird.
 
 ### Repository-Workspace
@@ -774,27 +936,37 @@ Prüft vor `cc_cli validate`, dass der Repository-Kontext vollständig ist:
 
 ```bash
 # Schema-Datei vorhanden (Referenz für validate)
-test -f "${CC_CLI_REPO_PATH}/core_platform/inventory_schema.json"
+test -f "${CC_CLI_PLAYBOOK_DIR}/inventory_schema.json"
 
-# Erwartete Ansible-Verzeichnisstruktur
-test -d "${CC_CLI_REPO_PATH}/ansible"
+# playbook.yml im Playbook-Verzeichnis
+test -f "${CC_CLI_PLAYBOOK_DIR}/playbook.yml"
 
-# Inventory liegt im Workspace
-test -f "${CC_CLI_REPO_PATH}/cc_cli_inventory.yml"
+# Inventory liegt im Playbook-Verzeichnis
+test -f "${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml"
 ```
+
+
+
+In der Implementierung sind die Prüfungen in `clone_civitas_repo()` integriert:
+Nach dem Klon wird `playbook.yml` unter `${CC_CLI_PLAYBOOK_DIR}` gesucht, und
+der Symlink `${CC_CLI_SYMLINK_PATH} → ${CC_V1_REPO_PATH}` wird validiert.
+Die `check_repo_prerequisites()`-Funktion selbst ist derzeit nicht als separate
+Funktion implementiert; ihre Logik ist in `clone_civitas_repo()` enthalten.
 
 Fehlschläge führen zum sofortigen Abbruch.
 
 #### Arbeitsverzeichnis für cc_cli
 
-- `render_inventory()` schreibt nach `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml`
-- `cc_cli validate` und `cc_cli exec` laufen mit `cd ${CC_CLI_REPO_PATH}`
+- `render_inventory()` schreibt nach `${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml`
+- `cc_cli validate` und `cc_cli exec` laufen mit `cd ${CC_CLI_PLAYBOOK_DIR}`
 - Das flüchtige `${CC_CLI_WORKDIR}` (`/tmp/civitas-core-deploy`) entfällt
+- `${CC_CLI_PLAYBOOK_DIR}` ist ein Unterverzeichnis des Repository-Workspace:
+  `${CC_V1_REPO_PATH}/core_platform`
 
 #### Symlink für aktive Version
 
-Der Symlink `/opt/civitas-core` zeigt auf das aktuell aktive
-CIVITAS/CORE-Repository. Aktuell zeigt er auf `/opt/civitas-core-v1`
+Der Symlink `${CC_CLI_SYMLINK_PATH}` zeigt auf das aktuell aktive
+CIVITAS/CORE-Repository. Aktuell zeigt er auf `${CC_V1_REPO_PATH}`
 (V1). Bei einem zukünftigen Wechsel auf V2 wird der Symlink auf
 `/opt/civitas-core-v2` umgebogen.
 
@@ -921,7 +1093,7 @@ gültig.
 | `ModuleNotFoundError: kubernetes` im Ansible-Lauf | `kubernetes`-Pip-Paket fehlt im venv | In `install_cc_cli()` zusammen mit `ansible` installieren |
 | Health-Check Timeout für externe URLs | WireGuard nicht aktiv vor `cc_cli exec` | `setup_wireguard` vor `run_cc_cli_exec` aufrufen |
 | `Velero: access_key is required` in cc_cli validate | `velero.enable: true` mit leeren Credentials | Template-Default: `velero.enable: false` |
-| `kubeconfig not found: ./config` | `kubeconfig_file: config` sucht relativ zum CWD | `cc_cli exec` ausschließlich aus `${CC_CLI_REPO_PATH}` aufrufen — ist bereits so spezifiziert |
+| `kubeconfig not found: ./config` | `kubeconfig_file: config` sucht relativ zum CWD | `cc_cli exec` ausschließlich aus `${CC_CLI_PLAYBOOK_DIR}` aufrufen |
 
 ***
 
@@ -947,29 +1119,168 @@ provision_vm() {
     return 0
   fi
 
-  # Cloud-Image nach /tmp/${image_name} herunterladen (curl)
-  download_cloud_image
+  # ── Schritt 1: Cloud-Image lokal cachen (24h-Altersprüfung) ─────────
+  local image_name image_path cache_dir
+  image_name="$(basename "${CLOUD_IMAGE_URL}")"
+  cache_dir="/var/lib/vz/template/qcow"
+  image_path="${cache_dir}/${image_name}"
+  mkdir -p "${cache_dir}"
 
-  # VM mit qm create anlegen (12 vCPU, 40 GiB RAM, 300 GiB Disk)
-  create_vm
+  if [[ -f "${image_path}" ]]; then
+    local file_age
+    file_age=$(( $(date +%s) - $(stat -c %Y "${image_path}" 2>/dev/null || echo 0) ))
+    if [[ $file_age -lt 86400 ]]; then
+      log_ok "Cloud-Image gecached: ${image_name} (${file_age}s alt, < 24h)"
+    else
+      log "Cloud-Image aelter als 24h — lade neu herunter ..."
+      curl -fsSL --retry 3 --retry-delay 10 \
+        "${CLOUD_IMAGE_URL}" -o "${image_path}"
+      log_ok "Cloud-Image aktualisiert: ${image_name}"
+    fi
+  else
+    log "Lade Cloud-Image herunter (${CLOUD_IMAGE_URL}) ..."
+    curl -fsSL --retry 3 --retry-delay 10 \
+      "${CLOUD_IMAGE_URL}" -o "${image_path}"
+    log_ok "Cloud-Image heruntergeladen: ${image_name}"
+  fi
 
-  # Disk via qm importdisk einspielen und auf Zielgröße resizen
-  import_and_resize_disk
+  # ── Schritt 2: VM mit qm create anlegen ────────────────────────────
+  log "Erstelle VM ${VM_ID} (${VM_NAME}) ..."
+  qm create "${VM_ID}" \
+    --name "${VM_NAME}" \
+    --memory "${VM_RAM_MB}" \
+    --cores "${VM_CORES}" \
+    --cpu host \
+    --net0 virtio,bridge="${VM_BRIDGE}" \
+    --agent enabled=1 \
+    --onboot 1
 
-  # Cloud-Init: root, SSH-Key, statische IPv4/IPv6
-  configure_cloud_init
+  # ── Schritt 3: Disk importieren und vergrößern ─────────────────────
+  log "Importiere Disk von Cloud-Image nach ${PROXMOX_STORAGE} ..."
+  qm importdisk "${VM_ID}" "${image_path}" "${PROXMOX_STORAGE}"
 
-  # VM starten und auf SSH-Erreichbarkeit warten
+  log "Konfiguriere Hardware (SCSI, Boot-Reihenfolge, Cloud-Init-ISO) ..."
+  qm set "${VM_ID}" \
+    --scsihw virtio-scsi-pci \
+    --scsi0 "${PROXMOX_STORAGE}:vm-${VM_ID}-disk-0" \
+    --ide2 "${PROXMOX_STORAGE}:cloudinit" \
+    --boot order=scsi0 \
+    --serial0 socket \
+    --vga serial0
+
+  log "Vergrößere Disk auf ${VM_DISK_GB} GiB ..."
+  qm resize "${VM_ID}" scsi0 "${VM_DISK_GB}G"
+  log_ok "Disk auf ${VM_DISK_GB} GiB vergrößert"
+
+  # ── Schritt 4: Cloud-Init (SSH-Key + statische IP) ─────────────────
+  log "Konfiguriere Cloud-Init (root, SSH-Key, statische IP ${VM_IP_STATIC}) ..."
+  qm set "${VM_ID}" \
+    --ciuser root \
+    --sshkeys "${SSH_PUBKEY_PATH}" \
+    --ipconfig0 "ip=${VM_IP_STATIC}/${VM_IP_PREFIX},gw=${VM_GW},ip6=${VM_IP6_STATIC}/${VM_IP6_PREFIX},gw6=${VM_GW6}"
+
+  # ── Schritt 5: VM starten und auf SSH warten ───────────────────────
+  log "Starte VM ${VM_ID} ..."
   qm start "${VM_ID}"
-  wait_for_ssh "${VM_IP_STATIC}"
+  log "Warte auf SSH unter ${VM_IP_STATIC} (max. 120s) ..."
+
+  local attempt=0
+  until ssh -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=5 \
+            -o BatchMode=yes \
+            root@"${VM_IP_STATIC}" true 2>/dev/null; do
+    sleep 5
+    (( attempt++ )) || true
+    if [[ $attempt -gt 24 ]]; then
+      log_error "VM ${VM_IP_STATIC} nicht per SSH erreichbar nach 120s"
+      exit 1
+    fi
+  done
+  log_ok "VM erreichbar unter ${VM_IP_STATIC}"
+
+  log_ok "VM-Provisionierung abgeschlossen"
 }
 ```
+
+### SSH-Hop und Remote-Ausführung (`run_in_vm()`)
+
+Nach erfolgreicher VM-Provisionierung wechselt der Entry-Point in den
+SSH-Hop-Modus. Das Skript kopiert alle Installationsdateien per scp in
+die VM und startet die Installation dort neu:
+
+```bash
+run_in_vm() {
+  # Alten SSH-Host-Key entfernen (VM wird bei jedem Scratch-Lauf neu erstellt)
+  ssh-keygen -f "${HOME}/.ssh/known_hosts" -R "${VM_IP_STATIC}" 2>/dev/null || true
+  log "Kopiere Skript-Dateien in die VM (${VM_IP_STATIC}) …"
+
+  # Zielverzeichnis in der VM anlegen
+  ssh -o StrictHostKeyChecking=no "root@${VM_IP_STATIC}" \
+    "mkdir -p ${VM_REMOTE_INSTALL_DIR}"
+
+  # Skript-Dateien, Module und Templates kopieren
+  scp -o StrictHostKeyChecking=no -r \
+    "${SCRIPT_DIR}/install_civitas_core_V1.sh" \
+    "${SCRIPT_DIR}/modules_V1" \
+    "${SCRIPT_DIR}/templates_V1" \
+    "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/"
+
+  # Secrets aus .env.local übertragen, falls vorhanden
+  if [[ -f "${SCRIPT_DIR}/.env.local" ]]; then
+    scp -o StrictHostKeyChecking=no \
+      "${SCRIPT_DIR}/.env.local" \
+      "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
+  fi
+
+  # Skript in der VM starten (CIVITAS_CONTEXT=vm)
+  ssh -o StrictHostKeyChecking=no "root@${VM_IP_STATIC}" \
+    "CIVITAS_CONTEXT=vm bash -lc '
+      cd ${VM_REMOTE_INSTALL_DIR}
+      if [[ -f .env.local ]]; then
+        set -a; source .env.local; set +a
+      fi
+      ./install_civitas_core_V1.sh
+    '"
+}
+```
+
+**Wichtig:** Der SSH-Hop entfernt den alten Host-Key der VM, da die VM
+bei jedem Scratch-Lauf neu erstellt wird (neuer SSH-Host-Key). Die Option
+`StrictHostKeyChecking=no` verhindert eine interaktive Abfrage während
+der Automatisierung.
+
+### Secrets aus `.env.local`
+
+Secrets (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel, Root-Passwort)
+können in einer Datei `.env.local` im Skript-Verzeichnis abgelegt werden:
+
+```bash
+# .env.local — Beispiel (NIE in Git einchecken!)
+ROOT_PASSWORD="sicheres_passwort_123"
+SMTP_HOST="mx92c.netcup.net"
+SMTP_USER="admin@scanea.eu"
+SMTP_PASS="smtp_secret_456"
+ADMIN_PASS="admin_secret_789"
+TENANT_ADMIN_PASS="tenant_secret_abc"
+WG_VM_PRIVATE_KEY="base64_private_key..."
+WG_OPN_PUBLIC_KEY="base64_public_key..."
+WG_OPN_ENDPOINT="1.2.3.4:51820"
+```
+
+Die Datei wird:
+- Vom Entry-Point auf dem Proxmox-Host erkannt und per scp in die VM übertragen
+- In der VM vor dem Skriptstart per `source .env.local` geladen (mit `set -a`,
+  damit alle Variablen als Umgebungsvariablen exportiert werden)
+- **Nicht** in Git eingecheckt (sollte in `.gitignore` stehen)
+
+Fehlt `.env.local`, müssen alle Secrets als Umgebungsvariablen gesetzt sein.
+Das Skript prüft Pflichtvariablen mit `${VAR:?}` und bricht bei Fehlen ab.
 
 ### Konfigurationsvariablen (zusätzlich in `01_config.sh`)
 
 | Variable | Beschreibung | Default |
 |---|---|---|
-| `VM_ID` | Proxmox VM-ID | `100` |
+| `VM_ID` | Proxmox VM-ID | `2010` |
 | `VM_NAME` | Anzeigename in Proxmox | `civitas-core` |
 | `VM_RAM_MB` | RAM in MiB | `40960` |
 | `VM_CORES` | vCPUs | `12` |
@@ -977,17 +1288,29 @@ provision_vm() {
 | `VM_BRIDGE` | Bridge-Interface | `vmbr0` |
 | `PROXMOX_STORAGE` | Proxmox-Storage für VM-Disk | `local-zfs-civitas` |
 | `CLOUD_IMAGE_URL` | URL zum Debian-13-Cloud-Image | `https://cloud.debian.org/…` |
+| `VM_IP_STATIC` | Statische IPv4-Adresse der VM | `192.168.12.139` |
+| `VM_IP_PREFIX` | IPv4-Präfixlänge | `24` |
+| `VM_GW` | IPv4-Gateway | `192.168.12.1` |
+| `VM_IP6_STATIC` | Statische IPv6-Adresse der VM | `fd01:1:1:1::139` |
+| `VM_IP6_PREFIX` | IPv6-Präfixlänge | `64` |
+| `VM_GW6` | IPv6-Gateway | `fd01:1:1:1:de39:6fff:febe:9962` |
+| `SSH_PUBKEY_PATH` | Pfad zum SSH-Public-Key für root-Zugang | `${HOME}/.ssh/authorized_keys` |
+| `VM_REMOTE_INSTALL_DIR` | Zielverzeichnis in der VM (scp/SSH) | `/root/civitas-install` |
 
 ### Idempotenz
 
-- Cloud-Image wird nur einmal heruntergeladen (Prüfung: Datei existiert).
+- Cloud-Image wird mit 24h-Altersprüfung gecacht (tägliche Erneuerung
+  des Cache, wenn älter als 24h).
 - VM wird nur erstellt, wenn `qm status $VM_ID` fehlschlägt.
-- Bei erneuten Skriptdurchläufen wird die SSH-Erreichbarkeit unter der konfigurierten statischen IP geprüft.
+- Bei erneuten Skriptdurchläufen wird die SSH-Erreichbarkeit unter der
+  konfigurierten statischen IP geprüft und der SSH-Hop gestartet.
 
 ### Secrets
 
 - `ROOT_PASSWORD` wird aus der Umgebungsvariablen gelesen (in `01_config.sh`
   mit `:?`-Expansion geprüft). Keine Hartcodierung, kein Eintrag in Git.
+- Alle weiteren Secrets (SMTP, Admin-Passwörter, WireGuard-Schlüssel) werden
+  über `.env.local` oder als separate Umgebungsvariablen übergeben.
 
 ***
 
@@ -1112,8 +1435,16 @@ LOG_FILE=/var/log/civitas_install.log ./install_civitas_core.sh
 | `SMTP_USER` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
 | `SMTP_PASS` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
 | `SMTP_PORT` | nein | `587` | SMTP-Port |
-| `ADMIN_EMAIL` | nein | `admin@data-dna.eu` | Initiale Admin-E-Mail |
-| `SOHO_GATEWAY` | nein | `192.168.1.1` | Für Netzwerk-Erreichbarkeitsprüfung |
+| `SMTP_FROM` | nein | `no-reply@scanea.eu` | SMTP-Absenderadresse |
+| `ADMIN_EMAIL` | nein | `admin@scanea.eu` | Initiale Admin-E-Mail |
+| `ADMIN_PASS` | **ja** | — | Keycloak Master- + Platform-Admin-Passwort (≥12 Zeichen, Policy-konform) |
+| `TENANT_ADMIN_PASS` | **ja** | — | Tenant-Admin-Passwort (separat von ADMIN_PASS) |
+| `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
+| `WG_VM_PRIVATE_KEY` | **ja** | — | WireGuard PrivateKey der VM |
+| `WG_OPN_PUBLIC_KEY` | **ja** | — | WireGuard PublicKey von OPNsense |
+| `WG_OPN_ENDPOINT` | **ja** | — | Öffentliche IP:Port der OPNsense-WireGuard-Instanz |
+| `WG_PRESHARED_KEY` | nein | leer | WireGuard PreSharedKey (optional) |
+| `SOHO_GATEWAY` | nein | `192.168.12.1` | Gateway für Netzwerk-Erreichbarkeitsprüfung |
 | `LOG_FILE` | nein | leer | Pfad für optionales File-Logging |
 
 Alle anderen Parameter (Versionen, Domain, Namespaces) sind in
