@@ -195,10 +195,6 @@ all:
             enable: true
             dashboard:
               enable: false
-              jwt_secret: "***"
-              admin:
-                username: "admin@{{ DOMAIN }}"
-                password: "***"
             api_credentials:
               admin_role: "***"
               viewer_role: "***"

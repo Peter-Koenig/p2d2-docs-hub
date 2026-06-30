@@ -713,10 +713,10 @@ install_civitas() {
                               #   konnte es noch nicht, venv fehlte)
 
   render_inventory            # Schritt 2.2: Inventory aus Template erzeugen
-  setup_wireguard             # vor cc_cli exec — Health-Check braucht Route
 
   # Phase 2a: Basis-Komponenten (Postgres, Keycloak, Monitoring, pgAdmin)
   run_cc_cli_validate         # Schritt 2.3: aus ${CC_CLI_PLAYBOOK_DIR}
+  setup_wireguard             # Schritt 2.4b — vor cc_cli exec, Health-Check braucht Route
   run_cc_cli_exec --tags "base"
 
   # Admin-User in cc-prd sicherstellen (Phase 2a legt ihn oft nicht an,
