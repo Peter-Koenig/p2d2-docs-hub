@@ -557,6 +557,10 @@ install_civitas() {
   run_cc_cli_validate         # Schritt 2.3: aus ${CC_CLI_PLAYBOOK_DIR}
   run_cc_cli_exec --tags "base"
 
+  # Admin-User in cc-prd sicherstellen (Phase 2a legt ihn oft nicht an,
+  # weil der POST zum User-Erstellen am 302-Redirect scheitert)
+  ensure_keycloak_admin_user
+
   # Phase 2b1: Komponenten ohne bekannte 404-Probleme (Service Portal, APISIX,
   #            Monitoring, pgAdmin, Geodata – Keycloak-Tenant ist bereits
   #            durch Phase 2a konfiguriert; Frost und Superset sind deaktiviert)
@@ -867,6 +871,46 @@ cleanup_geodata_ingress() {
 }
 ```
 
+#### Admin-User in cc-prd erzwingen (`ensure_keycloak_admin_user()`)
+
+Die Ansible-Playbooks legen den Admin-User `admin@scanea.eu` im `cc-prd`-Realm
+über die URL `{{ hostname }}/admin/realms/.../users` an (ohne `/auth`-Prefix).
+Keycloak antwortet auf diesen POST mit einem 302-Redirect zu
+`/auth/admin/realms/.../users`, wobei Ansible den POST-Body verliert (302 → GET).
+Der User wird daher in Phase 2a (`--tags base`) oft nicht angelegt.
+
+Die Funktion `ensure_keycloak_admin_user()` erzeugt den User daher **nach**
+Phase 2a und **vor** Phase 2b1 direkt per `curl` mit dem funktionierenden
+`/auth`-Prefix:
+
+```bash
+ensure_keycloak_admin_user() {
+  # 1. Admin-Token holen
+  token=$(curl -s --cacert ... \
+    -X POST "https://idm.${DOMAIN}/auth/realms/master/protocol/openid-connect/token" \
+    -d "client_id=admin-cli" \
+    -d "username=${ADMIN_EMAIL}" \
+    -d "password=${ADMIN_PASS}" \
+    -d "grant_type=password" | python3 -c '...')
+
+  # 2. User anlegen (201=neu, 409=existiert bereits)
+  curl -X POST "https://idm.${DOMAIN}/auth/admin/realms/${CC_ENVIRONMENT}/users" \
+    -H "Authorization: Bearer ${token}" \
+    -d '{ "username": "${ADMIN_EMAIL}", "enabled": true }'
+
+  # 3. Passwort setzen
+  curl -X PUT ".../users/${user_id}/reset-password" \
+    -d '{"type":"password","value":"${ADMIN_PASS}","temporary":false}'
+}
+```
+
+**Idempotenz:** Wenn der User bereits existiert, antwortet Keycloak mit
+HTTP 409 (Conflict) – die Funktion bricht dann nicht ab, sondern fährt fort.
+
+**Wirkung:** Der Admin-User `admin@scanea.eu` existiert garantiert im
+`cc-prd`-Realm, bevor Phase 2b1 (GeoData) versucht, Rollen zuzuweisen.
+Dadurch ist `platform_user_id` nicht leer und die Role-Assignment-URL ist
+gültig.
 
 ### Bekannte Stolperfallen
 
