@@ -580,6 +580,9 @@ werden). Die Issuer können dann manuell aus den Templates in
 ```bash
 kubectl apply -f templates_V1/cert_manager/staging_issuer.yml
 kubectl apply -f templates_V1/cert_manager/production_issuer.yml
+
+> **Hinweis Keycloak-Ingress (HTTP-Backend)**: Der Ingress `idmkeycloak` im Namespace `cc-prd-access-stack` wird vom Bitnami-Keycloak-Helm-Chart mit `servicePort: https` gerendert, was nginx veranlasst, den Keycloak-Pod auf Port 8443 (HTTPS) anzusprechen. Da Keycloak mit `KC_HTTP_ENABLED=true` betrieben wird, erwartet es HTTP auf Port 8080 und bricht die TLS-Verbindung mit "prematurely closed connection" ab (502 Bad Gateway). Der Patch in Schritt 2.0c aendert `ingress.servicePort`, `adminIngress.servicePort` und `extraPaths.port.name` von `https` auf `http` sowie `backend-protocol` von `HTTPS` auf `HTTP` in der Datei `templates/access/keycloak/keycloak-values.yaml` des geklonten Repos. Damit spricht nginx den Keycloak-Pod per HTTP auf Port 8080 an, TLS terminiert weiterhin an nginx. Dies entspricht dem CIVITAS-Standard: Edge-TLS, interner Verkehr HTTP.
+
 ```
 
 ### Konfigurationsvariablen (Pflichtfelder)
