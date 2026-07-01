@@ -235,3 +235,12 @@ unterscheiden sich je nach Distribution nur in Phase 1:
    Eine Migration von SQLite auf embedded etcd (für k3s Multi-Node)
    erfordert ein nicht-triviales Datenbankmigrationsverfahren und
    ist nicht durch einfaches Flag-Umschalten zu erreichen.
+8. **Gateway API CRDs** werden in Phase 1b installiert (Version v1.2.1,
+   Standard-Channel). Dies ermöglicht cert-manager, HTTP-01-Challenges
+   über Gateway API HTTPRoute-Ressourcen zu lösen, statt über klassische
+   Ingress-Ressourcen. cert-manager wird mit `config.enableGatewayAPI: true`
+   betrieben.
+9. Eine **Gateway-Ressource** `civitas-gateway` wird im Namespace
+   `ingress-nginx` angelegt. Sie definiert einen HTTP-Listener auf Port 80
+   über die GatewayClass `nginx` und dient als Ankerpunkt für die
+   `gatewayHTTPRoute.parentRefs` in den Let's-Encrypt-ClusterIssuern.

@@ -140,6 +140,7 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 | **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.projekte-koenig.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
 | **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.projekte-koenig.eu` |
+| **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **In Vorbereitung** für `*.udp.scanea.eu` |
 
 In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
 (Caddy) auf Variante D (HAProxy TCP-Passthrough) umgestellt. Die bestehenden
@@ -181,13 +182,65 @@ Das Root-CA-Cert muss nach Ausstellung in zwei Stores eingetragen werden:
 Grund: Ansible im venv nutzt certifi als CA-Bundle, nicht den System-Store.
 Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
 
+### Variante E — Let's Encrypt mit Gateway API HTTP-01 (geplant)
+
+**Ziel:** Ausstellung öffentlich vertrauenswürdiger TLS-Zertifikate für
+`*.udp.scanea.eu` durch Let's Encrypt, ohne Port 80/443 auf der OPNsense
+für jeden Dienst einzeln öffnen zu müssen.
+
+**Technische Umsetzung:**
+
+cert-manager nutzt den `gatewayHTTPRoute`-Solver, um ACME HTTP-01-Challenges
+zu lösen. Statt eines klassischen Ingress erzeugt cert-manager eine
+`HTTPRoute`-Ressource, die an den `civitas-gateway` im Namespace
+`ingress-nginx` gebunden wird (`parentRefs`). Der nginx-Ingress-Controller
+(GatewayClass `nginx`) verarbeitet die HTTPRoute und leitet die
+Challenge-Anfrage an das temporäre ACME-Pod weiter.
+
+**Voraussetzungen:**
+
+1. **Gateway API CRDs** müssen installiert sein (Version ≥ v1.2.1).
+2. **cert-manager** muss mit `config.enableGatewayAPI: true` betrieben werden.
+3. Eine **Gateway-Ressource** `civitas-gateway` muss im Namespace
+   `ingress-nginx` existieren, mit einem HTTP-Listener auf Port 80.
+4. Der **HAProxy** auf der OPNsense muss Port-80-Traffic für
+   `*.udp.scanea.eu` per TCP-Passthrough an `10.10.10.5:80` weiterleiten.
+5. Die **Let's-Encrypt-ClusterIssuer** (Staging + Production) müssen
+   `gatewayHTTPRoute.parentRefs` enthalten, die auf den `civitas-gateway`
+   verweisen.
+
+**Ablauf (HTTP-01-Challenge):**
+
+```
+Let's Encrypt → http://<domain>/.well-known/acme-challenge/<token>
+             → DNS → 157.180.12.169:80 (OPNsense)
+             → HAProxy TCP-Passthrough
+             → WireGuard → 10.10.10.5:80 (VM)
+             → nginx-Ingress (hostNetwork)
+             → HTTPRoute (von cert-manager erzeugt)
+             → ACME-Responder-Pod
+```
+
+**Status:** Der `civitas-gateway` ist manuell installiert. Die
+ClusterIssuer-Templates liegen in `templates_V1/cert_manager/` bereit.
+Die automatische Erzeugung der LE-Issuer durch das Playbook ist
+derzeit deaktiviert (`create_letsencrypt_issuer: false`), bis der
+HAProxy-Port-80-Durchgriff erfolgreich getestet wurde.
+
+**Abnahmekriterium:**
+```bash
+curl -sf --max-time 10 \
+  "http://idm.udp.scanea.eu/.well-known/acme-challenge/health-check" \
+  -o /dev/null && echo "Port 80 erreichbar"
+```
+
 ## Offene Entscheidungen
 
 - ~~Ist eine externe Erreichbarkeit des Plugins erforderlich?~~ → **Ja, über zwei parallele Proxy-Pfade**
 - ~~Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?~~ → **Beides: data-dna.eu über Caddy, udp.scanea.eu über nginx/cert-manager in der VM**
 - ~~Wird ein separater DNS-Eintrag für die interne Kommunikation benötigt?~~ → **Nein, WireGuard-Tunnel ersetzt internes DNS**
 - ~~**Migrationstermin**~~ → **HAProxy ist seit dem zweiten Installationsdurchlauf aktiv. Die CIVITAS/CORE-Endpunkte laufen unter `udp.scanea.eu` über den HAProxy-TCP-Passthrough.**
-- ~~**cert-manager Let's-Encrypt-Issuer**~~ → **DNS-01 wird aktuell für die CA-Issuer-Struktur (Variante C) verwendet. Für die produktive Let's-Encrypt-Integration ist ein separater ClusterIssuer mit DNS-01-Provider einzurichten.**
+- ~~**cert-manager Let's-Encrypt-Issuer**~~ → **Gateway API HTTP-01 wird aktuell vorbereitet (Variante E). Die automatische Erzeugung der LE-ClusterIssuer durch das Playbook ist deaktiviert, bis der HAProxy-Port-80-Durchgriff getestet ist. Die Issuer-Templates liegen in `templates_V1/cert_manager/` bereit.**
 
 ## Getroffene Entscheidungen
 

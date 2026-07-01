@@ -225,12 +225,15 @@ inklusive aller für CIVITAS/CORE erforderlichen Add-ons.
 | 1.5d | CA-Trust: cert in System-Store + certifi im venv | `curl -sf https://idm.${DOMAIN}/` ohne `--insecure` |
 | 1.6 | nginx-Ingress via Helm deployen (Namespace `ingress-nginx`) | `kubectl get pods -n ingress-nginx` → controller Running |
 | 1.7 | Storage Class prüfen (`local-path-provisioner` durch k3s mitgeliefert, **nicht deaktivieren**) | `kubectl get storageclass` → `local-path` als Default |
+| 1.8 | Gateway-Ressource `civitas-gateway` im Namespace `ingress-nginx` anlegen (Listener HTTP Port 80, GatewayClass `nginx`) | `kubectl get gateway civitas-gateway -n ingress-nginx` → READY=True |
 
 > **Wichtig (Reihenfolge)**: Die Gateway-API-CRDs (Schritt 1.3a) werden vor
 > cert-manager (Schritt 1.4) installiert, da cert-manager die CRDs beim Start
 > erwartet. cert-manager und ClusterIssuer (Schritte 1.4–1.5d) werden vor
 > nginx-Ingress (Schritt 1.6) installiert, damit der Ingress-Controller bei
-> Bedarf sofort TLS-fähig ist.
+> Bedarf sofort TLS-fähig ist. Die Gateway-Ressource (Schritt 1.8) wird nach
+> nginx-Ingress installiert, da der nginx-Ingress-Controller die GatewayClass
+> `nginx` erst nach der Installation registriert.
 
 > **Wichtig (local-path-provisioner)**: Der `local-path-provisioner` ist
 > Bestandteil von k3s und stellt die Default-StorageClass bereit. Er darf
@@ -521,6 +524,63 @@ spec:
 ```
 
 Wird stattdessen fälschlich der Bootstrap-Issuer referenziert, signiert cert-manager das Zertifikat ohne CA-Bezug – der TLS-Handshake scheitert mit `unknown CA`.
+
+### Let's-Encrypt-ClusterIssuer (Gateway API HTTP-01)
+
+Für die Ausstellung öffentlich vertrauenswürdiger TLS-Zertifikate werden
+zwei ClusterIssuer vom Typ `ACME` vorgehalten:
+
+| Name | Server | Zweck |
+|---|---|---|
+| `letsencrypt-staging` | `https://acme-staging-v02.api.letsencrypt.org/directory` | Test (hohe Rate-Limits) |
+| `letsencrypt-prod` | `https://acme-v02.api.letsencrypt.org/directory` | Produktion |
+
+Beide Issuer verwenden den `gatewayHTTPRoute`-Solver:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: {{ inv_k8s.cert_manager.le_email }}
+    privateKeySecretRef:
+      name: letsencrypt-staging
+    solvers:
+    - http01:
+        gatewayHTTPRoute:
+          parentRefs:
+          - name: civitas-gateway
+            namespace: ingress-nginx
+            sectionName: http
+```
+
+Der `civitas-gateway` muss vor der Issuer-Erstellung existieren
+(siehe Phase 1, Schritt 1.8). Der HTTP-01-Listener auf Port 80 wird
+vom nginx-Ingress-Controller (GatewayClass `nginx`) verarbeitet.
+
+**Automatische vs. manuelle Erzeugung:**
+
+Das CIVITAS/CORE-Playbook erzeugt die LE-ClusterIssuer automatisch, wenn
+im Inventory die folgenden Werte gesetzt sind:
+
+| Variable | Wert |
+|---|---|
+| `inv_k8s.cert_manager.le_email` | E-Mail-Adresse für ACME-Registrierung (z. B. `admin@scanea.eu`) |
+| `inv_k8s.cert_manager.create_letsencrypt_issuer` | `true` |
+
+In der aktuellen Entwicklungsphase sind diese Werte auf `""` bzw.
+`false` gesetzt, um die automatische Erzeugung zu unterdrücken
+(der Gateway und der HAProxy-Durchgriff müssen zuerst getestet
+werden). Die Issuer können dann manuell aus den Templates in
+`templates_V1/cert_manager/` deployt werden:
+
+```bash
+kubectl apply -f templates_V1/cert_manager/staging_issuer.yml
+kubectl apply -f templates_V1/cert_manager/production_issuer.yml
+```
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
