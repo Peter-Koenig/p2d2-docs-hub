@@ -370,46 +370,45 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
 | 2.0 | DNS erneut prüfen (harter Abbruch wenn nicht auflösbar) | `dig +short idm.$DOMAIN` und `dig +short portal.$DOMAIN` — beide müssen eine IP liefern |
-| 2.1 | `cc-cli` installieren (gepinnte Version `1.5.0`) + `ansible`, `kubernetes`, `openshift`, `jmespath` im venv | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
-| 2.1b | Ansible-Collections installieren: `kubernetes.core`, `community.grafana`, `community.mongodb` | `ansible-galaxy collection list \| grep kubernetes.core` |
-| 2.1c | CA-Trust im certifi-Bundle aktualisieren (venv existiert jetzt) | `grep "civitas-core-ca" "${certifi_bundle}"` |
-| 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen | Datei vorhanden, Platzhalter geprüft |
-| 2.3 | `cc_cli validate` ausführen (aus `/opt/civitas-core-v1`) | Exit-Code 0 |
+| 2.0b | Repository klonen nach `/opt/civitas-core-v1` | `.git`-Verzeichnis vorhanden, `playbook.yml` gefunden |
+| 2.1 | Overlay-Dateien einspielen: `apply_overlay()` kopiert Dateien aus `overlay_V1/` in das geklonte Repo (z. B. Keycloak-Values mit `servicePort: http`). Originaldateien werden nach `.overlay_backup/` gesichert. | Log pro kopierter Datei; Abbruch wenn Zielverzeichnis fehlt |
+| 2.1b | Masterportal-Release-Namen patchen: `patch_masterportal_release_name()` fügt `| lower` zu `gd_instance.instance_name` im Helm-Release-Namen hinzu (RFC-1123: Großbuchstaben in Release-Namen ungültig) | `grep -q "instance_name | lower"` in der Task-Datei |
+| 2.1c | `cc-cli` installieren (gepinnte Version `1.5.0`) + `ansible`, `kubernetes`, `openshift`, `jmespath` im venv. Ansible-Logging wird aktiviert: `ANSIBLE_LOG_PATH`, `ANSIBLE_VERBOSITY=3` | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
+| 2.1d | CA-Trust im certifi-Bundle aktualisieren (venv existiert jetzt) | `grep "civitas-core-ca" "${certifi_bundle}"` |
+| 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen + http-Sicherheitscheck: Abbruch wenn `hostname: "http://` im gerenderten Inventory | Datei vorhanden, Platzhalter geprüft, kein `http://` im hostname |
+| 2.3 | `cc_cli validate` ausführen | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
-| 2.4c | **Phase 2a — Basis:** `cc_cli exec --tags "base"` (Postgres, Keycloak, Monitoring, pgAdmin) | Exit-Code 0 (404 in Keycloak-Config wird toleriert) |
-| 2.4d | **Phase 2b1 — Rest (ohne Superset, Frost deaktiviert):** `cc_cli exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,geodata"` (Portal, APISIX, Geodata, Monitoring, pgAdmin ohne Keycloak) | Exit-Code 0 |
-| 2.4e | **Phase 2b2 — Superset isoliert:** `cc_cli exec --tags "da_superset"` (Superset separat, damit ein 404 bei der Rollenzuweisung nicht Frost/Geodata blockiert) | Exit-Code 0 (404 wird toleriert) |
+| 2.4c | **cc_cli exec** (single run, alle Komponenten). Ansible-Log unter `logs/ansible_run_latest.log` | Exit-Code 0 (404 wird toleriert) |
+| 2.4d | Logfile-Prüfung + Warten auf Pods | `test -f logs/ansible_run_latest.log`; `kubectl wait pods --all -n cc-prd-access-stack` |
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
 > `cc_cli` sucht `playbook.yml` relativ zum CWD. Ein Aufruf aus einem anderen
 > Verzeichnis führt zu `Could not find any playbook to execute.`
 
-> **Hinweis cc_cli-exec in drei Phasen:** Das Ansible-Playbook verwendet Tags
-> (`base`, `tenant`), um Komponentengruppen zu steuern. Da mehrere Komponenten
-> 404-Fehler in der Keycloak-Integration produzieren, die das Playbook vorzeitig
-> abbrechen, wird cc_cli exec in drei getrennten Durchläufen ausgeführt:
-> 1. `--tags "base"` – installiert Postgres-Operator, Central DB, Keycloak
->    (Install + Tenant-Konfiguration), Monitoring und pgAdmin.
-> 2. `--tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,cm_frost,geodata"`
->    – installiert Service Portal, APISIX, Frost, Geodata, Monitoring und pgAdmin
->    (die restlichen Komponenten nach dem Keycloak-Block, jedoch ohne Superset).
-> 3. `--tags "da_superset"` – Superset isoliert. Bekannter 404 bei der
->    Rollenzuweisung blockiert so nicht mehr die nachfolgenden Komponenten.
+> **Hinweis cc_cli-exec (single run):** cc_cli exec wird in einem einzigen
+> Durchlauf ohne Tag-Filterung ausgeführt. Der Ansible-Playbook-Lauf installiert
+> alle Komponenten, die im Inventory auf `enable: true` gesetzt sind. Ein
+> Fehler in einer Komponente führt standardmäßig zum Abbruch des gesamten
+> Durchlaufs. Daher werden bekannte Idempotenz-Fehler (z. B. HTTP 404 beim
+> Löschen einer bereits entfernten Keycloak-Ressource) im Log toleriert, sodass
+> nachfolgende Komponenten nicht blockiert werden.
 >
-> **Warum nicht `--skip-tags "acc_keycloak"`?** `cc_cli` unterstützt nach
-> aktuellem Kenntnisstand nur `--tags`, nicht `--skip-tags`. Die explizite
-> Auflistung der benötigten Tags in Phase 2b vermeidet einen sofortigen
-> Abbruch durch unbekannte CLI-Optionen.
+> **Ansible-Logging:** Vor dem Start von cc_cli exec werden folgende
+> Umgebungsvariablen gesetzt:
+> - `ANSIBLE_LOG_PATH` – Pfad zum Logfile (`logs/ansible_run_latest.log`)
+> - `ANSIBLE_VERBOSITY=3` – Detailgrad der Ansible-Ausgabe (Modul-Argumente,
+>   Return-Werte, SSH-Verbindungsdetails)
+>
+> Das Logfile wird bei jedem Lauf überschrieben und nach dem Skriptdurchlauf
+> auf Existenz geprüft. Bei Fehlern bleibt das Log erhalten (kein Cleanup
+> durch Traps, da alle Traps deaktiviert sind).
 >
 > **Bekanntes Problem:** Die Keycloak-Tenant-Konfiguration enthält einen Task
 > "Delete piveau-hub-repo default resource", der bei Erstinstallation
 > erwartungsgemäß HTTP 204 zurückgibt, bei Wiederholung jedoch HTTP 404
-> (Ressource bereits gelöscht). Dieser 404-Fehler bricht das gesamte Playbook
-> ab – alle nachfolgenden Tasks (Service Portal, APISIX, etc.) werden nicht
-> mehr ausgeführt. Durch die Aufteilung in zwei getrennte cc_cli exec-Durchläufe
-> ist sichergestellt, dass die restlichen Komponenten auch bei toleriertem 404
-> installiert werden.
+> (Ressource bereits gelöscht). Dieser 404-Fehler wird vom Skript toleriert
+> (kein Abbruch), sodass nachfolgende Komponenten nicht betroffen sind.
 
 > **Hinweis cc_cli-Installation**: Die Installation erfolgt in einem isolierten
 > Python-venv unter `${CC_CLI_VENV_PATH}`. Zusätzlich zu `cc-cli` werden die
@@ -479,6 +478,42 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 
 
 
+> **Hinweis Overlay-Mechanismus (overlay_V1/)**: Statt per sed auf Textmuster
+> im geklonten Upstream-Repo zu patchen (fragil bei Repo-Änderungen), werden
+> abweichende Dateien als vollständige Kopien in `civitas_einrichtung/overlay_V1/`
+> vorgehalten. Die Funktion `apply_overlay()` in `06_civitas.sh` kopiert nach
+> `clone_civitas_repo()` alle Dateien aus `overlay_V1/` in die entsprechende
+> Zielstruktur unterhalb von `CC_CLI_PLAYBOOK_DIR`. Vor dem Überschreiben wird
+> ein Backup der Originaldatei nach `.overlay_backup/<relpath>.orig` angelegt
+> (nur einmalig, bei erstem Lauf). Fehlt ein Zielverzeichnis, bricht das Skript
+> mit einem Hinweis auf eine mögliche Strukturänderung im Upstream-Repo ab.
+>
+> Derzeit enthaltene Overlays:
+> - `overlay_V1/templates/access/keycloak/keycloak-values.yaml` – setzt
+>   `ingress.servicePort: http` und `backend-protocol: HTTP` für alle Ingress-
+>   und adminIngress-Blöcke (behebt 502 Bad Gateway bei TLS-Upstream).
+>
+> **Hinweis Masterportal-Release-Name (RFC-1123)**: Der Task `masterportal.yml`
+> im Upstream-Repo setzt den Helm-Release-Namen aus `gd_instance.instance_name`
+> (z. B. "Standard") zusammen. Helm erlaubt aber nur RFC-1123-konforme Namen
+> (Kleinbuchstaben). Die Funktion `patch_masterportal_release_name()` in
+> `06_civitas.sh` fügt nach dem Overlay den `| lower`-Filter ein, sodass
+> `gd_instance.instance_name | lower` verwendet wird.
+>
+> **Hinweis http-Sicherheitscheck in render_inventory()**: Nach dem Erzeugen
+> des `cc_cli_inventory.yml` prüft das Skript, ob der Wert von
+> `inv_access.platform.hostname` fälschlich `http://` enthält. Ist dies der
+> Fall (z. B. durch falsche Konfiguration von `inv_k8s.ingress.http: false`),
+> bricht das Skript sofort ab. Der Check verhindert den 308-Permanent-Redirect-
+> Fehler, bei dem nginx HTTP-Anfragen an die Keycloak-Admin-API per 308 auf
+> HTTPS umleitet und Ansible's uri-Modul den Redirect als Fehler wertet.
+>
+> **Hinweis Ansible-Logging**: Vor dem Start von `run_cc_cli_exec()` werden
+> die Umgebungsvariablen `ANSIBLE_LOG_PATH` (gesetzt auf
+> `logs/ansible_run_latest.log`), `ANSIBLE_VERBOSITY=3` und `ANSIBLE_DEBUG`
+> (entfernt, da es 'debug' is not a valid AnsibleEventType' verursacht)
+> gesetzt. Alle Traps (ERR, EXIT, INT, TERM) sind deaktiviert, sodass
+> Logfiles und temporäre Dateien bei Fehlern erhalten bleiben.
 
 ### TLS-Zertifikatskette und Issuer-Rollen
 

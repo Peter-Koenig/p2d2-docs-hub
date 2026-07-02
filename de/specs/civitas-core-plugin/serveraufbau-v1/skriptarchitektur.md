@@ -704,42 +704,69 @@ install_civitas() {
 
   check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
   clone_civitas_repo          # Schritt 2.0: Repository klonen, Symlink anlegen
-  patch_playbook_urls         # Schritt 2.1: follow_redirects für Keycloak-
-                              #   Admin-API (sonst 404 bei POST-Rollenzuweisung)
+  apply_overlay               # Schritt 2.1: Overlay-Dateien aus overlay_V1/
+                              #   in das geklonte Repo kopieren (ersetzt
+                              #   die früheren sed-basierten Einzelpatches)
+  patch_masterportal_release_name  # Schritt 2.1b: | lower für Helm-Release-Namen
+                              #   (RFC-1123: Großbuchstaben ungültig)
 
-  install_cc_cli              # Schritt 2.2: cc-cli, ansible, openshift, jmespath
-                              #             + Ansible-Collections installieren
-  update_ca_trust_certifi     # certifi-Eintrag nach venv-Erstellung (Phase 1b
-                              #   konnte es noch nicht, venv fehlte)
-
+  install_cc_cli              # Schritt 2.1c: cc-cli + ansible + openshift
+                              #   + jmespath im venv. Ansible-Logging aktiviert:
+                              #   ANSIBLE_LOG_PATH, ANSIBLE_VERBOSITY=3
   render_inventory            # Schritt 2.2: Inventory aus Template erzeugen
+                              #   + http-Sicherheitscheck (Abbruch bei http://)
 
-  # Phase 2a: Basis-Komponenten (Postgres, Keycloak, Monitoring, pgAdmin)
-  run_cc_cli_validate         # Schritt 2.3: aus ${CC_CLI_PLAYBOOK_DIR}
-  setup_wireguard             # Schritt 2.4b — vor cc_cli exec, Health-Check braucht Route
-  run_cc_cli_exec --tags "base"
+  # cc_cli exec (single run, alle Komponenten)
+  run_cc_cli_validate         # Schritt 2.3
+  setup_wireguard             # Schritt 2.4b — vor cc_cli exec
+  run_cc_cli_exec             # Schritt 2.4c: single run, alle Komponenten
+                              #   Ansible-Log: logs/ansible_run_latest.log
 
-  # Admin-User in cc-prd sicherstellen (Phase 2a legt ihn oft nicht an,
-  # weil der POST zum User-Erstellen am 302-Redirect scheitert)
-  ensure_keycloak_admin_user
-
-  # Phase 2b1: Komponenten ohne bekannte 404-Probleme (Service Portal, APISIX,
-  #            Monitoring, pgAdmin, Geodata – Keycloak-Tenant ist bereits
-  #            durch Phase 2a konfiguriert; Frost und Superset sind deaktiviert)
-  # GeoData-Ingress bereinigen, falls vorhanden (Admission-Webhook-Konflikt)
-  cleanup_geodata_ingress
-  run_cc_cli_exec --tags "ope_monitoring,ope_pgadmin,acc_service_portal,acc_apisix,geodata"
-
-
-  for ns in "${K8S_NAMESPACES[@]}"; do
-    if ! wait_pods_ready "${ns}"; then
-      log_warn "Nicht alle Pods in ${ns} wurden Ready – Details in Phase 3"
-    fi
-  done
-  ensure_tls_certificates     # Schritt 2.5: Certificate-Objekte für Ingress-Hosts
-  wait_portal_tls             # Schritt 2.6: HTTPS-Erreichbarkeit prüfen
+  # Logfile-Prüfung + Pods abwarten
+  wait_pods_ready "${K8S_NAMESPACE}"
+  log_ok "Phase 2 abgeschlossen"
 }
 ```
+
+### Overlay-Mechanismus (overlay_V1/)
+
+Abweichende Dateien vom Upstream-CIVITAS-Core-Repo werden nicht mehr per sed
+auf Textmuster gepatcht (fragil bei Repo-Änderungen), sondern als vollständige
+Kopien in `civitas_einrichtung/overlay_V1/` vorgehalten.
+
+**Verzeichnisstruktur:**
+
+```
+civitas_einrichtung/
+├── overlay_V1/
+│   └── templates/
+│       └── access/
+│           └── keycloak/
+│               └── keycloak-values.yaml    # servicePort: http, backend-protocol: HTTP
+├── modules_V1/
+├── templates_V1/
+└── supplement/
+```
+
+Der relative Pfad unter `overlay_V1/` entspricht exakt dem Zielpfad im
+geklonten Repo unterhalb von `CC_CLI_PLAYBOOK_DIR` (z. B. `core_platform/templates/access/keycloak/keycloak-values.yaml`).
+
+**Funktion `apply_overlay()`:**
+
+- Wird nach `clone_civitas_repo()` ausgeführt.
+- Iteriert über alle Dateien in `overlay_V1/` und kopiert sie per `cp` in
+  den entsprechenden Zielpfad.
+- Vor dem Überschreiben wird ein Backup der Originaldatei nach
+  `.overlay_backup/<relpath>.orig` angelegt (nur beim ersten Lauf).
+- Fehlt ein Zielverzeichnis, bricht das Skript mit einem Hinweis auf eine
+  mögliche Strukturänderung im Upstream-Repo ab.
+- Loggt jede kopierte Datei mit `log_ok`.
+
+**Neue Overlays hinzufügen:**
+
+1. Datei mit dem gewünschten Zielpfad unter `overlay_V1/` anlegen.
+2. Versionieren, commiten.
+3. Beim nächsten Deployment wird die Datei automatisch eingespielt.
 
 ### TLS-Terminierung in der VM (HAProxy-TCP-Passthrough)
 
