@@ -177,6 +177,7 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 | Netzwerk (intern) | VM erreicht SOHO-Gateway | `ping -c2 <gateway>` | Abbruch |
 | DNS `idm.<domain>` / `portal.<domain>` | Auflösbar | `dig +short idm.$DOMAIN` | **Warnung** (kein Abbruch, DNS wird manuell vor Phase 2 gesetzt) |
 | Zeitzone | `Europe/Berlin` gesetzt | `timedatectl show --property=Timezone --value` – wird automatisch gesetzt falls abweichend | Wird korrigiert (kein Abbruch) |
+| inotify-Limits (fsnotify) | `fs.inotify.max_user_watches` ≥ 524288, `fs.inotify.max_user_instances` ≥ 1024 | `/etc/sysctl.d/99-inotify.conf` – Kernel-Limits werden automatisch gesetzt falls unterschritten | Abbruch wenn aktiver Wert nach Setzen nicht dem Zielwert entspricht |
 | `curl` vorhanden | Binary verfügbar | `command -v curl` | Abbruch |
 | `python3` / `pip3` vorhanden | Binaries verfügbar | `command -v python3 && command -v pip3` | Abbruch |
 | `wg` (wireguard-tools) | Binary verfügbar | `command -v wg` | Abbruch (wird automatisch installiert) |
