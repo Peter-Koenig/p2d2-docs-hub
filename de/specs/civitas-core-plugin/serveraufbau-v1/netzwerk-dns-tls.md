@@ -140,7 +140,7 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 | **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.data-dna.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
 | **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | ❌ Verworfen – ersetzt durch Variante E (Gateway API HTTP-01) |
-| **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **In Vorbereitung** für `*.udp.data-dna.eu` |
+| **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **✅ Verifiziert** – Ablauf siehe Schritte 1–4 |
 
 In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
 (Caddy) auf Variante D (HAProxy TCP-Passthrough) umgestellt. Die bestehenden
@@ -182,7 +182,7 @@ Das Root-CA-Cert muss nach Ausstellung in zwei Stores eingetragen werden:
 Grund: Ansible im venv nutzt certifi als CA-Bundle, nicht den System-Store.
 Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
 
-### Variante E — Let's Encrypt mit Gateway API HTTP-01 (geplant)
+### Variante E — Let's Encrypt mit Gateway API HTTP-01 (verifiziert)
 
 **Ziel:** Ausstellung öffentlich vertrauenswürdiger TLS-Zertifikate für
 `*.udp.data-dna.eu` durch Let's Encrypt, ohne Port 80/443 auf der OPNsense
@@ -269,13 +269,100 @@ Staging-Zertifikat erfolgreich ausgestellt und verifiziert werden.
 Produktionszertifikat) sind von der Staging-Pflicht befreit – hier wird nur
 der Erneuerungs-Flow von cert-manager durchlaufen.
 
+### Verifizierter Ablauf (Staging → Produktion)
+
+Der folgende Ablauf wurde am 2026-07-04 live gegen den Cluster getestet
+und ist produktiv im Einsatz.
+
+**SCHRITT 1: Richtigen Ingress identifizieren**
+
+```bash
+kubectl get ingress --all-namespaces
+```
+
+Daraus den Ziel-Host und Ziel-Namespace ablesen (z. B. `idm.udp.data-dna.eu`
+in Namespace `cc-prd-access-stack`, Ingress-Name `idmkeycloak`).
+
+**SCHRITT 2: ClusterIssuer und Test-Certificate anlegen**
+
+```bash
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@data-dna.eu
+    privateKeySecretRef:
+      name: letsencrypt-staging-key
+    solvers:
+    - http01:
+        ingress:
+          ingressClassName: nginx
+EOF
+
+kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: test-le-staging
+  namespace: cc-prd-access-stack
+spec:
+  secretName: test-le-staging-tls
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+  dnsNames:
+  - idm.udp.data-dna.eu
+EOF
+```
+
+**SCHRITT 3: Staging-Ergebnis prüfen**
+
+```bash
+kubectl describe certificate test-le-staging -n cc-prd-access-stack
+kubectl describe challenge -n cc-prd-access-stack
+
+kubectl get secret test-le-staging-tls -n cc-prd-access-stack \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -issuer -subject
+```
+
+**Erwartung:** `issuer` enthält `(STAGING)`. Wenn ja, mit Schritt 4
+fortfahren. Wenn nein, Challenge-Status prüfen und Fehler beheben, bevor
+weitergemacht wird.
+
+**SCHRITT 4: Produktives Zertifikat holen**
+
+Analog zu Schritt 2, aber:
+- `ClusterIssuer`-Name: `letsencrypt-prod`
+- `server`: `https://acme-v02.api.letsencrypt.org/directory`
+- `privateKeySecretRef.name`: `letsencrypt-prod-key`
+- Certificate-Objekt zeigt auf `issuerRef.name: letsencrypt-prod`
+- `dnsNames`: der tatsächliche Produktions-Host (nicht mehr `test-le-...`,
+  sondern das echte Certificate-Objekt bzw. die Ingress-Annotation
+  `cert-manager.io/cluster-issuer=letsencrypt-prod` auf der Ziel-Ingress
+  aus Schritt 1 setzen)
+
+**Wichtiger Hinweis:** Certificate-Objekte, die über eine Ingress-Annotation
+vom `ingress-shim`-Controller automatisch erzeugt werden (erkennbar an
+`Owner Reference: Kind Ingress`), dürfen NICHT per `kubectl patch certificate`
+direkt verändert werden – der Controller setzt das sofort zurück. Die Steuerung
+erfolgt über:
+
+```bash
+kubectl annotate ingress <name> -n <namespace> \
+  cert-manager.io/cluster-issuer=letsencrypt-prod --overwrite
+```
+
 ## Offene Entscheidungen
 
 - ~~Ist eine externe Erreichbarkeit des Plugins erforderlich?~~ → **Ja, über zwei parallele Proxy-Pfade**
 - ~~Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?~~ → **Beides: data-dna.eu über Caddy, udp.data-dna.eu über nginx/cert-manager in der VM**
 - ~~Wird ein separater DNS-Eintrag für die interne Kommunikation benötigt?~~ → **Nein, WireGuard-Tunnel ersetzt internes DNS**
 - ~~**Migrationstermin**~~ → **HAProxy ist seit dem zweiten Installationsdurchlauf aktiv. Die CIVITAS/CORE-Endpunkte laufen unter `udp.data-dna.eu` über den HAProxy-TCP-Passthrough.**
-- ~~**cert-manager Let's-Encrypt-Issuer**~~ → **Gateway API HTTP-01 wird aktuell vorbereitet (Variante E). Die automatische Erzeugung der LE-ClusterIssuer durch das Playbook ist deaktiviert, bis der HAProxy-Port-80-Durchgriff getestet ist. Die Issuer-Templates liegen in `templates_V1/cert_manager/` bereit.**
+- ~~**cert-manager Let's-Encrypt-Issuer**~~ → **✅ Verifiziert – Ablauf (Staging → Produktion) siehe Variante E, Schritte 1–4. Staging-Zertifikat am 2026-07-04 erfolgreich getestet. Produktive Ausstellung über `cert-manager.io/cluster-issuer=letsencrypt-prod`-Annotation auf dem Ziel-Ingress.**
 
 ## Getroffene Entscheidungen
 
@@ -416,7 +503,7 @@ Port 443 ──→ HAProxy (OPNsense)
 | DNS-Einträge für `*.udp.data-dna.eu` auf OPNsense WAN-IP | ✅ Umgesetzt |
 | `ssl-redirect=true` im nginx-ConfigMap (Default) | ✅ Umgesetzt |
 | `inv_checks.enable: true` im Inventory | ⬜ Noch im Template zu setzen |
-| Let's-Encrypt-Produktions-Issuer (letsencrypt-prod) | ⬜ Noch zu aktivieren (nach bestandenem Staging-Test gemäß Staging-vor-Produktion-Pflicht) |
+| Let's-Encrypt-Produktions-Issuer (letsencrypt-prod) | ✅ Geklärt – Ablauf siehe Variante E, Schritte 1–4 |
 
 ### Nächste Schritte
 
