@@ -103,7 +103,7 @@ und routet eingehende Verbindungen per SNI:
 
 Der HAProxy TCP-Passthrough leitet den TLS-Handshake 1:1 an den nginx-Ingress
 in der VM weiter. nginx terminiert TLS mit Zertifikaten von cert-manager
-(Let's Encrypt per DNS-01-Challenge). Caddy ist hinter HAProxy auf Port 8443
+(Variante E: Gateway API HTTP-01). Caddy ist hinter HAProxy auf Port 8443
 (HTTPS) und 8080 (HTTP für Let's-Encrypt-HTTP-01-Challenges) erreichbar.
 
 ## Reverse-Proxy-Anbindung
@@ -128,7 +128,7 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 2. Bei SNI `*.udp.data-dna.eu` wird der TCP-Strom 1:1 an `10.10.10.5:443`
    weitergeleitet (via WireGuard).
 3. nginx in der VM terminiert TLS mit Zertifikaten von cert-manager
-   (Let's Encrypt per DNS-01-Challenge).
+   (Variante E: Gateway API HTTP-01).
 4. Der 308-Redirect entfällt, da nginx die TLS-Verbindung vollständig
    selbst handhabt. `ssl-redirect=true` (Default) ist korrekt.
 
@@ -139,7 +139,7 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 | **A** | TLS-Terminierung in OPNsense mit Let's Encrypt (Caddy) | Bestehend für `*.data-dna.eu` |
 | **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.data-dna.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
-| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.data-dna.eu` |
+| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | ❌ Verworfen – ersetzt durch Variante E (Gateway API HTTP-01) |
 | **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **In Vorbereitung** für `*.udp.data-dna.eu` |
 
 In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
@@ -292,7 +292,7 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   Die Weiterleitung erfolgt durch HAProxy.
 - **TLS in der VM (CIVITAS/CORE)**: F&uuml;r `*.udp.data-dna.eu` terminiert nginx
   in der VM das TLS selbstst&auml;ndig mit Zertifikaten von cert-manager
-  (Let's Encrypt per DNS-01-Challenge). Der HAProxy leitet den TCP-Strom
+  (Variante E: Gateway API HTTP-01). Der HAProxy leitet den TCP-Strom
   1:1 durch (Layer 4, kein TLS-Eingriff).
 - **Caddy-TLS (bestehende Dienste)**: F&uuml;r `*.data-dna.eu` terminiert Caddy
   weiterhin TLS mit Let's-Encrypt-Zertifikaten. Die ACME-HTTP-01-Challenge
@@ -375,7 +375,7 @@ und kann das von cert-manager ausgestellte Zertifikat präsentieren:
   selbst handhabt.
 - cc_cli-Health-Checks erhalten HTTP-200, da der Pfad über nginx
   direkt zur Ziel-Komponente führt.
-- cert-manager stellt Zertifikate per DNS-01-Challenge aus.
+- cert-manager stellt Zertifikate per Gateway API HTTP-01 (Variante E) aus.
 - Der ConfigMap-Patch `ssl-redirect=false` entfällt.
 - `inv_checks.enable: true` im Inventory kann gesetzt werden.
 
@@ -416,12 +416,12 @@ Port 443 ──→ HAProxy (OPNsense)
 | DNS-Einträge für `*.udp.data-dna.eu` auf OPNsense WAN-IP | ✅ Umgesetzt |
 | `ssl-redirect=true` im nginx-ConfigMap (Default) | ✅ Umgesetzt |
 | `inv_checks.enable: true` im Inventory | ⬜ Noch im Template zu setzen |
-| Let's-Encrypt-ClusterIssuer mit DNS-01 | ⬜ Noch einzurichten (derzeit self-signed-CA, Variante C) |
+| Let's-Encrypt-Produktions-Issuer (letsencrypt-prod) | ⬜ Noch zu aktivieren (nach bestandenem Staging-Test gemäß Staging-vor-Produktion-Pflicht) |
 
 ### Nächste Schritte
 
 1. `inv_checks.enable: true` im Inventory-Template setzen (nach erfolgreichem Testlauf)
-2. Let's-Encrypt-ClusterIssuer mit DNS-01-Provider für produktive Zertifikate einrichten
+2. Let's-Encrypt-Produktions-Issuer (letsencrypt-prod) gemäß Variante E (Gateway API HTTP-01) aktivieren, nachdem die Staging-vor-Produktion-Pflicht für den jeweiligen Hostnamen erfüllt ist
 
 ***
 
