@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-07-02
+lastUpdated: 2026-07-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -381,7 +381,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **cc_cli exec** (single run, alle Komponenten). Ansible-Log unter `logs/ansible_run_latest.log` | Exit-Code 0 (404 wird toleriert) |
 | 2.4d | Logfile-Prüfung + Warten auf Pods | `test -f logs/ansible_run_latest.log`; `kubectl wait pods --all -n cc-prd-access-stack` |
-| 2.4e | **Staging-Vorabprüfung für Produktionszertifikate:** Vor dem ersten produktiven Let's-Encrypt-Zertifikat für einen Hostnamen MUSS ein Staging-Zertifikat (`issuerRef.name: letsencrypt-staging`) erfolgreich ausgestellt und verifiziert sein. Nach erfolgreicher Prüfung wird der Namespace mit `civitas.io/staging-verified: "true"` annotiert. | `kubectl get namespace cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' \| grep -q "true"` ODER Hostname ist bereits im Produktivbetrieb (gültiges Produktionszertifikat vorhanden) |
+| 2.4e | **Staging-Vorabprüfung für Produktionszertifikate:** Vor dem ersten produktiven Let's-Encrypt-Zertifikat für einen Hostnamen MUSS ein Staging-Zertifikat (`issuerRef.name: letsencrypt-staging`) erfolgreich ausgestellt und verifiziert sein. Nach erfolgreicher Prüfung wird das Certificate-Objekt des Hostnamens mit `civitas.io/staging-verified: "true"` annotiert. | `kubectl get certificate <hostname>-tls -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' \| grep -q "true"` ODER Hostname ist bereits im Produktivbetrieb (gültiges Produktionszertifikat vorhanden) |
 
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
@@ -702,7 +702,7 @@ curl -sf --max-time 10 \
 # Wenn ein Hostname produktiv mit Let's Encrypt betrieben wird, muss
 # vor dem produktiven Request ein Staging-Zertifikat erfolgreich
 # ausgestellt und verifiziert worden sein.
-STAGING_ANNOTATION=$(kubectl get namespace cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas.io/staging-verified}' 2>/dev/null)
+STAGING_ANNOTATION=$(kubectl get certificate idm.udp.scanea.eu-tls -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' 2>/dev/null)
 if [ "${STAGING_ANNOTATION}" = "true" ]; then
   echo "Staging-Verifikation bestanden (Annotation vorhanden)"
 else
@@ -710,8 +710,9 @@ else
   echo "muessen zwingend zuerst per letsencrypt-staging getestet werden."
   false
 fi
-# Erwartung: Annotation civitas.io/staging-verified="true" ODER Hostname
-# ist bereits im Produktivbetrieb (gueltiges Produktionszertifikat vorhanden)
+# Erwartung: Annotation civitas.io/staging-verified="true" auf dem Certificate-Objekt
+# (pro Hostname einzeln), ODER Hostname ist bereits im Produktivbetrieb
+# (gueltiges Produktionszertifikat vorhanden)
 
 # WireGuard-Tunnel aktiv
 systemctl is-active wg-quick@wg0

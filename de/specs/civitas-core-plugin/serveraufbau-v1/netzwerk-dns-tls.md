@@ -2,7 +2,7 @@
 title: Netzwerk, DNS und TLS für das CIVITAS/CORE-Plugin
 description: Spezifikation der Netzwerkanbindung, Namensauflösung und Zertifikatsstrategie für die Plugin-VM
 status: draft
-lastUpdated: 2026-07-02
+lastUpdated: 2026-07-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-netzwerk
@@ -263,9 +263,7 @@ Staging-Zertifikat erfolgreich ausgestellt und verifiziert werden.
 5. Certificate-Objekt mit `issuerRef.name: letsencrypt-prod` für denselben
    Hostnamen anlegen.
 
-**Idempotenz-Marker:** Nach erfolgreicher Staging-Verifikation annotiert man
-das produktive Certificate oder einen Referenz-Namespace mit
-`civitas.io/staging-verified: "true"`.
+**Idempotenz-Marker:** Nach erfolgreicher Staging-Verifikation wird das produktive Certificate-Objekt selbst mit `civitas.io/staging-verified: "true"` annotiert (Befehl: `kubectl annotate certificate <hostname>-tls -n <namespace> civitas.io/staging-verified=true`). Eine Namespace-weite Annotation ist NICHT zulässig, da ein Namespace mehrere Hostnamen mit unterschiedlichem Staging-Status enthalten kann.
 
 **Ausnahme:** Bereits produktiv genutzte Hostnamen (mit gültigem
 Produktionszertifikat) sind von der Staging-Pflicht befreit – hier wird nur
