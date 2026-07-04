@@ -67,22 +67,22 @@ Die CIVITAS/CORE-Plattform erzeugt eine Reihe von Ingress-Ressourcen, die
 
 | Subdomain | Komponente | Status |
 |---|---|---|
-| `udp.scanea.eu` | Service Portal | ✅ Aktiv (`service_portal.enable: true`) |
-| `idm.udp.scanea.eu` | Keycloak | ✅ Aktiv (`keycloak.enable: true`) |
-| `api.udp.scanea.eu` | APISIX Data Plane | ✅ Aktiv (`apisix.enable: true`) |
-| `api-admin.udp.scanea.eu` | APISIX Control Plane | ✅ Aktiv (`apisix.enable: true`) |
-| `monitoring.udp.scanea.eu` | Grafana / Prometheus | ✅ Aktiv (`monitoring.enable: true`) |
-| `alertmanager.udp.scanea.eu` | Alertmanager | ✅ Aktiv (`alertmanager.enable: true`) |
-| `pgadmin.udp.scanea.eu` | pgAdmin | ✅ Aktiv (`pgadmin.enable: true`) |
-| `superset.udp.scanea.eu` | Apache Superset | ✅ Aktiv (`superset.enable: true`) |
-| `geoportal.udp.scanea.eu` | Masterportal | ✅ Aktiv (`gd_components.enable: true`) |
-| `geoserver.udp.scanea.eu` | GeoServer | ✅ Aktiv (`geoserver.enable: true`) |
-| `frost.udp.scanea.eu` | Frost-Server (SensorThings) | ✅ Aktiv (`frost.enable: true`) |
-| `apim.udp.scanea.eu` | APISIX Dashboard | ⬜ Derzeit deaktiviert (`dashboard.enable: false`) |
-| `oauth.udp.scanea.eu` | OAuth-Endpunkt | ⬜ Optional, je nach Keycloak-Konfiguration |
-| `mqtt.udp.scanea.eu` | Frost MQTT | ❌ Deaktiviert (`frost.mqtt.enable: false`) |
-| `datacatalog.udp.scanea.eu` | Piveau Hub | ❌ Deaktiviert (`piveau.enable: false`) |
-| `search.datacatalog.udp.scanea.eu` | Piveau Hub Search | ❌ Deaktiviert (`piveau.enable: false`) |
+| `udp.data-dna.eu` | Service Portal | ✅ Aktiv (`service_portal.enable: true`) |
+| `idm.udp.data-dna.eu` | Keycloak | ✅ Aktiv (`keycloak.enable: true`) |
+| `api.udp.data-dna.eu` | APISIX Data Plane | ✅ Aktiv (`apisix.enable: true`) |
+| `api-admin.udp.data-dna.eu` | APISIX Control Plane | ✅ Aktiv (`apisix.enable: true`) |
+| `monitoring.udp.data-dna.eu` | Grafana / Prometheus | ✅ Aktiv (`monitoring.enable: true`) |
+| `alertmanager.udp.data-dna.eu` | Alertmanager | ✅ Aktiv (`alertmanager.enable: true`) |
+| `pgadmin.udp.data-dna.eu` | pgAdmin | ✅ Aktiv (`pgadmin.enable: true`) |
+| `superset.udp.data-dna.eu` | Apache Superset | ✅ Aktiv (`superset.enable: true`) |
+| `geoportal.udp.data-dna.eu` | Masterportal | ✅ Aktiv (`gd_components.enable: true`) |
+| `geoserver.udp.data-dna.eu` | GeoServer | ✅ Aktiv (`geoserver.enable: true`) |
+| `frost.udp.data-dna.eu` | Frost-Server (SensorThings) | ✅ Aktiv (`frost.enable: true`) |
+| `apim.udp.data-dna.eu` | APISIX Dashboard | ⬜ Derzeit deaktiviert (`dashboard.enable: false`) |
+| `oauth.udp.data-dna.eu` | OAuth-Endpunkt | ⬜ Optional, je nach Keycloak-Konfiguration |
+| `mqtt.udp.data-dna.eu` | Frost MQTT | ❌ Deaktiviert (`frost.mqtt.enable: false`) |
+| `datacatalog.udp.data-dna.eu` | Piveau Hub | ❌ Deaktiviert (`piveau.enable: false`) |
+| `search.datacatalog.udp.data-dna.eu` | Piveau Hub Search | ❌ Deaktiviert (`piveau.enable: false`) |
 
 > **DNS-Auflösung:** Die Subdomains müssen sowohl intern (PiHole/Unbound im
 > SOHO-LAN, Auflösung auf `192.168.12.139`) als auch extern (netcup-DNS,
@@ -98,7 +98,7 @@ und routet eingehende Verbindungen per SNI:
 
 | Domain | Proxy | TLS-Terminierung | Ziel |
 |---|---|---|---|
-| `*.udp.scanea.eu` (CIVITAS/CORE) | HAProxy TCP-Passthrough (OPNsense) | In der VM (nginx, cert-manager) | `10.10.10.5:443` (HTTPS) |
+| `*.udp.data-dna.eu` (CIVITAS/CORE) | HAProxy TCP-Passthrough (OPNsense) | In der VM (nginx, cert-manager) | `10.10.10.5:443` (HTTPS) |
 | `*.data-dna.eu` (bestehende Dienste) | HAProxy → Caddy (OPNsense) | Caddy (Let's Encrypt) | Caddy auf Port 8443/8080 |
 
 Der HAProxy TCP-Passthrough leitet den TLS-Handshake 1:1 an den nginx-Ingress
@@ -122,10 +122,10 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
    (`10.10.10.5`). Dieses Muster betrifft ausschließlich die bestehenden
    `*.data-dna.eu`-Dienste (p2d2-Frontend, GeoServer, etc.).
 
-### Muster B: HAProxy TCP-Passthrough (für `*.udp.scanea.eu`)
+### Muster B: HAProxy TCP-Passthrough (für `*.udp.data-dna.eu`)
 
 1. HAProxy auf OPNsense empfängt TLS auf Port 443 (SNI-basiertes Routing).
-2. Bei SNI `*.udp.scanea.eu` wird der TCP-Strom 1:1 an `10.10.10.5:443`
+2. Bei SNI `*.udp.data-dna.eu` wird der TCP-Strom 1:1 an `10.10.10.5:443`
    weitergeleitet (via WireGuard).
 3. nginx in der VM terminiert TLS mit Zertifikaten von cert-manager
    (Let's Encrypt per DNS-01-Challenge).
@@ -137,10 +137,10 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 | Variante | Beschreibung | Status |
 |----------|--------------|--------|
 | **A** | TLS-Terminierung in OPNsense mit Let's Encrypt (Caddy) | Bestehend für `*.data-dna.eu` |
-| **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.scanea.eu` |
+| **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.data-dna.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
-| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.scanea.eu` |
-| **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **In Vorbereitung** für `*.udp.scanea.eu` |
+| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.data-dna.eu` |
+| **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **In Vorbereitung** für `*.udp.data-dna.eu` |
 
 In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
 (Caddy) auf Variante D (HAProxy TCP-Passthrough) umgestellt. Die bestehenden
@@ -185,7 +185,7 @@ Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
 ### Variante E — Let's Encrypt mit Gateway API HTTP-01 (geplant)
 
 **Ziel:** Ausstellung öffentlich vertrauenswürdiger TLS-Zertifikate für
-`*.udp.scanea.eu` durch Let's Encrypt, ohne Port 80/443 auf der OPNsense
+`*.udp.data-dna.eu` durch Let's Encrypt, ohne Port 80/443 auf der OPNsense
 für jeden Dienst einzeln öffnen zu müssen.
 
 **Technische Umsetzung:**
@@ -204,7 +204,7 @@ Challenge-Anfrage an das temporäre ACME-Pod weiter.
 3. Eine **Gateway-Ressource** `civitas-gateway` muss im Namespace
    `ingress-nginx` existieren, mit einem HTTP-Listener auf Port 80.
 4. Der **HAProxy** auf der OPNsense muss Port-80-Traffic für
-   `*.udp.scanea.eu` per TCP-Passthrough an `10.10.10.5:80` weiterleiten.
+   `*.udp.data-dna.eu` per TCP-Passthrough an `10.10.10.5:80` weiterleiten.
 5. Die **Let's-Encrypt-ClusterIssuer** (Staging + Production) müssen
    `gatewayHTTPRoute.parentRefs` enthalten, die auf den `civitas-gateway`
    verweisen.
@@ -230,7 +230,7 @@ HAProxy-Port-80-Durchgriff erfolgreich getestet wurde.
 **Abnahmekriterium:**
 ```bash
 curl -sf --max-time 10 \
-  "http://idm.udp.scanea.eu/.well-known/acme-challenge/health-check" \
+  "http://idm.udp.data-dna.eu/.well-known/acme-challenge/health-check" \
   -o /dev/null && echo "Port 80 erreichbar"
 ```
 
@@ -272,9 +272,9 @@ der Erneuerungs-Flow von cert-manager durchlaufen.
 ## Offene Entscheidungen
 
 - ~~Ist eine externe Erreichbarkeit des Plugins erforderlich?~~ → **Ja, über zwei parallele Proxy-Pfade**
-- ~~Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?~~ → **Beides: data-dna.eu über Caddy, udp.scanea.eu über nginx/cert-manager in der VM**
+- ~~Erfolgt die TLS-Terminierung in OPNsense oder in der Plugin-VM?~~ → **Beides: data-dna.eu über Caddy, udp.data-dna.eu über nginx/cert-manager in der VM**
 - ~~Wird ein separater DNS-Eintrag für die interne Kommunikation benötigt?~~ → **Nein, WireGuard-Tunnel ersetzt internes DNS**
-- ~~**Migrationstermin**~~ → **HAProxy ist seit dem zweiten Installationsdurchlauf aktiv. Die CIVITAS/CORE-Endpunkte laufen unter `udp.scanea.eu` über den HAProxy-TCP-Passthrough.**
+- ~~**Migrationstermin**~~ → **HAProxy ist seit dem zweiten Installationsdurchlauf aktiv. Die CIVITAS/CORE-Endpunkte laufen unter `udp.data-dna.eu` über den HAProxy-TCP-Passthrough.**
 - ~~**cert-manager Let's-Encrypt-Issuer**~~ → **Gateway API HTTP-01 wird aktuell vorbereitet (Variante E). Die automatische Erzeugung der LE-ClusterIssuer durch das Playbook ist deaktiviert, bis der HAProxy-Port-80-Durchgriff getestet ist. Die Issuer-Templates liegen in `templates_V1/cert_manager/` bereit.**
 
 ## Getroffene Entscheidungen
@@ -283,14 +283,14 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
 
 - **HAProxy als zentraler Einstiegspunkt (Port 443)**: Der HAProxy auf OPNsense
   empfangt eingehenden TLS-Traffic auf Port 443 und routet per SNI:
-  - `*.udp.scanea.eu` → TCP-Passthrough an `10.10.10.5:443` (nginx in der VM
+  - `*.udp.data-dna.eu` → TCP-Passthrough an `10.10.10.5:443` (nginx in der VM
     terminiert TLS mit cert-manager-Zertifikaten)
   - Alle anderen Domains (`*.data-dna.eu`) → Weiterleitung an Caddy
     (Port 8443 HTTPS / 8080 HTTP)
 - **Caddy-Ports**: Caddy lauscht nicht mehr auf Port 443, sondern auf
   Port 8443 (HTTPS) und Port 8080 (HTTP f&uuml;r Let's-Encrypt-HTTP-01-Challenges).
   Die Weiterleitung erfolgt durch HAProxy.
-- **TLS in der VM (CIVITAS/CORE)**: F&uuml;r `*.udp.scanea.eu` terminiert nginx
+- **TLS in der VM (CIVITAS/CORE)**: F&uuml;r `*.udp.data-dna.eu` terminiert nginx
   in der VM das TLS selbstst&auml;ndig mit Zertifikaten von cert-manager
   (Let's Encrypt per DNS-01-Challenge). Der HAProxy leitet den TCP-Strom
   1:1 durch (Layer 4, kein TLS-Eingriff).
@@ -301,7 +301,7 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   `true` (Helm-Default). Da nginx TLS selbst terminiert, ist der HTTP-zu-HTTPS-
   Redirect korrekt und erw&uuml;nscht. Der fr&uuml;here Workaround (`ssl-redirect=false`)
   entf&auml;llt mit der HAProxy-Architektur.
-- **Ingress-tls-Sektion**: Ingress-Ressourcen unter `*.udp.scanea.eu` behalten
+- **Ingress-tls-Sektion**: Ingress-Ressourcen unter `*.udp.data-dna.eu` behalten
   ihre `spec.tls`-Sektion. nginx ben&ouml;tigt sie zur TLS-Terminierung. Der
   fr&uuml;here Patch (`patch_ingress_for_external_tls`), der die tls-Sektion
   entfernte, entf&auml;llt mit der HAProxy-Architektur.
@@ -319,15 +319,15 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   ausschlie&szlig;lich als Env-Vars &uuml;bergeben. Nach dem Schreiben der Config
   wird der Tunnel mit `systemctl enable --now wg-quick@wg0` aktiviert und
   die Konnektivit&auml;t zu OPNsense (ping `10.10.10.1`) gepr&uuml;ft.
-- **Domain (Ist-Stand)**: Der deployete Basisdomainname lautet `udp.scanea.eu`.
+- **Domain (Ist-Stand)**: Der deployete Basisdomainname lautet `udp.data-dna.eu`.
   Die Variablen `DOMAIN` in `01_config.sh` und alle `PLACEHOLDER_DOMAIN`-Stellen
-  im Inventory-Template sind auf `udp.scanea.eu` gesetzt.
-  Die CIVITAS/CORE-Endpunkte sind damit `idm.udp.scanea.eu` (Keycloak) und
-  `udp.scanea.eu` (Service Portal).
+  im Inventory-Template sind auf `udp.data-dna.eu` gesetzt.
+  Die CIVITAS/CORE-Endpunkte sind damit `idm.udp.data-dna.eu` (Keycloak) und
+  `udp.data-dna.eu` (Service Portal).
 - **Hetzner DNS**: Vor Phase 2 m&uuml;ssen folgende A-Records in der Hetzner-WebGUI
   manuell angelegt sein (das Skript legt keine DNS-Records an):
-  - `udp.scanea.eu` → OPNsense WAN-IP
-  - `idm.udp.scanea.eu` → OPNsense WAN-IP
+  - `udp.data-dna.eu` → OPNsense WAN-IP
+  - `idm.udp.data-dna.eu` → OPNsense WAN-IP
   DNS-Records werden nicht automatisiert. Die Pr&uuml;fung in Phase 0 (Warnung)
   und Phase 2 (harter Abbruch) pr&uuml;ft Aufl&ouml;sbarkeit, nicht die Herkunft des Records.
 
@@ -395,14 +395,14 @@ Port 443 ──→ HAProxy (OPNsense)
                 ├── SNI: *.data-dna.eu (alle bestehenden Dienste)
                 │     → Caddy (8443/8080, TLS-Ende) → bestehende Backends
                 │
-                └── SNI: *.udp.scanea.eu (CIVITAS/CORE)
+                └── SNI: *.udp.data-dna.eu (CIVITAS/CORE)
                       → HAProxy (TCP-Passthrough) → VM:443 → nginx (TLS-Ende)
 ```
 
 - **Caddy** (auf Port 8443/8080) ist für alle bestehenden `*.data-dna.eu`-Dienste
   zuständig (p2d2-Frontend, GeoServer, etc.). Der ACME-HTTP-01-Pfad für
   Let's-Encrypt-Erneuerung läuft über HAProxy (Port 8080 → Caddy Port 8080).
-- **HAProxy** übernimmt per SNI-Routing die `*.udp.scanea.eu`-Domains
+- **HAProxy** übernimmt per SNI-Routing die `*.udp.data-dna.eu`-Domains
   (CIVITAS/CORE) als TCP-Passthrough ohne TLS-Eingriff. Die Zertifikate
   stellt cert-manager in der VM aus.
 
@@ -413,7 +413,7 @@ Port 443 ──→ HAProxy (OPNsense)
 | HAProxy auf OPNsense konfigurieren (SNI-Rule, TCP-Passthrough zu `10.10.10.5:443`) | ✅ Umgesetzt |
 | Caddy-Ports auf 8443/8080 umgestellt | ✅ Umgesetzt |
 | ACME-HTTP-01-Route über HAProxy (8080 → Caddy 8080) | ✅ Umgesetzt |
-| DNS-Einträge für `*.udp.scanea.eu` auf OPNsense WAN-IP | ✅ Umgesetzt |
+| DNS-Einträge für `*.udp.data-dna.eu` auf OPNsense WAN-IP | ✅ Umgesetzt |
 | `ssl-redirect=true` im nginx-ConfigMap (Default) | ✅ Umgesetzt |
 | `inv_checks.enable: true` im Inventory | ⬜ Noch im Template zu setzen |
 | Let's-Encrypt-ClusterIssuer mit DNS-01 | ⬜ Noch einzurichten (derzeit self-signed-CA, Variante C) |

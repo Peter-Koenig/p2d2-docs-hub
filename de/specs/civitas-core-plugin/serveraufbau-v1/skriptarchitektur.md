@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-06-29
+lastUpdated: 2026-07-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -202,7 +202,7 @@ NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-
 GATEWAY_API_VERSION="v1.2.1"      # Kubernetes Gateway API CRDs (standard channel)
 
 # ── Plattform ────────────────────────────────────────────────────────────────
-DOMAIN="udp.scanea.eu"             # Basis-Domain (Freigabe: Peter König)
+DOMAIN="udp.data-dna.eu"             # Basis-Domain (Freigabe: Peter König)
 KUBECONFIG_PATH="${HOME}/.kube/config"
 export KUBECONFIG="${KUBECONFIG_PATH}"
 K3S_DATA_DIR="/var/lib/rancher/k3s"
@@ -232,10 +232,10 @@ SMTP_HOST="${SMTP_HOST:?'SMTP_HOST muss als Umgebungsvariable gesetzt sein'}"
 SMTP_PORT="${SMTP_PORT:-587}"
 SMTP_USER="${SMTP_USER:?'SMTP_USER muss als Umgebungsvariable gesetzt sein'}"
 SMTP_PASS="${SMTP_PASS:?'SMTP_PASS muss als Umgebungsvariable gesetzt sein'}"
-SMTP_FROM="${SMTP_FROM:-no-reply@scanea.eu}"    # Absenderadresse für E-Mails
+SMTP_FROM="${SMTP_FROM:-no-reply@data-dna.eu}"    # Absenderadresse für E-Mails
 
 # ── Admin (Werte aus Umgebungsvariablen) ────────────────────────────────────
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@scanea.eu}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@data-dna.eu}"
 ADMIN_PASS="${ADMIN_PASS:?'ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
 # → master_password + initiales platform_admin-Passwort (identisch, kein separater Wert)
 TENANT_ADMIN_PASS="${TENANT_ADMIN_PASS:?'TENANT_ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
@@ -320,8 +320,8 @@ Umgebungsvariablen gesetzt sein. Sie werden in `01_config.sh` mit
 | Variable | Beschreibung | Beispielwert / Hinweis |
 |---|---|---|
 | `ROOT_PASSWORD` | root-Passwort der VM | Sicheres Zufallspasswort |
-| `SMTP_PASS` | SMTP-Passwort für no-reply@scanea.eu | Aus netcup WCP |
-| `SMTP_FROM` | SMTP-Absenderadresse | `no-reply@scanea.eu` (Default) |
+| `SMTP_PASS` | SMTP-Passwort für no-reply@data-dna.eu | Aus netcup WCP |
+| `SMTP_FROM` | SMTP-Absenderadresse | `no-reply@data-dna.eu` (Default) |
 | `ADMIN_PASS` | Keycloak Initial-Admin-Passwort | Sicheres Zufallspasswort, min. 12 Zeichen |
 | `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort (separat von ADMIN_PASS) | Sicheres Zufallspasswort, min. 12 Zeichen |
 | `WG_VM_PRIVATE_KEY` | WireGuard PrivateKey der VM (`wg genkey`) | Base64-String, 44 Zeichen |
@@ -1056,7 +1056,7 @@ GeoData, Superset und dem Keycloak-Tenant vollständig durch.
 #### Ingress-Bereinigung (`cleanup_geodata_ingress()`)
 
 Bei Wiederholung von `--tags geodata` kann der nginx-Admission-Webhook die
-Ingress-Erstellung mit `"host geoportal.udp.scanea.eu is already defined"`
+Ingress-Erstellung mit `"host geoportal.udp.data-dna.eu is already defined"`
 ablehnen. Die Funktion `cleanup_geodata_ingress()` entfernt daher vor Phase 2b1
 das GeoData-Ingress, falls es aus einem vorherigen Lauf noch existiert:
 
@@ -1072,7 +1072,7 @@ cleanup_geodata_ingress() {
 
 #### Admin-User in cc-prd erzwingen (`ensure_keycloak_admin_user()`)
 
-Die Ansible-Playbooks legen den Admin-User `admin@scanea.eu` im `cc-prd`-Realm
+Die Ansible-Playbooks legen den Admin-User `admin@data-dna.eu` im `cc-prd`-Realm
 über die URL `{{ hostname }}/admin/realms/.../users` an (ohne `/auth`-Prefix).
 Keycloak antwortet auf diesen POST mit einem 302-Redirect zu
 `/auth/admin/realms/.../users`, wobei Ansible den POST-Body verliert (302 → GET).
@@ -1106,7 +1106,7 @@ ensure_keycloak_admin_user() {
 **Idempotenz:** Wenn der User bereits existiert, antwortet Keycloak mit
 HTTP 409 (Conflict) – die Funktion bricht dann nicht ab, sondern fährt fort.
 
-**Wirkung:** Der Admin-User `admin@scanea.eu` existiert garantiert im
+**Wirkung:** Der Admin-User `admin@data-dna.eu` existiert garantiert im
 `cc-prd`-Realm, bevor Phase 2b1 (GeoData) versucht, Rollen zuzuweisen.
 Dadurch ist `platform_user_id` nicht leer und die Role-Assignment-URL ist
 gültig.
@@ -1285,7 +1285,7 @@ können in einer Datei `.env.local` im Skript-Verzeichnis abgelegt werden:
 # .env.local — Beispiel (NIE in Git einchecken!)
 ROOT_PASSWORD="sicheres_passwort_123"
 SMTP_HOST="mx92c.netcup.net"
-SMTP_USER="admin@scanea.eu"
+SMTP_USER="admin@data-dna.eu"
 SMTP_PASS="smtp_secret_456"
 ADMIN_PASS="admin_secret_789"
 TENANT_ADMIN_PASS="tenant_secret_abc"
@@ -1462,8 +1462,8 @@ LOG_FILE=/var/log/civitas_install.log ./install_civitas_core.sh
 | `SMTP_USER` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
 | `SMTP_PASS` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
 | `SMTP_PORT` | nein | `587` | SMTP-Port |
-| `SMTP_FROM` | nein | `no-reply@scanea.eu` | SMTP-Absenderadresse |
-| `ADMIN_EMAIL` | nein | `admin@scanea.eu` | Initiale Admin-E-Mail |
+| `SMTP_FROM` | nein | `no-reply@data-dna.eu` | SMTP-Absenderadresse |
+| `ADMIN_EMAIL` | nein | `admin@data-dna.eu` | Initiale Admin-E-Mail |
 | `ADMIN_PASS` | **ja** | — | Keycloak Master- + Platform-Admin-Passwort (≥12 Zeichen, Policy-konform) |
 | `TENANT_ADMIN_PASS` | **ja** | — | Tenant-Admin-Passwort (separat von ADMIN_PASS) |
 | `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |

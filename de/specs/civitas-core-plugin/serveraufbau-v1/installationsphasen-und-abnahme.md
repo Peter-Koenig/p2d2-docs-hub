@@ -435,7 +435,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > jedoch muss das CA-Cert enthalten.
 
 > **Hinweis TLS (HAProxy-Architektur)**: Der HAProxy auf OPNsense leitet
-> TLS-Verbindungen f&uuml;r `*.udp.scanea.eu` per TCP-Passthrough (Layer&thinsp;4)
+> TLS-Verbindungen f&uuml;r `*.udp.data-dna.eu` per TCP-Passthrough (Layer&thinsp;4)
 > direkt an `10.10.10.5:443` weiter. nginx in der VM terminiert TLS
 > selbstst&auml;ndig mit Zertifikaten von cert-manager. Der globale
 > `ssl-redirect=true` (Helm-Default) ist korrekt und erw&uuml;nscht.
@@ -445,7 +445,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 >
 > **Ansible-Health-Checks**: Die integrierten Health-Checks von cc_cli
 > (`inv_checks`) sind im Inventory-Template auf `enable: true` gesetzt.
-> Die Checks rufen die externen URLs (`https://idm.udp.scanea.eu/`) auf.
+> Die Checks rufen die externen URLs (`https://idm.udp.data-dna.eu/`) auf.
 > Der Pfad f&uuml;hrt vom venv in der VM &uuml;ber WireGuard &rarr; OPNsense &rarr; HAProxy
 > &rarr; TCP-Passthrough zur&uuml;ck zur VM:443 &rarr; nginx (TLS-Ende) &rarr; Service.
 > nginx antwortet mit HTTP&thinsp;200, da TLS korrekt terminiert wird.
@@ -549,13 +549,13 @@ Dieser Issuer kann im Inventory unter `cert_manager.issuer_name` referenziert we
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: idm.udp.scanea.eu-tls
+  name: idm.udp.data-dna.eu-tls
   namespace: cc-prd-access-stack
 spec:
-  secretName: idm.udp.scanea.eu-tls
-  commonName: idm.udp.scanea.eu
+  secretName: idm.udp.data-dna.eu-tls
+  commonName: idm.udp.data-dna.eu
   dnsNames:
-    - idm.udp.scanea.eu
+    - idm.udp.data-dna.eu
   issuerRef:
     name: civitas-core-ca-issuer   # oder selfsigned-issuer (CA-Typ)
     kind: ClusterIssuer
@@ -606,7 +606,7 @@ im Inventory die folgenden Werte gesetzt sind:
 
 | Variable | Wert |
 |---|---|
-| `inv_k8s.cert_manager.le_email` | E-Mail-Adresse für ACME-Registrierung (z. B. `admin@scanea.eu`) |
+| `inv_k8s.cert_manager.le_email` | E-Mail-Adresse für ACME-Registrierung (z. B. `admin@data-dna.eu`) |
 | `inv_k8s.cert_manager.create_letsencrypt_issuer` | `true` |
 
 In der aktuellen Entwicklungsphase sind diese Werte auf `""` bzw.
@@ -631,19 +631,19 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 
 | Variable | Beschreibung | Beispielwert |
 |---|---|---|
-| `DOMAIN` | Basis-Domain für `idm.` und `portal.` | `udp.scanea.eu` |
+| `DOMAIN` | Basis-Domain für `idm.` und `portal.` | `udp.data-dna.eu` |
 | `SMTP_HOST` | SMTP-Server (netcup) | `mx92c.netcup.net` (exakter Hostname aus WCP) |
 | `SMTP_PORT` | SMTP-Port | `587` |
-| `SMTP_USER` | SMTP-Absender | `noreply@scanea.eu` |
+| `SMTP_USER` | SMTP-Absender | `noreply@data-dna.eu` |
 | `SMTP_PASS` | SMTP-Passwort | Aus Umgebungsvariable `$SMTP_PASS` |
-| `SMTP_FROM` | SMTP-Absenderadresse für E-Mails | `no-reply@scanea.eu` |
+| `SMTP_FROM` | SMTP-Absenderadresse für E-Mails | `no-reply@data-dna.eu` |
 | `CC_CLI_VERSION` | cc-cli-Version (Pinning) | `1.5.0` — nicht `latest` |
 | `CC_V1_REPO_URL` | Repository-URL des CIVITAS/CORE V1-Monorepos | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
 | `CC_V1_REPO_PATH` | Lokaler Pfad des geklonten Repositorys | `/opt/civitas-core-v1` |
 | `CC_CLI_PLAYBOOK_DIR` | Verzeichnis mit `playbook.yml` (cc_cli CWD) | `${CC_V1_REPO_PATH}/core_platform` |
 | `CC_V1_REPO_BRANCH` | Git-Branch | `main` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
-| `ADMIN_EMAIL` | Platform-Admin-E-Mail (auch Keycloak-master_username) | `admin@scanea.eu` |
+| `ADMIN_EMAIL` | Platform-Admin-E-Mail (auch Keycloak-master_username) | `admin@data-dna.eu` |
 | `ADMIN_PASS` | Keycloak-Master-Password + initiales platform\_admin-Passwort (identisch, kein separater Wert). Muss Keycloak-Policy erfüllen: ≥12 Zeichen, 1 Ziffer, 1 Groß-/Kleinbuchstabe, 1 Sonderzeichen | Aus `.env.local` |
 | `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort (separat von ADMIN\_PASS). Nur bei `--tags tenant` aktiv (`configure_central_idm: true`). Trotzdem immer setzen, da das Playbook das Feld erwartet | Aus `.env.local` |
 | `CERT_MANAGER_ISSUER` | ClusterIssuer-Name für Anwendungszertifikate | `civitas-core-ca-issuer` (CA-Typ) |
@@ -702,7 +702,7 @@ curl -sf --max-time 10 \
 # Wenn ein Hostname produktiv mit Let's Encrypt betrieben wird, muss
 # vor dem produktiven Request ein Staging-Zertifikat erfolgreich
 # ausgestellt und verifiziert worden sein.
-STAGING_ANNOTATION=$(kubectl get certificate idm.udp.scanea.eu-tls -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' 2>/dev/null)
+STAGING_ANNOTATION=$(kubectl get certificate idm.udp.data-dna.eu-tls -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' 2>/dev/null)
 if [ "${STAGING_ANNOTATION}" = "true" ]; then
   echo "Staging-Verifikation bestanden (Annotation vorhanden)"
 else
@@ -775,8 +775,8 @@ exit_with_code()  → Exit 0 bei Erfolg, Exit 1 bei ≥ 1 Fehler
 [2026-06-27 00:00:13] [PHASE 2] cc-prd-database-stack: Pods Running ... OK
 [2026-06-27 00:00:14] [PHASE 2] Namespace cc-prd-operation-stack    ... OK
 [2026-06-27 00:00:15] [PHASE 2] cc-prd-operation-stack: Pods Running... OK
-[2026-06-27 00:00:16] [PHASE 2] Keycloak https://idm.udp.scanea.eu  ... OK
-[2026-06-27 00:00:17] [PHASE 2] Portal https://udp.scanea.eu        ... OK
+[2026-06-27 00:00:16] [PHASE 2] Keycloak https://idm.udp.data-dna.eu  ... OK
+[2026-06-27 00:00:17] [PHASE 2] Portal https://udp.data-dna.eu        ... OK
 [2026-06-27 00:00:18] [PHASE 2] WireGuard-Tunnel wg0 aktiv          ... OK
 ------------------------------------------------------------
 Ergebnis: 13/13 Prüfungen bestanden. Installation erfolgreich.
@@ -801,7 +801,7 @@ Ergebnis: 13/13 Prüfungen bestanden. Installation erfolgreich.
 > durchläuft. Schlägt diese Prüfung fehl, ist im entsprechenden Namespace
 > der `issuerRef` des Certificate-Objekts zu prüfen:
 > ```bash
-> kubectl describe certificate -n cc-prd-access-stack idm.udp.scanea.eu-tls
+> kubectl describe certificate -n cc-prd-access-stack idm.udp.data-dna.eu-tls
 > ```
 > Erwartet wird ein `issuerRef.name`, der auf den CA-ClusterIssuer zeigt
 > (`selfsigned-issuer` oder `civitas-core-ca-issuer`), nicht auf den
@@ -833,7 +833,7 @@ protokolliert.
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
 | ~~Gast-OS~~ | ~~**Entschieden: Debian 13 (Trixie)** – Cloud-Image und OS-Check im Code~~ | ~~durch Code festgelegt~~ |
-| ~~Domainname: `civitas.data-dna.eu` oder anderer Vorschlag?~~ | ~~Offen~~ → **Geklärt: `udp.scanea.eu`** | ~~Peter König~~ → durch Code in `01_config.sh` festgelegt |
+| ~~Domainname: `civitas.data-dna.eu` oder anderer Vorschlag?~~ | ~~Offen~~ → **Geklärt: `udp.data-dna.eu`** | ~~Peter König~~ → durch Code in `01_config.sh` festgelegt |
 | ~~TLS-Strategie: self-signed ClusterIssuer oder interne CA?~~ | ~~Offen~~ → **Geklärt: 3-stufiges CA-Setup (Variante C)** | ~~netzwerk-dns-tls.md~~ → `netzwerk-dns-tls.md` (Variante C) |
 | ~~Ziel-Namespace für CIVITAS/CORE~~ | ~~Vorschlag: `civitas-core`~~ | ~~Bestätigung Peter König~~ → **Bestätigt** |
 | ~~cc-cli-Version (Pinning)~~ | ~~**Gepinnt auf `1.5.0`** in `01_config.sh`~~ | ~~durch Code festgelegt~~ |

@@ -2,7 +2,7 @@
 title: cc-cli-Inventar — Ansible-Inventory für CIVITAS/CORE
 description: Dokumentation des per Wizard erzeugten cc_cli_inventory.yml, seiner Struktur und der daraus abgeleiteten Template-Vorlage für die automatisierte Installation.
 status: draft
-lastUpdated: 2026-06-29
+lastUpdated: 2026-07-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-cc-cli-inventar
@@ -435,7 +435,7 @@ Dieses Secret wird vom Keycloak-Playbook während Phase 2 angelegt und enthält
 Die `.env.local`-Datei benötigt exakt diese Passwort-Variablen (keine weiteren):
 
 ```bash
-export ADMIN_EMAIL="admin@scanea.eu"
+export ADMIN_EMAIL="admin@data-dna.eu"
 # → inv_access.platform.master_username (auch admin_email im platform_admin-User)
 export ADMIN_PASS="..."
 # → inv_access.platform.master_password (auch initiales platform_admin-Passwort, identisch!)
