@@ -139,8 +139,8 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 | **A** | TLS-Terminierung in OPNsense mit Let's Encrypt (Caddy) | Bestehend für `*.data-dna.eu` |
 | **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.data-dna.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
-| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | ❌ Verworfen – ersetzt durch Variante E (Gateway API HTTP-01) |
-| **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **✅ Verifiziert** – Ablauf siehe Schritte 1–4 |
+| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | ❌ Verworfen – ersetzt durch Variante E (ingress-nginx HTTP-01) |
+| **E** | Let's Encrypt mit ingress-nginx HTTP-01; cert-manager (ingress-shim) erzeugt automatisch Certificate-Objekte je Ingress | **✅ Verifiziert** – Ablauf siehe Schritte 1–4 |
 
 In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
 (Caddy) auf Variante D (HAProxy TCP-Passthrough) umgestellt. Die bestehenden
@@ -182,7 +182,7 @@ Das Root-CA-Cert muss nach Ausstellung in zwei Stores eingetragen werden:
 Grund: Ansible im venv nutzt certifi als CA-Bundle, nicht den System-Store.
 Ohne diesen Schritt scheitert `cc_cli exec` mit `CERTIFICATE_VERIFY_FAILED`.
 
-### Variante E — Let's Encrypt mit Gateway API HTTP-01 (verifiziert)
+### Variante E — Let's Encrypt mit ingress-nginx HTTP-01 (verifiziert)
 
 **Ziel:** Ausstellung öffentlich vertrauenswürdiger TLS-Zertifikate für
 `*.udp.data-dna.eu` durch Let's Encrypt, ohne Port 80/443 auf der OPNsense
@@ -329,6 +329,8 @@ Ingress-Ressource bereits die gewünschte Annotation trägt (Abgleich
 `cert-manager.io/cluster-issuer`). Ist sie bereits korrekt eingestellt,
 wird die Ingress übersprungen.
 
+> **Hinweis:** Dieser Ablauf dient der isolierten Erstverifikation eines einzelnen Issuers/Hosts. Für die produktive Umstellung aller Hosts wird ausschließlich `switch_certificate_issuer()` bzw. die Ingress-Annotation (`cert-manager.io/cluster-issuer`) verwendet, nicht die manuelle Certificate-Objekt-Erstellung.
+
 ### Verifizierter Ablauf (Staging → Produktion)
 
 Der folgende Ablauf wurde am 2026-07-04 live gegen den Cluster getestet
@@ -392,6 +394,15 @@ kubectl get secret test-le-staging-tls -n cc-prd-access-stack \
 **Erwartung:** `issuer` enthält `(STAGING)`. Wenn ja, mit Schritt 4
 fortfahren. Wenn nein, Challenge-Status prüfen und Fehler beheben, bevor
 weitergemacht wird.
+
+**CLEANUP (nach erfolgreicher Staging-Verifikation):**
+Das Test-Certificate-Objekt und das zugehörige Secret werden gelöscht,
+damit keine verwaisten Ressourcen zurückbleiben:
+
+```bash
+kubectl delete certificate test-le-staging -n cc-prd-access-stack
+kubectl delete secret test-le-staging-tls -n cc-prd-access-stack
+```
 
 **SCHRITT 4: Produktives Zertifikat holen**
 
