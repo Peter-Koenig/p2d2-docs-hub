@@ -190,24 +190,34 @@ für jeden Dienst einzeln öffnen zu müssen.
 
 **Technische Umsetzung:**
 
-cert-manager nutzt den `gatewayHTTPRoute`-Solver, um ACME HTTP-01-Challenges
-zu lösen. Statt eines klassischen Ingress erzeugt cert-manager eine
-`HTTPRoute`-Ressource, die an den `civitas-gateway` im Namespace
-`ingress-nginx` gebunden wird (`parentRefs`). Der nginx-Ingress-Controller
-(GatewayClass `nginx`) verarbeitet die HTTPRoute und leitet die
-Challenge-Anfrage an das temporäre ACME-Pod weiter.
+cert-manager nutzt den `http01.ingress`-Solver, um ACME HTTP-01-Challenges
+zu lösen. cert-manager erzeugt für die Challenge eine temporäre Ingress-Ressource
+mit dem Annotation-basierten Ingress-Controller-Selektor
+(`kubernetes.io/ingress.class: nginx`). Der nginx-Ingress-Controller
+verarbeitet diese Ingress-Ressource und leitet die Challenge-Anfrage an das
+temporäre ACME-Pod weiter.
+
+Der `ingress-shim`-Controller (Teil von cert-manager, standardmäßig aktiv)
+überwacht alle Ingress-Ressourcen auf die Annotation
+`cert-manager.io/cluster-issuer`. Ist diese Annotation gesetzt und ein
+`tls`-Block vorhanden, erzeugt er automatisch ein `Certificate`-Objekt und
+hält es synchron. Ein manuelles Anlegen einzelner Certificate-Objekte pro
+Subdomain ist nicht erforderlich – die Steuerung erfolgt ausschließlich über
+die Annotation auf der Ingress-Ressource.
 
 **Voraussetzungen:**
 
-1. **Gateway API CRDs** müssen installiert sein (Version ≥ v1.2.1).
-2. **cert-manager** muss mit `config.enableGatewayAPI: true` betrieben werden.
-3. Eine **Gateway-Ressource** `civitas-gateway` muss im Namespace
-   `ingress-nginx` existieren, mit einem HTTP-Listener auf Port 80.
-4. Der **HAProxy** auf der OPNsense muss Port-80-Traffic für
+1. **cert-manager** muss installiert sein (Default-Installation aktiviert
+   den `ingress-shim`-Controller automatisch). Die Option
+   `config.enableGatewayAPI` ist nicht erforderlich.
+2. Der **HAProxy** auf der OPNsense muss Port-80-Traffic für
    `*.udp.data-dna.eu` per TCP-Passthrough an `10.10.10.5:80` weiterleiten.
-5. Die **Let's-Encrypt-ClusterIssuer** (Staging + Production) müssen
-   `gatewayHTTPRoute.parentRefs` enthalten, die auf den `civitas-gateway`
-   verweisen.
+3. Die **Let's-Encrypt-ClusterIssuer** (Staging + Production) müssen als
+   `ClusterIssuer`-Ressource mit `http01.ingress.ingressClassName: nginx`
+   existieren.
+4. Jede zu schützende **Ingress-Ressource** muss einen `tls`-Block mit
+   `secretName` und den entsprechenden Hosts enthalten, damit der
+   `ingress-shim` das Certificate-Objekt automatisch erzeugen kann.
 
 **Ablauf (HTTP-01-Challenge):**
 
@@ -217,15 +227,16 @@ Let's Encrypt → http://<domain>/.well-known/acme-challenge/<token>
              → HAProxy TCP-Passthrough
              → WireGuard → 10.10.10.5:80 (VM)
              → nginx-Ingress (hostNetwork)
-             → HTTPRoute (von cert-manager erzeugt)
+             → Ingress (von cert-manager erzeugt, http01.ingress)
              → ACME-Responder-Pod
 ```
 
-**Status:** Der `civitas-gateway` ist manuell installiert. Die
-ClusterIssuer-Templates liegen in `templates_V1/cert_manager/` bereit.
-Die automatische Erzeugung der LE-Issuer durch das Playbook ist
-derzeit deaktiviert (`create_letsencrypt_issuer: false`), bis der
-HAProxy-Port-80-Durchgriff erfolgreich getestet wurde.
+**Status:** Die LE-ClusterIssuer (Staging + Production) sind nicht
+automatisch im Playbook aktiviert (`create_letsencrypt_issuer: false`).
+Die Ausstellung erfolgt bei Bedarf über die Skriptfunktion
+`switch_certificate_issuer()` (siehe unten) oder manuell über die
+Ingress-Annotation `cert-manager.io/cluster-issuer`. Die `templates_V1/cert_manager/`
+enthalten Referenz-YAMLs für die ClusterIssuer-Ressourcen.
 
 **Abnahmekriterium:**
 ```bash
@@ -248,26 +259,75 @@ curl -sf --max-time 10 \
 **Regel:** Für jeden neuen Hostnamen MUSS vor dem produktiven Request ein
 Staging-Zertifikat erfolgreich ausgestellt und verifiziert werden.
 
-**Ablauf:**
+**Ablauf (mit ingress-shim):**
 
-1. Certificate-Objekt mit `issuerRef.name: letsencrypt-staging` für den
-   Zielhostnamen anlegen.
-2. Warten auf READY=True des Staging-Zertifikats (`kubectl wait certificate`).
-3. HTTPS-Erreichbarkeit des Zielhostnamens mit dem Staging-Zertifikat prüfen
-   (`curl --cacert`).
-4. Staging-Certificate und zugehöriges Secret löschen:
+1. Die Ingress-Ressource des Zielhostnamens mit
+   `cert-manager.io/cluster-issuer=letsencrypt-staging` annotieren:
    ```bash
-   kubectl delete certificate <hostname>-tls-staging -n cc-prd-access-stack
-   kubectl delete secret <hostname>-tls-staging -n cc-prd-access-stack
+   kubectl annotate ingress <name> -n <namespace> \
+     cert-manager.io/cluster-issuer=letsencrypt-staging --overwrite
    ```
-5. Certificate-Objekt mit `issuerRef.name: letsencrypt-prod` für denselben
-   Hostnamen anlegen.
+   Der `ingress-shim`-Controller erzeugt daraufhin automatisch das
+   zugehörige Certificate-Objekt.
+2. Warten auf READY=True des automatisch erzeugten Zertifikats:
+   ```bash
+   kubectl wait certificate/<name>-tls -n <namespace> --for=condition=Ready --timeout=180s
+   ```
+3. Staging-Aussteller im Zertifikat verifizieren:
+   ```bash
+   kubectl get secret <name>-tls -n <namespace> \
+     -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -issuer
+   ```
+   Erwartung: Aussteller enthält `(STAGING)`.
+4. Nach erfolgreicher Verifikation die Annotation auf
+   `cert-manager.io/cluster-issuer=letsencrypt-prod` umsetzen:
+   ```bash
+   kubectl annotate ingress <name> -n <namespace> \
+     cert-manager.io/cluster-issuer=letsencrypt-prod --overwrite
+   ```
+   Der `ingress-shim` aktualisiert das Certificate-Objekt automatisch.
+5. Produktives Zertifikat verifizieren (Aussteller enthält keinen
+   `(STAGING)`-Zusatz mehr).
 
-**Idempotenz-Marker:** Nach erfolgreicher Staging-Verifikation wird das produktive Certificate-Objekt selbst mit `civitas.io/staging-verified: "true"` annotiert (Befehl: `kubectl annotate certificate <hostname>-tls -n <namespace> civitas.io/staging-verified=true`). Eine Namespace-weite Annotation ist NICHT zulässig, da ein Namespace mehrere Hostnamen mit unterschiedlichem Staging-Status enthalten kann.
+**Idempotenz-Marker:** Nach erfolgreicher Staging-Verifikation wird die Ingress-Ressource des Hostnamens mit `civitas.io/staging-verified: "true"` annotiert (Befehl: `kubectl annotate ingress <name> -n <namespace> civitas.io/staging-verified=true`). Die Annotation auf Certificate-Objekten ist nicht geeignet, da diese durch den `ingress-shim` bei jeder Aktualisierung der Ingress-Annotation neu erzeugt werden können.
 
 **Ausnahme:** Bereits produktiv genutzte Hostnamen (mit gültigem
 Produktionszertifikat) sind von der Staging-Pflicht befreit – hier wird nur
 der Erneuerungs-Flow von cert-manager durchlaufen.
+
+### Skriptfunktion `switch_certificate_issuer()`
+
+Die Funktion steuert den Wechsel des Ausstellers für alle Ingress-Ressourcen
+im Cluster über die Annotation `cert-manager.io/cluster-issuer`. Sie ersetzt
+die manuelle Einzelschritt-Durchführung aus dem verifizierten Ablauf.
+
+**Ablauf der Funktion:**
+
+1. **Ermittlung:** Alle Ingress-Ressourcen clusterweit per
+   `kubectl get ingress --all-namespaces` abrufen.
+2. **Staging-Phase:** Auf ALLE Ingresses die Annotation
+   `cert-manager.io/cluster-issuer=letsencrypt-staging` setzen.
+   Der `ingress-shim` erzeugt für jede Ingress mit `tls`-Block automatisch
+   ein Certificate-Objekt.
+3. **Staging-Verifikation:** Für jeden Ingress das erzeugte Zertifikat prüfen.
+   Aussteller muss `(STAGING)` enthalten. Fehlgeschlagene Hosts werden
+   gesammelt, die Funktion bricht nicht ab.
+4. **Produktion-Phase:** NUR wenn alle Hosts die Staging-Verifikation
+   bestanden haben: Annotation auf
+   `cert-manager.io/cluster-issuer=letsencrypt-prod` setzen.
+5. **Produktion-Verifikation:** Erneute Prüfung aller Zertifikate.
+   Aussteller darf keinen `(STAGING)`-Zusatz mehr enthalten.
+6. **Report:** Liste der erfolgreichen und fehlgeschlagenen Hosts ausgeben.
+   Bei Fehlschlag einzelner Hosts kein Abbruch des Gesamtdurchlaufs.
+
+**Rate-Limit-Hinweis:** Let's Encrypt erlaubt 50 Zertifikate pro registrierter
+Domain pro Woche. Bei ca. 10 Hosts ist das unkritisch. Die Funktion loggt
+dennoch einen Hinweis vor der Produktion-Phase.
+
+**Idempotenz:** Vor dem Setzen der Annotation wird geprüft, ob die
+Ingress-Ressource bereits die gewünschte Annotation trägt (Abgleich
+`cert-manager.io/cluster-issuer`). Ist sie bereits korrekt eingestellt,
+wird die Ingress übersprungen.
 
 ### Verifizierter Ablauf (Staging → Produktion)
 
