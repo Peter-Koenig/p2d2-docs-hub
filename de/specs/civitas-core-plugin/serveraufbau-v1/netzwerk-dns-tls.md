@@ -137,9 +137,9 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 | Variante | Beschreibung | Status |
 |----------|--------------|--------|
 | **A** | TLS-Terminierung in OPNsense mit Let's Encrypt (Caddy) | Bestehend für `*.data-dna.eu` |
-| **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.projekte-koenig.eu` |
+| **B** | Eigenständiges Zertifikat in der Plugin-VM, ebenfalls Let's Encrypt | Erforderlich für `*.udp.scanea.eu` |
 | **C** | Self-Signed-Zertifikat für interne Kommunikation | Nur für Test- und Entwicklungsphasen |
-| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.projekte-koenig.eu` |
+| **D** | HAProxy TCP-Passthrough ohne TLS-Terminierung; Zertifikatsausstellung durch cert-manager in der VM (DNS-01) | **NEU** – geplant für `*.udp.scanea.eu` |
 | **E** | Let's Encrypt mit Gateway API HTTP-01; cert-manager erzeugt HTTPRoutes für ACME-Challenges | **In Vorbereitung** für `*.udp.scanea.eu` |
 
 In der geplanten Migration werden die CIVITAS/CORE-Endpunkte von Variante A
