@@ -2,14 +2,14 @@
 title: Netzwerk, DNS und TLS für das CIVITAS/CORE-Plugin
 description: Spezifikation der Netzwerkanbindung, Namensauflösung und Zertifikatsstrategie für die Plugin-VM
 status: draft
-lastUpdated: 2026-06-29
+lastUpdated: 2026-07-02
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-netzwerk
 parent: civitas-core-plugin-serveraufbau-index
 dependencies: []
 quality:
-  completeness: 93
+  completeness: 98
   accuracy: 90
   reviewed: false
   reviewer:
@@ -233,6 +233,43 @@ curl -sf --max-time 10 \
   "http://idm.udp.scanea.eu/.well-known/acme-challenge/health-check" \
   -o /dev/null && echo "Port 80 erreichbar"
 ```
+
+### Staging-vor-Produktion-Pflicht
+
+**Hintergrund:** Let's Encrypt unterteilt die Ausstellung in zwei Umgebungen:
+- **Staging** (`https://acme-staging-v02.api.letsencrypt.org/directory`):  
+  Zertifikate sind nicht browservertrauenswürdig, aber unterliegen **keinen**
+  nennenswerten Rate-Limits. Ideal für Tests.
+- **Produktion** (`https://acme-v02.api.letsencrypt.org/directory`):  
+  Strenge Limits: 5 Duplikate pro Woche, 50 Zertifikate pro Domain pro Woche.
+  Ein fehlerhafter produktiver Request verbraucht sofort kontingentiertes
+  Volumen.
+
+**Regel:** Für jeden neuen Hostnamen MUSS vor dem produktiven Request ein
+Staging-Zertifikat erfolgreich ausgestellt und verifiziert werden.
+
+**Ablauf:**
+
+1. Certificate-Objekt mit `issuerRef.name: letsencrypt-staging` für den
+   Zielhostnamen anlegen.
+2. Warten auf READY=True des Staging-Zertifikats (`kubectl wait certificate`).
+3. HTTPS-Erreichbarkeit des Zielhostnamens mit dem Staging-Zertifikat prüfen
+   (`curl --cacert`).
+4. Staging-Certificate und zugehöriges Secret löschen:
+   ```bash
+   kubectl delete certificate <hostname>-tls-staging -n cc-prd-access-stack
+   kubectl delete secret <hostname>-tls-staging -n cc-prd-access-stack
+   ```
+5. Certificate-Objekt mit `issuerRef.name: letsencrypt-prod` für denselben
+   Hostnamen anlegen.
+
+**Idempotenz-Marker:** Nach erfolgreicher Staging-Verifikation annotiert man
+das produktive Certificate oder einen Referenz-Namespace mit
+`civitas.io/staging-verified: "true"`.
+
+**Ausnahme:** Bereits produktiv genutzte Hostnamen (mit gültigem
+Produktionszertifikat) sind von der Staging-Pflicht befreit – hier wird nur
+der Erneuerungs-Flow von cert-manager durchlaufen.
 
 ## Offene Entscheidungen
 
