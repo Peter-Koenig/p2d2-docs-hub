@@ -2,7 +2,7 @@
 title: cc-cli-Inventar — Ansible-Inventory für CIVITAS/CORE
 description: Dokumentation des per Wizard erzeugten cc_cli_inventory.yml, seiner Struktur und der daraus abgeleiteten Template-Vorlage für die automatisierte Installation.
 status: draft
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-cc-cli-inventar
@@ -11,7 +11,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
   - civitas-core-plugin-serveraufbau-skriptarchitektur
 quality:
-  completeness: 85
+  completeness: 87
   accuracy: 95
   reviewed: false
   reviewer:
@@ -195,10 +195,6 @@ all:
             enable: true
             dashboard:
               enable: false
-              jwt_secret: "***"
-              admin:
-                username: "admin@{{ DOMAIN }}"
-                password: "***"
             api_credentials:
               admin_role: "***"
               viewer_role: "***"
@@ -248,7 +244,7 @@ all:
           addons: []
 
         inv_checks:
-          enable: false
+          enable: true
           api:
             default_max_retries: 20
           deployment:
@@ -283,46 +279,205 @@ all:
 
 ## Konsequenzen für das Installationsskript
 
-1. **Template-Datei**: `templates/config.yaml.tpl` muss durch
-   `templates/inventory.yml.tpl` ersetzt werden (oder umbenannt).
-2. **`render_inventory()`** muss alle Platzhalter des Inventars ersetzen,
-   insbesondere `{{DOMAIN}}`, `{{ENVIRONMENT}}`, `{{SMTP_HOST}}`,
-   `{{SMTP_USER}}`, `{{SMTP_PASS}}`, `{{ADMIN_EMAIL}}`.
-3. **Passwörter**: Das Inventory enthält viele Passwort-Felder. Die
-   auto-generierten Werte aus dem Wizard sind beim ersten Template-Bau
-   zu übernehmen. Bei Bedarf können sie später als Env-Vars externalisiert
-   werden.
+1. **Template-Datei**: Die Vorlage liegt als `templates_V1/inventory.yml.tpl`
+   und wird durch `render_inventory()` in Module 06 zu `cc_cli_inventory.yml`
+   verarbeitet. Ursprünglich als `config.yaml.tpl` geplant, wurde der Name
+   zur besseren Unterscheidbarkeit auf `inventory.yml.tpl` geändert.
+2. **`render_inventory()`** ersetzt alle Platzhalter (`PLACEHOLDER_*`) des
+   Inventars, insbesondere `PLACEHOLDER_DOMAIN`, `PLACEHOLDER_ENVIRONMENT`,
+   `PLACEHOLDER_SMTP_HOST`, `PLACEHOLDER_SMTP_USER`, `PLACEHOLDER_SMTP_PASS`,
+   `PLACEHOLDER_ADMIN_EMAIL` sowie alle Komponenten-Passwörter.
+3. **Passwörter**: Das Inventory enthält viele Passwort-Felder. Von außen
+   gesetzte Passwörter (`ADMIN_PASS`, `TENANT_ADMIN_PASS`) werden aus
+   Umgebungsvariablen übernommen; alle weiteren Passwörter werden pro
+   Skriptlauf via `gen_policy_password()` frisch generiert. Die Inventory-Datei
+   wird nach `cc_cli exec` durch den EXIT-Trap gelöscht.
 4. **Komponenten-Auswahl**: Die im Wizard gewählten Komponenten
-   (`enable: true/false`) sind als Template-Defaults zu setzen. Eine
-   Externalisierung als Env-Vars ist für eine spätere Ausbaustufe
-   vorgesehen.
-5. **`config.yaml` → `inventory.yml`**: Der Dateiname in
-   `render_inventory()` sollte von `civitas_core_config.yaml` auf
-   `civitas_core_inventory.yml` geändert werden, da es sich um ein
-   Ansible-Inventory handelt.
-6. **Schema-Referenz**: Die erste Zeile des Wizard-Outputs enthält einen
+   (`enable: true/false`) sind als Template-Defaults gesetzt. Werte, die
+   vom Zielsystem abhängen (z. B. Velero-Credentials), bleiben als
+   Platzhalter (`CHANGE_ME`) erhalten und müssen vor dem ersten Skriptlauf
+   manuell gesetzt werden.
+5. **`PLACEHOLDER_*` statt `{{VARS}}`**: Anders als im initialen Entwurf
+   (Jinja-Notation `{{DOMAIN}}`) verwendet das Template das Schema
+   `PLACEHOLDER_UPPER_CASE`, da die Inventory-Datei im YAML-Format vorliegt
+   und `{{ }}`-Klammern mit YAML-/Ansible-Syntax kollidieren würden. Die
+   Ersetzung erfolgt ausschließlich durch `sed` in `render_inventory()`.
+6. **Ausgabepfad**: `render_inventory()` schreibt die fertige Inventory-Datei
+   nach `${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml` (d. h.
+   `/opt/civitas-core-v1/core_platform/cc_cli_inventory.yml`). Der EXIT-Trap
+   des Entry-Points löscht diese Datei nach Skriptende (`rm -f "${CONFIG_YAML_PATH:-}"`).
+7. **Schema-Referenz**: Die erste Zeile des Wizard-Outputs enthält einen
    `$schema`-Verweis auf das JSON-Schema des Projekts. Dieser sollte
    im Template erhalten bleiben.
-7. **Repository-Arbeitskontext**: Das Inventory wird im Repository-Workspace
-   unter `${CC_CLI_REPO_PATH}/cc_cli_inventory.yml` abgelegt. Der Workspace
+8. **Repository-Arbeitskontext**: Das Inventory wird im Repository-Workspace
+   unter `${CC_CLI_PLAYBOOK_DIR}/cc_cli_inventory.yml` abgelegt. Der Workspace
    wird durch Schritt 2.2 (setup_repo_workspace) bereitgestellt. Das Repository
    liegt unter `/opt/civitas-core-v1`, der Symlink `/opt/civitas-core` zeigt
    auf die aktive Version.
-8. **Velero**: Im Template wird `velero.enable: false` als Default gesetzt.
+9. **Velero**: Im Template wird `velero.enable: false` als Default gesetzt.
    Das Feld wird nur auf `true` geändert, wenn alle fünf Velero-Felder
    (`access_key`, `bucket`, `region`, `endpoint`, `secret`) als Env-Vars
    gesetzt und nicht leer sind. Die Prüfung erfolgt in `render_inventory()`
    vor dem sed-Schritt. Solange ein Feld fehlt oder den Wert `""` hat,
    bleibt `velero.enable: false` im gerenderten Inventory.
-9. **Health-Checks deaktiviert**: `inv_checks.enable` ist auf `false`
+10. **Health-Checks aktiviert**: `inv_checks.enable` ist auf `true`
    gesetzt. Der in `cc_cli exec` integrierte Ansible-Health-Check ruft die
-   externen Endpunkte (`https://udp.data-dna.eu/`) auf. Da TLS ausschließlich
-   von Caddy auf OPNsense terminiert wird und der nginx-Ingress in der VM
-   die Anfragen ohne TLS-Sektion und mit `ssl-redirect=false` erhält, würde
-   der Health-Check mit HTTP 308 scheitern. Die Verifikation der Plattform
-   erfolgt in Phase 3 des Installationsskripts (siehe `07_verify.sh`).
-   Sobald `cc_cli` einen konfigurierbaren `accepted_status_codes`-Parameter
-   unterstützt, kann die Prüfung reaktiviert werden.
+   externen Endpunkte (`https://idm.${DOMAIN}/`) auf. Dank der HAProxy-
+   TCP-Passthrough-Architektur terminiert nginx in der VM das TLS selbst
+   und routet korrekt zum Ziel-Service (HTTP 200). Der frühere Workaround
+   (ssl-redirect=false, tls-Sektion entfernen) entfällt.
+   Voraussetzung: Das Root-CA-Cert (Variante C, self-signed-CA) muss im
+   certifi-Bundle des venv eingetragen sein (Schritt 1.5d), sonst scheitern
+   die HTTPS-Health-Checks mit `CERTIFICATE_VERIFY_FAILED`.
+11. **Python-Abhängigkeiten im venv**: Zusätzlich zu `cc-cli` und `ansible`
+    werden die Pakete `kubernetes`, `openshift` (für k8s-Ansible-Module) und
+    `jmespath` (für `json_query`-Filter in Playbooks) im venv installiert.
+12. **Ansible-Collections**: Nach der pip-Installation müssen die benötigten
+    Ansible-Collections über `ansible-galaxy collection install` bezogen werden:
+    - `kubernetes.core` – Kubernetes-Ansible-Module
+    - `community.grafana` – Grafana-Integration
+    - `community.mongodb==1.3.2` – MongoDB-Integration
+    Ohne diese Collections schlagen Playbooks, die die entsprechenden Module
+    verwenden, mit `module not found`-Fehlern fehl.
+
+## Secrets-Management und Admin-Accounts
+
+### Datenbankpasswörter: vollautomatisch via Zalando-Operator
+
+Alle Komponenten (Keycloak, Frost, Stellio, QuantumLeap, Superset, GeoData)
+folgen demselben Schema:
+
+1. Zalando Postgres-Operator erstellt einen PostgreSQL-Cluster.
+2. Ein Kubernetes-Secret wird automatisch mit `username` und `password` (base64) generiert.
+3. Das Ansible-Playbook liest das Secret via `kubernetes.core.k8s_info` und dekodiert es.
+4. Die Werte werden per `set_fact` als `COMPONENT_POSTGRES_USERNAME` / `PASSWORD` bereitgestellt.
+5. Helm-Values und Deployment-Templates greifen auf diese decodierten Werte zu.
+
+**Kein einziges Datenbankpasswort** wird im Inventory oder in `.env.local`
+konfiguriert. Der Zalando-Operator generiert sämtliche DB-Credentials
+vollautomatisch. Dies betrifft:
+
+- Keycloak-Datenbank
+- Frost-Server-Datenbank
+- Superset-Datenbank
+- GeoServer-Datenbank
+- Grafana-Datenbank
+- QuantumLeap-Datenbank (inkl. separatem Superuser-Secret für TimescaleDB)
+- Stellio-Datenbank
+
+Diese Passwörter dürfen **nicht** als Umgebungsvariablen externalisiert werden.
+
+### Die drei Admin-Accounts im Inventory
+
+Aus der Analyse der Playbook-Struktur ergeben sich genau drei Accounts,
+die im Inventory konfiguriert werden müssen:
+
+| Account | Inventory-Schlüssel | Zweck |
+|---|---|---|
+| Keycloak Master-Admin | `inv_access.platform.master_username` | Keycloak-Admin-UI + API während des Deployments |
+| | `inv_access.platform.master_password` | |
+| Platform-Admin (IAM) | `inv_access.platform.admin_email` | Erster Realm-User in Keycloak (Template `platform_admin.json`); |
+| | `inv_access.platform.admin_first_name` | wird auch als pgAdmin-Login verwendet |
+| | `inv_access.platform.admin_surname` | |
+| Tenant-Admin | `inv_access.tenant.tenant_email` | Tenant-Verwaltung im Realm; OIDC-Login |
+| | `inv_access.tenant.tenant_username` | |
+| | `inv_access.tenant.tenant_password` | |
+
+### Keycloak Master-Admin + Platform-Admin: Ein gemeinsamer Wert
+
+Die Recherche in den Ansible-Playbooks ergibt einen durchgehenden Flow ohne
+zweites Inventory-Feld:
+
+```
+Inventory                           → K8S-Secret                  → Ansible-Fact
+inv_access.platform.master_username  ──b64encode──→ MASTER_USERNAME ──b64decode──→ ADMIN_USERNAME
+inv_access.platform.master_password  ──b64encode──→ MASTER_PASSWORD ──b64decode──→ ADMIN_PASSWORD
+```
+
+`ADMIN_PASSWORD` erfüllt beide Rollen:
+
+1. **API-Login** bei der Keycloak Admin-REST-API (setup\_keycloak\_tenant.yml, Zeile 21-23)
+2. **Initiales Passwort** des platform\_admin-Realm-Users (keycloak\_8\_users.yml, Zeile 163-166)
+
+Es existiert **kein separates Inventory-Feld** `admin_password`. Wird im Inventory
+`inv_access.platform.master_password` gesetzt, ist dieser Wert automatisch auch
+das initiale Passwort des platform\_admin-Users. Eine abweichende Konfiguration
+ist nicht vorgesehen.
+
+### pgAdmin-Login-Mechanismus
+
+Der pgAdmin-Admin-Account wird **nicht** separat konfiguriert. Das Playbook
+`tasks/operation/pgadmin.yml` setzt:
+
+```yaml
+pgadmin_admin_email: >-
+  {{ inv_access.tenant.tenant_email if configure_central_idm | default(false)
+     else inv_access.platform.admin_email }}
+```
+
+pgAdmin verwendet also denselben Account wie der Platform-Admin
+(`inv_access.platform.admin_email`). Ein separater Wert ist nicht erforderlich.
+
+### Keycloak-Master-Secret in Kubernetes
+
+Frost und Superset lesen das Keycloak-Master-Credentials-Secret aus Kubernetes:
+
+```yaml
+inv_access.platform.k8s_secret_name: "{{ ENVIRONMENT }}-keycloak-admin"
+```
+
+Dieses Secret wird vom Keycloak-Playbook während Phase 2 angelegt und enthält
+`MASTER_USERNAME` und `MASTER_PASSWORD` (base64). Voraussetzung: die Felder
+`master_username` und `master_password` im Inventory müssen korrekt gesetzt sein.
+
+### Konsequenzen für `.env.local` und `render_inventory()`
+
+Die `.env.local`-Datei benötigt exakt diese Passwort-Variablen (keine weiteren):
+
+```bash
+export ADMIN_EMAIL="admin@data-dna.eu"
+# → inv_access.platform.master_username (auch admin_email im platform_admin-User)
+export ADMIN_PASS="..."
+# → inv_access.platform.master_password (auch initiales platform_admin-Passwort, identisch!)
+export TENANT_ADMIN_PASS="..."
+# → inv_access.tenant.tenant_password (separat, nur bei configure_central_idm aktiv)
+```
+
+**Passwort-Policy für ADMIN_PASS**: Das Passwort muss die Keycloak-Policy
+erfüllen, die im Inventory konfiguriert ist:
+- Mindestens 12 Zeichen
+- Mindestens 1 Ziffer
+- Mindestens 1 Großbuchstabe
+- Mindestens 1 Kleinbuchstabe
+- Mindestens 1 Sonderzeichen
+
+**Hinweis zu TENANT_ADMIN_PASS**: Der Tenant-Admin wird nur angelegt, wenn
+der Keycloak-Flow mit `--tags tenant` läuft (`configure_central_idm: true`).
+Die Inventory-Felder (`tenant_email`, `tenant_username`, `tenant_password`)
+sollten trotzdem immer gesetzt sein, da das Playbook sie beim Einlesen des
+Inventars erwartet.
+
+Alle anderen Passwörter (APISIX, Superset, Grafana, GeoServer, Piveau,
+Redis) werden in `render_inventory()` automatisch via `gen_policy_password()`
+generiert. Sie sind flüchtig: das Inventory wird nach `cc_cli exec` gelöscht.
+
+**Wichtig:** Es gibt **keinen separaten Platzhalter** für das Passwort des
+platform\_admin-Users. `master_password` übernimmt beide Rollen, daher
+erscheint `${ADMIN_PASS}` im Inventory-Template nur einmal (an der Stelle
+von `master_password`). Die frühere Annahme eines zweiten Platzhalters
+`PLACEHOLDER_KC_ADMIN_PASS` war falsch und wurde entfernt.
+
+**Mapping der Platzhalter in `render_inventory()`:**
+
+| Platzhalter | Env-Var / Quelle | Zweck |
+|---|---|---|
+| `PLACEHOLDER_DOMAIN` | `${DOMAIN}` | Basis-Domain |
+| `PLACEHOLDER_ENVIRONMENT` | `${CC_ENVIRONMENT}` | Environment-Name |
+| `PLACEHOLDER_ADMIN_EMAIL` | `${ADMIN_EMAIL}` | Platform-Admin-E-Mail (= master_username) |
+| `PLACEHOLDER_KC_MASTER_PASS` | `${ADMIN_PASS}` | Keycloak-Master-Password (auch platform\_admin-Passwort) |
+| `PLACEHOLDER_TENANT_PASS` | `${TENANT_ADMIN_PASS}` | Tenant-Admin-Passwort (separat) |
+| `PLACEHOLDER_SMTP_PORT` | `${SMTP_PORT:-587}` | SMTP-Port (Standard 587) |
+| Alle weiteren | `gen_policy_password()` | Auto-generiert, flüchtig |
 
 ## Festlegungen
 
