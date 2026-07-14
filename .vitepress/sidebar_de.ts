@@ -668,6 +668,10 @@ export const sidebar_de = {
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/installationsphasen-und-abnahme",
                                 },
                                 {
+                                    text: "IDM-Provisionierung und Login",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/idm-provisionierung-und-login",
+                                },
+                                {
                                     text: "Skriptarchitektur",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/skriptarchitektur",
                                 },
