@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-07-04
+lastUpdated: 2026-07-15
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -381,7 +381,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **cc_cli exec** (single run, alle Komponenten). Ansible-Log unter `logs/ansible_run_latest.log` | Exit-Code 0 (404 wird toleriert) |
 | 2.4d | Logfile-Prüfung + Warten auf Pods | `test -f logs/ansible_run_latest.log`; `kubectl wait pods --all -n cc-prd-access-stack` |
-| 2.4e | **Staging-Vorabprüfung für Produktionszertifikate:** Vor dem ersten produktiven Let's-Encrypt-Zertifikat für einen Hostnamen MUSS zuerst ein Staging-Zertifikat per Annotation `cert-manager.io/cluster-issuer=letsencrypt-staging` auf der Ingress-Ressource ausgelöst werden. Nach erfolgreicher Verifikation wird die Ingress mit `civitas.io/staging-verified: "true"` annotiert. | `kubectl get ingress <name> -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' \| grep -q "true"` ODER Hostname ist bereits im Produktivbetrieb (gültiges Produktionszertifikat vorhanden) |
+| 2.4e | **Staging-Vorabprüfung für Produktionszertifikate:** Vor dem ersten produktiven Let's-Encrypt-Zertifikat für einen Hostnamen MUSS zuerst ein Staging-Zertifikat per Annotation `cert-manager.io/cluster-issuer=letsencrypt-staging` auf der Ingress-Ressource ausgelöst werden. Die Staging-Pflicht gilt ausschließlich für NEU anzufordernde Zertifikate. Bereits vorhandene, gültige Zertifikate (aus laufendem Cluster oder Datei-Backup) sind von der Staging-Pflicht ausgenommen. Nach erfolgreicher Verifikation wird die Ingress mit `civitas.io/staging-verified: "true"` annotiert. | `kubectl get ingress <name> -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' \| grep -q "true"` ODER Hostname ist bereits im Produktivbetrieb (gültiges Produktionszertifikat vorhanden) ODER ein gültiges Zertifikat für den Hostnamen liegt in einem Datei-Backup (le-certs-backup.yaml) vor UND wurde erfolgreich restauriert (notBefore-Zeitstempel vor/nach Restore identisch) |
 | 2.4f | **`switch_certificate_issuer()`:** Automatisierter Wechsel des Ausstellers für alle Ingress-Ressourcen. Setzt staging auf ALLE Ingresses, wartet auf READY, prüft Aussteller auf `(STAGING)`, setzt dann production auf ALLE Ingresses, prüft erneut. Report mit Erfolg/Fehler pro Host, kein Abbruch bei Einzelfehlern. | `kubectl get ingress --all-namespaces -o jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.annotations.cert-manager\.io/cluster-issuer}{"\n"}{end}'` – alle Einträge müssen `letsencrypt-prod` lauten |
 
 
@@ -518,6 +518,64 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > (entfernt, da es 'debug' is not a valid AnsibleEventType' verursacht)
 > gesetzt. Alle Traps (ERR, EXIT, INT, TERM) sind deaktiviert, sodass
 > Logfiles und temporäre Dateien bei Fehlern erhalten bleiben.
+
+
+
+### Restore aus Datei-Backup (le-certs-backup.yaml)
+
+Zusätzlich zu den beiden bestehenden Fällen (Staging-Annotation, laufender Produktivbetrieb)
+existiert ein dritter Fall: Ein gültiges Let's-Encrypt-Produktionszertifikat liegt in einer
+Datei (`le-certs-backup.yaml`) vor und wird in den Cluster restauriert. In diesem Moment
+existiert im Cluster kein Nachweis mehr, dass das Zertifikat bereits im Produktivbetrieb war
+— der Nachweis liegt nur noch in der Backup-Datei selbst vor.
+
+#### Vorbedingung
+
+- Die Datei `le-certs-backup.yaml` muss im Verzeichnis `${VM_REMOTE_INSTALL_DIR}` existieren.
+- Die Datei enthält Kubernetes-Secret-Definitionen mit gültigen Let's-Encrypt-Produktionszertifikaten
+  (felder: `tls.crt`, `tls.key`, `ca.crt`).
+
+#### Verbindliche Schritt-Reihenfolge
+
+1. **Backup-Secrets einspielen** (`kubectl apply -f le-certs-backup.yaml`).
+   Wichtig: Die Felder `resourceVersion`, `uid` und `creationTimestamp` müssen aus dem
+   Backup entfernt worden sein, da kubectl apply sonst mit einem Conflict-Fehler abbricht.
+   Dies ist bei einem YAML-Export über `kubectl get secret ... -o yaml` standardmäßig
+   der Fall und muss vor dem Backup bereinigt werden.
+
+2. **Ingress-Annotation auf den Ziel-Issuer setzen.** Erst nach erfolgreichem Einspielen
+   der Secrets wird die Annotation `cert-manager.io/cluster-issuer` auf den Wert
+   `letsencrypt-prod` gesetzt (bzw. auf den Wert, der dem wiederhergestellten Zertifikat
+   entspricht). Dies löst bei cert-manager keinen neuen ACME-Request aus, weil:
+
+3. **Certificate-Objekte aktualisieren lassen (kein manuelles Löschen nötig).**
+   ingress-shim erkennt die geänderte Annotation und aktualisiert die vorhandenen
+   Certificate-Ressourcen (kein Delete+Recreate). cert-manager reconcilingt, findet
+   das bereits vorhandene, gültige Secret und markiert das Certificate als `Ready`
+   — ohne neue ACME-Anfrage (CertificateRequest/Order/Challenge).
+
+4. **Verifikation des notBefore-Zeitstempels.** Der `notBefore`-Zeitstempel des
+   wiederhergestellten Zertifikats muss mit dem Zeitstempel aus der Backup-Datei
+   übereinstimmen. Dies beweist, dass keine Neuausstellung stattgefunden hat.
+
+   ```bash
+   NOT_BEFORE_BACKUP=$(openssl x509 -in le-certs-backup.yaml -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
+   NOT_BEFORE_CLUSTER=$(kubectl get secret idm.${DOMAIN}-tls -n ${CC_ENVIRONMENT}-access-stack \
+     -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates | grep notBefore | cut -d= -f2)
+   if [ "${NOT_BEFORE_BACKUP}" = "${NOT_BEFORE_CLUSTER}" ]; then
+     echo "OK: notBefore identisch — keine Neuausstellung"
+   else
+     echo "FEHLER: notBefore abweichend — Neuausstellung trotz Restore"
+   fi
+   ```
+
+#### Reihenfolge-Verletzung (Vorsicht)
+
+Wird die Reihenfolge vertauscht (z. B. Annotation vor Backup-Einspielen oder Certificate-Löschung
+vor Backup-Einspielen), entsteht ein Zeitfenster, in dem cert-manager das fehlende oder
+nicht zum Issuer passende Secret bemerkt und eine reale Let's-Encrypt-Anfrage auslöst,
+bevor der Restore greift. Dies verbraucht unnötig Rate-Limit-Kontingent.
+
 
 ### TLS-Zertifikatskette und Issuer-Rollen
 
@@ -702,18 +760,32 @@ curl -sf --max-time 10 \
 # Staging-vor-Produktion-Verifikation (Let's Encrypt)
 # Wenn ein Hostname produktiv mit Let's Encrypt betrieben wird, muss
 # vor dem produktiven Request ein Staging-Zertifikat erfolgreich
-# ausgestellt und verifiziert worden sein.
+# ausgestellt und verifiziert worden sein. DIES GILT NUR FÜR NEU
+# ANZUFORDERNDE ZERTIFIKATE. Bereits vorhandene, gültige Zertifikate
+# (im laufenden Cluster oder aus Datei-Backup restauriert) sind von
+# der Staging-Pflicht ausgenommen.
 STAGING_ANNOTATION=$(kubectl get certificate idm.udp.data-dna.eu-tls -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' 2>/dev/null)
 if [ "${STAGING_ANNOTATION}" = "true" ]; then
   echo "Staging-Verifikation bestanden (Annotation vorhanden)"
 else
-  echo "Keine Staging-Annotation gefunden – Hostnamen ohne Produktivzertifikat"
-  echo "muessen zwingend zuerst per letsencrypt-staging getestet werden."
-  false
+  # Prüfe alternativ, ob ein gültiges Zertifikat aus Datei-Backup restauriert wurde
+  NOT_BEFORE_CLUSTER=$(kubectl get secret idm.${DOMAIN}-tls -n ${CC_ENVIRONMENT}-access-stack \
+    -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d 2>/dev/null | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
+  if [ -n "${NOT_BEFORE_CLUSTER}" ]; then
+    echo "Keine Staging-Annotation, aber gültiges Zertifikat im Cluster vorhanden"
+    echo "  notBefore=${NOT_BEFORE_CLUSTER}"
+    echo "  (Staging-Pflicht entfällt — kein neuer ACME-Request nötig)"
+  else
+    echo "Keine Staging-Annotation gefunden — Hostnamen ohne Produktivzertifikat"
+    echo "muessen zwingend zuerst per letsencrypt-staging getestet werden."
+    false
+  fi
 fi
 # Erwartung: Annotation civitas.io/staging-verified="true" auf dem Certificate-Objekt
 # (pro Hostname einzeln), ODER Hostname ist bereits im Produktivbetrieb
-# (gueltiges Produktionszertifikat vorhanden)
+# (gueltiges Produktionszertifikat vorhanden), ODER Zertifikat wurde erfolgreich
+# aus Datei-Backup (le-certs-backup.yaml) restauriert (notBefore-Zeitstempel
+# vor/nach Restore identisch)
 
 # WireGuard-Tunnel aktiv
 systemctl is-active wg-quick@wg0
