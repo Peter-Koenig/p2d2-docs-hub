@@ -796,6 +796,25 @@ Ergebnis: 13/13 Prüfungen bestanden. Installation erfolgreich.
 > done
 > ```
 >
+
+### Namespace-Verifikation
+
+Phase 3 prüft, dass alle von cc_cli angelegten Namespaces existieren.
+Es wird NICHT ein einzelner, fest benannter Namespace geprüft, sondern
+alle Einträge aus dem Array `K8S_NAMESPACES` (definiert in `01_config.sh`,
+Muster `${CC_ENVIRONMENT}-{stack}`).
+
+Pseudocode:
+
+```text
+for ns in K8S_NAMESPACES:
+    exists = kubectl_get_namespace(ns) == 0
+    check(f"Namespace {ns} existiert", exists)
+```
+
+Die Variable `K8S_NAMESPACE` (Singular) ist obsolet und darf nicht mehr
+für Existenzprüfungen verwendet werden.
+
 > **TLS-Endpunkt-Prüfung in Phase 3:** Ein TLS-Endpunkt gilt nur als „OK",
 > wenn `curl --cacert /usr/local/share/ca-certificates/civitas-core-ca.crt
 > https://<domain>/` ohne `unknown CA` oder `self-signed certificate`
