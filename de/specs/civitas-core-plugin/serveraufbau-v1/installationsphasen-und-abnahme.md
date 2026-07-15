@@ -562,7 +562,7 @@ existiert im Cluster kein Nachweis mehr, dass das Zertifikat bereits im Produkti
    übereinstimmen. Dies beweist, dass keine Neuausstellung stattgefunden hat.
 
    ```bash
-   NOT_BEFORE_BACKUP=$(yq eval '.data["tls.crt"]' le-certs-backup.yaml | base64 -d | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
+   NOT_BEFORE_BACKUP=$(yq eval 'select(.metadata.name == "idm.'"${DOMAIN}"'-tls") | .data["tls.crt"]' le-certs-backup.yaml | base64 -d | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
    NOT_BEFORE_CLUSTER=$(kubectl get secret idm.${DOMAIN}-tls -n ${CC_ENVIRONMENT}-access-stack \
      -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates | grep notBefore | cut -d= -f2)
    if [ "${NOT_BEFORE_BACKUP}" = "${NOT_BEFORE_CLUSTER}" ]; then
@@ -778,7 +778,7 @@ else
     # Vergleich mit Backup-Zeitstempel, falls Backup-Datei existiert
     BACKUP_FILE="${VM_REMOTE_INSTALL_DIR}/le-certs-backup.yaml"
     if [ -f "${BACKUP_FILE}" ]; then
-      NOT_BEFORE_BACKUP=$(yq eval '.data["tls.crt"]' "${BACKUP_FILE}" | base64 -d | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
+      NOT_BEFORE_BACKUP=$(yq eval 'select(.metadata.name == "idm.'"${DOMAIN}"'-tls") | .data["tls.crt"]' "${BACKUP_FILE}" | base64 -d | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
       if [ "${NOT_BEFORE_CLUSTER}" = "${NOT_BEFORE_BACKUP}" ]; then
         echo "Keine Staging-Annotation, aber Zertifikat aus Backup (notBefore identisch)"
         echo "  notBefore=${NOT_BEFORE_CLUSTER}"
