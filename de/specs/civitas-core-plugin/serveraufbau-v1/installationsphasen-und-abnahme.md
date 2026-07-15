@@ -546,20 +546,23 @@ existiert im Cluster kein Nachweis mehr, dass das Zertifikat bereits im Produkti
 2. **Ingress-Annotation auf den Ziel-Issuer setzen.** Erst nach erfolgreichem Einspielen
    der Secrets wird die Annotation `cert-manager.io/cluster-issuer` auf den Wert
    `letsencrypt-prod` gesetzt (bzw. auf den Wert, der dem wiederhergestellten Zertifikat
-   entspricht). Dies löst bei cert-manager keinen neuen ACME-Request aus, weil:
+   entspricht).
 
-3. **Certificate-Objekte aktualisieren lassen (kein manuelles Löschen nötig).**
-   ingress-shim erkennt die geänderte Annotation und aktualisiert die vorhandenen
-   Certificate-Ressourcen (kein Delete+Recreate). cert-manager reconcilingt, findet
-   das bereits vorhandene, gültige Secret und markiert das Certificate als `Ready`
-   — ohne neue ACME-Anfrage (CertificateRequest/Order/Challenge).
+3. **Certificate-Objekte löschen (Delete+Recreate).** Nach dem Setzen der Annotation
+   werden die vorhandenen Certificate-Ressourcen gelöscht. ingress-shim erstellt sie
+   sofort neu — jetzt mit dem korrekten issuerRef aus der Annotation. cert-manager
+   reconcilingt, findet das bereits vorhandene, gültige Secret und markiert das
+   Certificate als `Ready` — ohne neue ACME-Anfrage (CertificateRequest/Order/Challenge).
+   (Bei NO_NEW_LE_CERT=true wird die Löschung übersprungen; in diesem Fall reicht
+   das Annotation-Update durch ingress-shim aus, da der issuerRef im Certificate-Objekt
+   bereits zum Secret passt.)
 
 4. **Verifikation des notBefore-Zeitstempels.** Der `notBefore`-Zeitstempel des
    wiederhergestellten Zertifikats muss mit dem Zeitstempel aus der Backup-Datei
    übereinstimmen. Dies beweist, dass keine Neuausstellung stattgefunden hat.
 
    ```bash
-   NOT_BEFORE_BACKUP=$(openssl x509 -in le-certs-backup.yaml -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
+   NOT_BEFORE_BACKUP=$(yq eval '.data["tls.crt"]' le-certs-backup.yaml | base64 -d | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
    NOT_BEFORE_CLUSTER=$(kubectl get secret idm.${DOMAIN}-tls -n ${CC_ENVIRONMENT}-access-stack \
      -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates | grep notBefore | cut -d= -f2)
    if [ "${NOT_BEFORE_BACKUP}" = "${NOT_BEFORE_CLUSTER}" ]; then
@@ -772,9 +775,24 @@ else
   NOT_BEFORE_CLUSTER=$(kubectl get secret idm.${DOMAIN}-tls -n ${CC_ENVIRONMENT}-access-stack \
     -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d 2>/dev/null | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
   if [ -n "${NOT_BEFORE_CLUSTER}" ]; then
-    echo "Keine Staging-Annotation, aber gültiges Zertifikat im Cluster vorhanden"
-    echo "  notBefore=${NOT_BEFORE_CLUSTER}"
-    echo "  (Staging-Pflicht entfällt — kein neuer ACME-Request nötig)"
+    # Vergleich mit Backup-Zeitstempel, falls Backup-Datei existiert
+    BACKUP_FILE="${VM_REMOTE_INSTALL_DIR}/le-certs-backup.yaml"
+    if [ -f "${BACKUP_FILE}" ]; then
+      NOT_BEFORE_BACKUP=$(yq eval '.data["tls.crt"]' "${BACKUP_FILE}" | base64 -d | openssl x509 -noout -dates 2>/dev/null | grep notBefore | cut -d= -f2)
+      if [ "${NOT_BEFORE_CLUSTER}" = "${NOT_BEFORE_BACKUP}" ]; then
+        echo "Keine Staging-Annotation, aber Zertifikat aus Backup (notBefore identisch)"
+        echo "  notBefore=${NOT_BEFORE_CLUSTER}"
+        echo "  (Staging-Pflicht entfällt — kein neuer ACME-Request nötig)"
+      else
+        echo "Staging-Verifikation nicht möglich: notBefore weicht von Backup ab"
+        echo "  Cluster=${NOT_BEFORE_CLUSTER}  Backup=${NOT_BEFORE_BACKUP:--}"
+        false
+      fi
+    else
+      echo "Keine Staging-Annotation, aber gültiges Zertifikat im Cluster vorhanden"
+      echo "  notBefore=${NOT_BEFORE_CLUSTER} (kein Backup-Datei zum Vergleich)"
+      echo "  (Staging-Pflicht entfällt — kein neuer ACME-Request nötig)"
+    fi
   else
     echo "Keine Staging-Annotation gefunden — Hostnamen ohne Produktivzertifikat"
     echo "muessen zwingend zuerst per letsencrypt-staging getestet werden."
