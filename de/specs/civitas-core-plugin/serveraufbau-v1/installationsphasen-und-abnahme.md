@@ -535,6 +535,26 @@ existiert im Cluster kein Nachweis mehr, dass das Zertifikat bereits im Produkti
 - Die Datei enthält Kubernetes-Secret-Definitionen mit gültigen Let's-Encrypt-Produktionszertifikaten
   (felder: `tls.crt`, `tls.key`, `ca.crt`).
 
+#### Backup-Erstellung
+
+Die Backup-Datei wird durch Export aller TLS-Secrets (außer der internen CA `civitas-core-ca`)
+erzeugt. Das Skript `install_civitas_core_V1.sh` führt diesen Schritt automatisch vor der
+ersten `switch_certificate_issuer()`-Ausführung durch. Manuelle Erzeugung:
+
+```bash
+for ns_name in $(kubectl get certificate --all-namespaces -o json \
+  | jq -r '.items[] | select(.metadata.name != "civitas-core-ca") | "\(.metadata.namespace)/\(.spec.secretName)"'); do
+  ns="${ns_name%%/*}"; name="${ns_name##*/}"
+  kubectl get secret "$name" -n "$ns" -o yaml \
+    | yq eval 'del(.metadata.resourceVersion, .metadata.uid, .metadata.creationTimestamp, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])' -
+  echo "---"
+done > "${VM_REMOTE_INSTALL_DIR}/le-certs-backup.yaml"
+```
+
+Die Felder `resourceVersion`, `uid` und `creationTimestamp` werden bereits beim Export
+entfernt (`yq eval 'del(...)'`), sodass beim späteren Restore (`kubectl apply -f`) kein
+Conflict-Fehler auftritt.
+
 #### Verbindliche Schritt-Reihenfolge
 
 1. **Backup-Secrets einspielen** (`kubectl apply -f le-certs-backup.yaml`).
