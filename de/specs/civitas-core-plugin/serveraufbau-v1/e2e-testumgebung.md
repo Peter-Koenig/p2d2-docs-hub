@@ -136,7 +136,7 @@ eine Datei `tests/.env` mit einer Reihe von Umgebungsvariablen.
 
 ### Aktueller Stand (noch unvollständig)
 
-Die Funktion `generatetestenv()` in `06_civitas.sh` erzeugt eine minimale
+Die Funktion `generate_test_env()` in `07_verify.sh` erzeugt eine minimale
 `tests/.env` mit nur wenigen Variablen:
 
 ```bash
@@ -150,19 +150,19 @@ GEOSERVER_PASSWORD=...
 
 Die Test-Fixture erwartet jedoch zusätzlich:
 
-| Variable | Erwartet in `.example.env` | Aktuell in `generatetestenv()` |
+| Variable | Erwartet in `.example.env` | Aktuell in `generate_test_env()` |
 |---|---|---|
 | `BASE_DOMAIN` | ja | **fehlt** |
 | `TEST_ID` | ja | **fehlt** |
 | `API_DASHBOARD_PASSWORD` | ja | **fehlt** |
 | `USER_PASSWORD` | ja | **fehlt** |
 | `QUANTUMLEAP_DB_PASSWORD` | ja | **fehlt** |
-| `GEODATA_DB_USER` | ja | **fehlt** |
-| `GEODATA_DB_PASSWORD` | ja | **fehlt** |
-| `GEODATA_DB_NAME` | ja | **fehlt** |
-| `GEODATA_DB_SCHEMA` | ja | **fehlt** |
-| `GEODATA_DB_HOST` | ja | **fehlt** |
-| `GEODATA_DB_PORT` | ja | **fehlt** |
+| `GEOSTACK_DB_USER` | ja | **fehlt** |
+| `GEOSTACK_DB_PASSWORD` | ja | **fehlt** |
+| `GEOSTACK_DB_NAME` | ja | **fehlt** |
+| `GEOSTACK_DB_SCHEMA` | ja | **fehlt** |
+| `GEOSTACK_DB_HOST` | ja | **fehlt** |
+| `GEOSTACK_DB_PORT` | ja | **fehlt** |
 | `KUBE_CONFIG_FILE` | ja | **fehlt** |
 | `KUBECONTEXT` | ja | **fehlt** |
 
@@ -174,7 +174,7 @@ via `kubectl` befüllt.
 
 **Vorgehen:**
 
-1. `generatetestenv()` in `06_civitas.sh` durch einen Aufruf von
+1. `generate_test_env()` in `07_verify.sh` durch einen Aufruf von
    `prefill_env.py` ersetzen
 2. Aufruf mit `--local` und der produktiven `${DOMAIN}` als Eingabe:
 
@@ -193,7 +193,7 @@ via `kubectl` befüllt.
 
 | Status | Beschreibung |
 |---|---|
-| ❌ | Noch nicht implementiert (ersetzt aktuell `generatetestenv()`) |
+| ❌ | Noch nicht implementiert (ersetzt aktuell `generate_test_env()`) |
 | ✅ | `prefill_env.py` existiert im Repository |
 | ✅ | Aufruf mit `--local` und Domain-Split ist verifiziert |
 | ⚠️ | Kubernetes-Secrets müssen nach `cc_cli exec` verfügbar sein |
@@ -223,7 +223,7 @@ domain = f"{TEST_ID}.{BASE_DOMAIN}"  # → "udp.data-dna.eu"
 
 ### Aktuelle Übergangslösung in `.env.local`
 
-Bis die Integration von `prefill_env.py` in `generatetestenv()` umgesetzt
+Bis die Integration von `prefill_env.py` in `generate_test_env()` umgesetzt
 ist, werden die Variablen manuell in `.env.local` gesetzt:
 
 ```bash
@@ -236,14 +236,14 @@ export BASE_DOMAIN="data-dna.eu"
 |---|---|
 | ✅ | `.env.local` enthält `DOMAIN`, `TEST_ID`, `BASE_DOMAIN` |
 | ✅ | Entspricht dem Split, den `prefill_env.py --local` später automatisch vornimmt |
-| ❌ | Noch nicht in `generatetestenv()` automatisiert |
+| ❌ | Noch nicht in `generate_test_env()` automatisiert |
 | ⚠️ | Muss bei Domain-Änderung manuell konsistent gehalten werden |
 
 ## Offene Punkte
 
 | Punkt | Status | Entscheidung bei |
 |---|---|---|
-| `generatetestenv()` durch `prefill_env.py --local` ersetzen | **Offen** (geplant, nicht implementiert) | Nach Freigabe dieser Spec |
+| `generate_test_env()` durch `prefill_env.py --local` ersetzen | **Offen** (geplant, nicht implementiert) | Nach Freigabe dieser Spec |
 | `non-free` in Preflight-Prüfung aufnehmen (`check_nonfree_source()`) | **Offen** (Preflight-Prüfung empfohlen) | Nächste Preflight-Erweiterung |
 | Fehlermeldung von `prefill_env.py` bei fehlenden Secrets abfangen | **Offen** (Edge-Case) | Erster Testlauf mit Integration |
 | V2-Äquivalent für `tests/` im V2-Repository | **Offen** (nicht betrachtet) | Bei V2-Implementierung |
@@ -259,7 +259,7 @@ export BASE_DOMAIN="data-dna.eu"
    `/etc/apt/sources.list.d/debian.sources`. Dies ist keine
    Aufgabe des Installationsskripts (Infrastruktur-Entscheidung).
 4. Die Test-`.env` wird zukünftig über `prefill_env.py --local`
-   generiert, nicht mehr manuell in `generatetestenv()`.
+   generiert, nicht mehr manuell in `generate_test_env()`.
 5. `TEST_ID` und `BASE_DOMAIN` werden aus der produktiven Domain
    am ersten Punkt gesplittet — dieser Split ist konsistent mit
    der `.env.local`-Übergangslösung.
