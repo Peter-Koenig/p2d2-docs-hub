@@ -668,6 +668,10 @@ export const sidebar_de = {
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/installationsphasen-und-abnahme",
                                 },
                                 {
+                                    text: "E2E-Testumgebung",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/e2e-testumgebung",
+                                },
+                                {
                                     text: "Skriptarchitektur",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/skriptarchitektur",
                                 },
