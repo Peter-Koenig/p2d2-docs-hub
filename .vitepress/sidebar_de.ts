@@ -675,6 +675,10 @@ export const sidebar_de = {
                                     text: "cc-cli-Inventar",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/cc-cli-inventar",
                                 },
+                                {
+                                    text: "Portal Backend Objektspeicher (RustFS)",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/portal-backend-objektspeicher",
+                                },
                             ],
                         },
                     ],

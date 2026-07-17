@@ -29,6 +29,7 @@ Dieser Bereich spezifiziert den Serveraufbau, der für den Betrieb des CIVITAS/C
 - [Installationsphasen und Abnahme](./installationsphasen-und-abnahme.md) — Phasenmodell und Abnahmekriterien
 - [Skriptarchitektur](./skriptarchitektur.md) — Modulaufbau, Konventionen und Idempotenz-Strategie
 - [cc-cli-Inventar](./cc-cli-inventar.md) — Ansible-Inventory für CIVITAS/CORE-Deployment
+- [Portal Backend Objektspeicher (RustFS)](./portal-backend-objektspeicher.md) — S3-Backend-Anbindung für portal-backend
 - [Persistenz, Storage, Backup und Restore](./persistenz-storage-backup-restore.md) — Speicherkonzept und Wiederherstellung
 
 ## Abhängigkeiten
