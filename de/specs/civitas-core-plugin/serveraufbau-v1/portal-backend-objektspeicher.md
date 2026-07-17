@@ -11,7 +11,7 @@ dependencies:
   - civitas-core-plugin-serveraufbau-cc-cli-inventar
   - civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
 quality:
-  completeness: 70
+  completeness: 80
   accuracy: 90
   reviewed: false
   reviewer:
@@ -85,7 +85,81 @@ Geodata-Inventory-Block.
    `PLACEHOLDER_RUSTFS_ENDPOINT`, `PLACEHOLDER_RUSTFS_ACCESS_KEY`,
    `PLACEHOLDER_RUSTFS_SECRET_KEY` ergaenzen.
 3. Konfigurationsvariablen: `RUSTFS_ENDPOINT`, `RUSTFS_ACCESS_KEY`,
-   `RUSTFS_SECRET_KEY` in `01_config.sh` als Pflicht-Env-Vars aufnehmen.
+   `RUSTFS_SECRET_KEY` in `01_config.sh` als optionale Env-Vars mit Leerstring-Default aufnehmen (Velero-Analogie, siehe Abschnitt „Noch zu implementieren").
+
+## Noch zu implementieren
+
+Die folgenden vier Änderungen sind spezifiziert, aber noch nicht im
+Code umgesetzt. Diese Tabelle ist der verbindliche Implementierungsplan
+für den nächsten Coding-Schritt.
+
+| # | Datei | Funktion/Stelle | Änderung |
+|---|---|---|---|
+| 1 | `tasks/geodata/install/portal_backend.yml` | Jinja2-Bedingung `if inv_gd.portal_backend.s3_backend.enable is defined` | Aktuell dauerhaft im else-Zweig (leere Strings), da s3_backend im Inventory nicht befüllt wird. Muss die neuen Inventory-Felder (`s3_backend.enable`, `endpoint`, `access_key_id`, `secret_access_key`, `bucket_name`, `region`, `force_path_style`) korrekt in die S3\_\*-Env-Vars des Deployments mappen. |
+| 2 | `06_civitas.sh`, `render_inventory()` | sed-Ersetzungskette | Fehlende Zeilen für `PLACEHOLDER_S3_ENABLE`, `PLACEHOLDER_S3_ENDPOINT`, `PLACEHOLDER_S3_ACCESS_KEY`, `PLACEHOLDER_S3_SECRET_KEY`, `PLACEHOLDER_S3_BUCKET_NAME`, `PLACEHOLDER_S3_REGION`, `PLACEHOLDER_S3_FORCE_PATH_STYLE` ergänzen, analog zum bestehenden Muster für `PLACEHOLDER_GEOSERVER_PASSWORD`. |
+| 3 | `01_config.sh` | Pflicht-Env-Var-Block | `RUSTFS_ENDPOINT`, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY` als **optionale** Variablen mit Leerstring-Default ergänzen (analog zum Velero-Muster, siehe `cc-cli-inventar.md`). Wechsel von `:?` auf `:-` gemäß Ansatz A — siehe Begründung unten. |
+| 4 | `06_civitas.sh`, `render_inventory()` | Bedingte Aktivierung | `s3_backend.enable` bleibt `false`, solange nicht alle drei Pflichtfelder (Endpoint, Access-Key, Secret-Key) als nicht-leere Env-Vars vorliegen — angelehnt an das Velero-Muster aus `cc-cli-inventar.md`. Anders als bei Velero haben RUSTFS_BUCKET_NAME und RUSTFS_REGION Komfort-Defaults (`portal-config`, `eu-north-1`) und sind daher nicht Teil der Aktivierungsprüfung. Prüfung erfolgt vor der sed-Ersetzung aus Punkt 2. |
+
+### Begründung: Velero-Analogie aus cc-cli-inventar.md
+
+Die Aktivierungslogik folgt exakt dem Velero-Muster aus dem Abschnitt
+„Konsequenzen für das Installationsskript" der `cc-cli-inventar.md`:
+
+> Im Template wird `velero.enable: false` als Default gesetzt. Das Feld
+> wird nur auf `true` geändert, wenn alle fünf Velero-Felder als Env-Vars
+> gesetzt und nicht leer sind.
+
+Analog dazu werden `RUSTFS_ENDPOINT`, `RUSTFS_ACCESS_KEY`,
+`RUSTFS_SECRET_KEY` nicht mit `:?` (Pflicht, Abbruch bei Fehlen),
+sondern mit `:-` (optional, Leerstring-Default) deklariert. Damit kann
+die 3-Felder-Prüfung in `render_inventory()` eigenständig über
+`s3_backend.enable` entscheiden — angelehnt an das Velero-Muster.
+Anders als bei Velero haben `RUSTFS_BUCKET_NAME` und `RUSTFS_REGION`
+Komfort-Defaults (`portal-config`, `eu-north-1`) und sind daher
+nicht Teil der Aktivierungsprüfung.
+
+> **Warnung: Bekanntes Architekturproblem**
+> `portal_backend.enable: true` (Default) in Kombination mit
+> `s3_backend.enable: false` (weil RustFS-Felder nicht gesetzt) führt
+> weiterhin zum ENOENT-Fehler beim Start des portal-backend-Containers.
+> Dies ist ein separates, bekanntes Problem der aktuellen
+> portal-backend-Architektur (erwartet zwingend S3-Konfiguration)
+> und kein Fehler der Aktivierungslogik. Workaround: entweder
+> `portal_backend.enable: false` setzen (Geo-Komponente deaktivieren)
+> oder die drei Pflichtfelder (Endpoint, Access-Key, Secret-Key) setzen — Bucket-Name und Region nur anpassen, falls sie von den Defaults portal-config/eu-north-1 abweichen sollen
+
+### Konkrete sed-Zeilen für Punkt 2
+
+```bash
+-e "s|PLACEHOLDER_S3_ENABLE|${RUSTFS_S3_ENABLE:-false}|g" \
+-e "s|PLACEHOLDER_S3_ENDPOINT|${RUSTFS_ENDPOINT}|g" \
+-e "s|PLACEHOLDER_S3_ACCESS_KEY|${RUSTFS_ACCESS_KEY}|g" \
+-e "s|PLACEHOLDER_S3_SECRET_KEY|${RUSTFS_SECRET_KEY}|g" \
+-e "s|PLACEHOLDER_S3_BUCKET_NAME|${RUSTFS_BUCKET_NAME:-portal-config}|g" \
+-e "s|PLACEHOLDER_S3_REGION|${RUSTFS_REGION:-eu-north-1}|g" \
+-e "s|PLACEHOLDER_S3_FORCE_PATH_STYLE|${RUSTFS_FORCE_PATH_STYLE:-true}|g" \
+```
+
+> **Hinweis Idempotenz:** `PLACEHOLDER_S3_ENABLE` hat den Default
+> `${RUSTFS_S3_ENABLE:-false}` (nicht `true`). Die Aktivierung erfolgt
+> ausschließlich durch die 3-Felder-Prüfung in Punkt 4, die den Wert
+> auf `true` setzt, wenn alle drei Pflichtfelder belegt sind.
+> `RUSTFS_BUCKET_NAME` und `RUSTFS_REGION` haben Komfort-Defaults und
+> sind nicht Teil der Aktivierungsprüfung. Der Leerstring-Default
+> der Einzelfelder (`:-`) verhindert ungewollte `PLACEHOLDER_`-Tokens
+> im gerenderten Inventory.
+
+### Reihenfolge der Umsetzung
+
+1. **Punkt 3** (Config-Variablen in `01_config.sh`) — muss zuerst, da
+   Punkt 4 auf den dort deklarierten Variablen aufbaut.
+2. **Punkt 4** (Bedingungsprüfung in `render_inventory()`) — setzt
+   `RUSTFS_S3_ENABLE` basierend auf der 3-Felder-Prüfung.
+3. **Punkt 2** (sed-Ersetzung in `render_inventory()`) — letzter Schritt
+   im Skript, setzt sowohl die Variablen aus Punkt 3 als auch die
+   Aktivierungslogik aus Punkt 4 voraus.
+4. **Punkt 1** (Playbook-Mapping `portal_backend.yml`) — unabhängig von den
+   anderen Punkten, kann parallel zu Punkt 3 umgesetzt werden.
 
 ## Playbook-Ausfuehrung: kein granularer Tag
 
@@ -123,5 +197,5 @@ dokumentiert, nicht hier.
 | Punkt | Status |
 |---|---|
 | RustFS-Installation in Setup-Skript automatisieren (statt manuell) | Offen |
-| `s3_backend`-Platzhalter in `inventory.yml.tpl` persistiert | Offen, verifiziert nur manuell in `cc_cli_inventory.yml` |
+| `s3_backend`-Platzhalter in `inventory.yml.tpl` persistiert | Implementierungsplan spezifiziert (siehe Abschnitt „Noch zu implementieren"), Umsetzung im Code ausstehend |
 | E2E-Test fuer Portal-Backend-Startverhalten ohne S3-Fehler | Offen |
