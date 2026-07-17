@@ -312,6 +312,73 @@ kubectl get clusterissuer selfsigned-issuer \
 
 ***
 
+## mc-Client für RustFS (Phase 1b)
+
+### Zweck
+
+Den MinIO-Client (`mc`) für die S3-Kommunikation mit RustFS bereitstellen.
+`mc` wird für das Hochladen von Masterportal-Konfigurationsdateien
+(`config.json`, `services.json`, `rest-services.json`) in den Bucket
+`portal-config` benötigt. Die Installation erfolgt in Phase 1b
+(`05_addons.sh`), da es sich um eine reine Infrastruktur-Abhängigkeit
+handelt — das Tool muss vor Phase 2 (cc_cli) verfügbar sein.
+
+### Platzierung im Phasenmodell
+
+| Aspekt | Festlegung |
+|---|---|
+| Modul | `05_addons.sh` (Phase 1b), Funktion `setup_mc_client()` |
+| Aufruf | Innerhalb von `install_addons()`, nach `setup_ca_trust()` und vor `install_nginx_ingress()` |
+| Begründung | `mc` ist ein allgemeines Infrastruktur-Tool (analog zu `helm`), nicht Teil der CIVITAS/CORE-Deployment-Logik. Die RustFS-Zugangsdaten liegen als Env-Vars vor. |
+
+### Schritte
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 1.5e.1 | `mc`-Binary von `https://dl.min.io/client/mc/release/linux-amd64/mc` nach `/usr/local/bin/mc` herunterladen und ausführbar machen (`chmod +x`) | `command -v mc` → Binary existiert und ist ausführbar; Version via `mc --version` loggen |
+| 1.5e.2 | RustFS-Endpoint als `mc`-Alias registrieren: `mc alias set ${MC_ALIAS_NAME} ${RUSTFS_ENDPOINT} ${RUSTFS_ACCESS_KEY} ${RUSTFS_SECRET_KEY}` | `mc alias list \| grep -q "${MC_ALIAS_NAME}"` → Alias bereits konfiguriert |
+| 1.5e.3 | Bucket `portal-config` anlegen: `mc mb --ignore-existing ${MC_ALIAS_NAME}/${MC_BUCKET_NAME}` | `mc mb --ignore-existing` ist nativ idempotent (kein Fehler bei existierendem Bucket) |
+
+### Konfigurationsvariablen
+
+| Variable | Beschreibung | Default |
+|---|---|---|
+| `MC_ALIAS_NAME` | Alias-Name für den RustFS-Endpoint | `civitas-rustfs` |
+| `MC_BUCKET_NAME` | S3-Bucket-Name für portal-backend-Konfiguration | `portal-config` |
+
+Die RustFS-Zugangsdaten werden aus den bereits bestehenden Env-Vars
+`RUSTFS_ENDPOINT`, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY` bezogen
+(siehe `01_config.sh`).
+
+### Fehlerverhalten
+
+| Szenario | Reaktion |
+|---|---|
+| `mc`-Download fehlschlägt (kein Internetzugang) | **Abbruch mit Exit 1** — ohne `mc` sind nachfolgende S3-Operationen nicht möglich |
+| `mc alias set` fehlschlägt (falsche Zugangsdaten, Endpoint nicht erreichbar) | `log_warn`, Funktion fährt fort — Alias kann bei erneutem Skriptlauf oder manuell nachgeholt werden |
+| `mc mb` fehlschlägt (Bucket nicht erstellbar) | `log_warn`, Funktion fährt fort — Bucket kann bei erneutem Skriptlauf oder manuell angelegt werden |
+
+### Abnahmekriterien
+
+```bash
+# mc ist installiert und ausführbar
+command -v mc && mc --version
+# Erwartung: Ausgabe der mc-Version, z. B. "mc version RELEASE.2024-..."
+
+# Alias ist konfiguriert
+mc alias list | grep -q "${MC_ALIAS_NAME}"
+echo $?  # Erwartung: 0
+
+# Bucket existiert
+mc ls "${MC_ALIAS_NAME}/${MC_BUCKET_NAME}" >/dev/null 2>&1
+echo $?  # Erwartung: 0
+```
+
+> **Abnahme bestanden**, wenn alle drei Prüfungen den beschriebenen
+> Zustand aufweisen.
+
+---
+
 ## Phase 2.0 — Repository-Klon
 
 ### Zweck
