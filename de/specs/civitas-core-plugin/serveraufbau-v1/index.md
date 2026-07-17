@@ -30,6 +30,7 @@ Dieser Bereich spezifiziert den Serveraufbau, der für den Betrieb des CIVITAS/C
 - [Skriptarchitektur](./skriptarchitektur.md) — Modulaufbau, Konventionen und Idempotenz-Strategie
 - [cc-cli-Inventar](./cc-cli-inventar.md) — Ansible-Inventory für CIVITAS/CORE-Deployment
 - [Portal Backend Objektspeicher (RustFS)](./portal-backend-objektspeicher.md) — S3-Backend-Anbindung für portal-backend
+- [RustFS-Objektspeicher-Installation](./rustfs-objektspeicher-installation.md) — Installation und Betrieb der RustFS-LXC
 - [Persistenz, Storage, Backup und Restore](./persistenz-storage-backup-restore.md) — Speicherkonzept und Wiederherstellung
 
 ## Abhängigkeiten

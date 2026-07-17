@@ -679,6 +679,10 @@ export const sidebar_de = {
                                     text: "Portal Backend Objektspeicher (RustFS)",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/portal-backend-objektspeicher",
                                 },
+                                {
+                                    text: "RustFS-Objektspeicher-Installation",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/rustfs-objektspeicher-installation",
+                                },
                             ],
                         },
                     ],
