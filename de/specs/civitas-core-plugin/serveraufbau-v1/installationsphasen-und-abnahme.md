@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-07-04
+lastUpdated: 2026-07-17
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -434,6 +434,8 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > Das Skript ruft `${CC_CLI_VENV_PATH}/bin/cc_cli` direkt auf — das venv
 > muss nicht per `source activate` aktiviert werden. Das certifi-Bundle
 > jedoch muss das CA-Cert enthalten.
+>
+> **Ausführungsreihenfolge in Modul 05/06:** `configure_ca_trust()` (Phase 1b, Modul 05) muss stets vor `run_cc_cli_exec()` (Phase 2, Modul 06) abgeschlossen sein. Die erweiterte Funktion trägt nicht nur die interne `civitas-core-ca`, sondern auch die öffentliche ISRG Root X1 in den System-Trust-Store ein (siehe [§CA-Trust-Integration](#ca-trust-integration-configure_ca_trust)). `update_ca_trust_certifi()` in Schritt 2.1c übernimmt beide Trust-Anker aus dem System-Store in das certifi-Bundle des venv. Ohne diesen Ablauf scheitert die TLS-Verifikation bei per Backup-Restore wiederhergestellten LE-Produktionszertifikaten.
 
 > **Hinweis TLS (HAProxy-Architektur)**: Der HAProxy auf OPNsense leitet
 > TLS-Verbindungen f&uuml;r `*.udp.data-dna.eu` per TCP-Passthrough (Layer&thinsp;4)
@@ -623,6 +625,70 @@ kubectl apply -f templates_V1/cert_manager/production_issuer.yml
 > **Hinweis Keycloak-Ingress (HTTP-Backend)**: Der Ingress `idmkeycloak` im Namespace `cc-prd-access-stack` wird vom Bitnami-Keycloak-Helm-Chart mit `servicePort: https` gerendert, was nginx veranlasst, den Keycloak-Pod auf Port 8443 (HTTPS) anzusprechen. Da Keycloak mit `KC_HTTP_ENABLED=true` betrieben wird, erwartet es HTTP auf Port 8080 und bricht die TLS-Verbindung mit "prematurely closed connection" ab (502 Bad Gateway). Der Patch in Schritt 2.0c aendert `ingress.servicePort`, `adminIngress.servicePort` und `extraPaths.port.name` von `https` auf `http` sowie `backend-protocol` von `HTTPS` auf `HTTP` in der Datei `templates/access/keycloak/keycloak-values.yaml` des geklonten Repos. Damit spricht nginx den Keycloak-Pod per HTTP auf Port 8080 an, TLS terminiert weiterhin an nginx. Dies entspricht dem CIVITAS-Standard: Edge-TLS, interner Verkehr HTTP.
 
 ```
+
+### CA-Trust-Integration (configure_ca_trust())
+
+Die Funktion `configure_ca_trust()` in Phase 1b (Modul 05) trägt das
+Root-CA-Zertifikat (`civitas-core-ca`) in den System-Trust-Store und in das
+certifi-Bundle des Python-venv ein. Dieser Abschnitt spezifiziert die
+vollständige Trust-Store-Befüllung einschließlich öffentlicher Root-CAs.
+
+#### Öffentliche Root-CAs für externe Zertifikate
+
+##### Problem
+
+`configure_ca_trust()` trägt bislang ausschließlich die interne
+`civitas-core-ca` in System-Store und certifi-Bundle ein. Wird durch den
+Backup-Restore-Mechanismus (`restore_backup_and_switch_to_prod()`)
+ein Hostname bereits mit einem öffentlich signierten LE-Zertifikat
+wiederhergestellt (issuer enthält z. B. `C=US, O=Let's Encrypt`),
+scheitert die TLS-Verifikation durch Ansible im venv mit
+`CERTIFICATE_VERIFY_FAILED`, da certifi/System-Store ausschließlich
+die interne CA kennen.
+
+##### Root Cause
+
+Es handelt sich **nicht** um einen Konflikt zwischen
+Backup-Restore-Reihenfolge und Ansible-Build (beide laufen korrekt
+nacheinander), sondern um eine unvollständige Trust-Store-Befüllung:
+Das CA-Bundle, auf das `inv_k8s.ingress.ca_path` zeigt, kennt nur die
+interne CA, nicht die öffentliche Let's-Encrypt-Root (ISRG Root X1).
+
+##### Lösung
+
+`configure_ca_trust()` ergänzt zusätzlich zur `civitas-core-ca` die
+aktuelle ISRG Root X1 im selben CA-Bundle:
+
+```bash
+configure_ca_trust() {
+  # ... bestehende Schritte (interne CA in System-Store + certifi) ...
+
+  local le_root_url="https://letsencrypt.org/certs/isrgrootx1.pem"
+  local ca_bundle="/usr/local/share/ca-certificates/civitas-core-ca.crt"
+
+  if ! openssl x509 -in "${ca_bundle}" -noout -issuer 2>/dev/null \
+       | grep -q "O = Internet Security Research Group"; then
+    log "Ergänze ISRG Root X1 (Let's Encrypt) im CA-Bundle ..."
+    curl -fsSL "${le_root_url}" >> "${ca_bundle}"
+    update-ca-certificates
+    # Analog auch im certifi-Bundle des venv ergänzen:
+    curl -fsSL "${le_root_url}" \
+      >> "${CC_CLI_VENV_PATH}"/lib/python*/site-packages/certifi/cacert.pem
+    log_ok "ISRG Root X1 ergänzt (System-Store + certifi)"
+  else
+    log_ok "ISRG Root X1 bereits im CA-Bundle vorhanden"
+  fi
+}
+```
+
+> **Hinweis Idempotenz**: Die Prüfung via `openssl x509 -noout -issuer | grep "O = Internet Security Research Group"` im bestehenden Bundle erfolgt analog zum bereits etablierten Muster für die interne CA (`grep "CN=civitas-core-ca"`). Ist die ISRG Root X1 bereits vorhanden, wird der Schritt übersprungen.
+
+##### Festlegung
+
+`configure_ca_trust()` ist künftig verbindlich für **beide** Trust-Anker
+zuständig: die interne `civitas-core-ca` **und** die öffentliche
+Let's-Encrypt-Root (ISRG Root X1). Ein manuelles Nachziehen der ISRG Root
+nach Backup-Restore entfällt damit vollständig.
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
