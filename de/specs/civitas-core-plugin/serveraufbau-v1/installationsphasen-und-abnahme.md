@@ -668,33 +668,32 @@ Schritt an anderer Stelle würde bei jedem Neuaufbau wieder verloren gehen.
 
 ```bash
   # ── ISRG Root X1 (Let's Encrypt) für externe Zertifikate ─────────────
-  # Inventory-Variable ca_path zeigt auf diese Datei. Bei aktivem
-  # LE-Prod-Zertifikat muss ISRG Root X1 ebenfalls vertrauenswürdig sein.
+  # ca_path im Inventory zeigt auf diese Datei. Die Datei wurde unmittelbar
+  # zuvor mit `>` aus dem Kubernetes-Secret überschrieben und enthält daher
+  # garantiert nur die interne CA — ein Idempotenz-Check via openssl ist
+  # strukturell nicht möglich. Der Download läuft bei jedem Durchlauf; bei
+  # Fehlschlag wird die finale Verifikation am Funktionsende zuschlagen.
   local le_root_url="https://letsencrypt.org/certs/isrgrootx1.pem"
-  if ! openssl x509 -in "${ca_cert_local}" -noout -issuer 2>/dev/null \
-       | grep -q "O = Internet Security Research Group"; then
-    log "Ergänze ISRG Root X1 (Let's Encrypt) im CA-Bundle …"
-    if ! curl -fsSL "${le_root_url}" >> "${ca_cert_local}"; then
-      log_error "ISRG Root X1 konnte nicht heruntergeladen werden (${le_root_url})"
-      log_error "  Ohne LE-Root scheitert cc_cli exec mit CERTIFICATE_VERIFY_FAILED"
-      exit 1
-    fi
+  if curl -fsSL "${le_root_url}" >> "${ca_cert_local}"; then
     log_ok "ISRG Root X1 ergänzt in ${ca_cert_local}"
-    # Hinweis: Das certifi-Bundle wird NICHT hier befüllt, sondern durch
-    # die bestehende Zeile 'cat "${ca_cert_local}" >> "${certifi_bundle}"'
-    # einige Zeilen weiter unten in setup_ca_trust(). Da ca_cert_local zu
-    # diesem Zeitpunkt bereits beide Trust-Anker enthält (interne CA + LE Root),
-    # landen beide automatisch im certifi-Bundle — kein separater Eintrag nötig.
   else
-    log_ok "ISRG Root X1 bereits im CA-Bundle vorhanden"
+    log_warn "ISRG Root X1 konnte nicht heruntergeladen werden — ${le_root_url}"
+    log_warn "  CA-Bundle enthält nur die interne CA — cc_cli exec wird später scheitern"
   fi
+  # Hinweis: Das certifi-Bundle wird nicht hier befüllt, sondern durch
+  # die bestehende Zeile 'cat "${ca_cert_local}" >> "${certifi_bundle}"'
+  # einige Zeilen weiter unten in setup_ca_trust(). Da ca_cert_local zu
+  # diesem Zeitpunkt bereits beide Trust-Anker enthält (interne CA + LE Root),
+  # landen beide automatisch im certifi-Bundle — kein separater Eintrag nötig.
 ```
 
 **Wichtig:** `setup_ca_trust()` extrahiert die interne CA mit
 `kubectl ... | base64 -d > "${ca_cert_local}"` — das `>` überschreibt
 die Datei **vollständig**. Der LE-Root-Block MUSS unmittelbar nach
 dieser Zeile stehen, damit beide Trust-Anker in derselben Datei
-kombiniert werden.
+kombiniert werden. Ein Idempotenz-Check via `openssl x509 -in`
+vor dem Download ist strukturell nicht möglich, da die Datei zu diesem
+Zeitpunkt immer nur die interne CA enthält.
 
 > **Hinweis zu `update-ca-certificates`:** Der nachgelagerte Aufruf von
 > `update-ca-certificates` verarbeitet die Datei in den System-Store
@@ -703,13 +702,19 @@ kombiniert werden.
 > Fix für Ansible ist jedoch der direkte Eintrag in der `ca_path`-Datei,
 > nicht das System-Bundle.
 
+> **Hinweis zur Idempotenz:** Ein Idempotenz-Check via `openssl x509 -in`
+> ist hier strukturell unmöglich, da die Datei zu Beginn der Funktion mit
+> `kubectl ... > "${ca_cert_local}"` überschrieben wird. Die finale
+> Verifikation via `grep -c "BEGIN CERTIFICATE"` am Funktionsende stellt
+> sicher, dass beide Trust-Anker vorhanden sind. Ein erneuter Download
+> bei jedem Durchlauf ist korrekt und beabsichtigt.
+
 ##### Fehlerverhalten
 
 | Szenario | Erkennung | Reaktion |
 |---|---|---|
-| **Erstinstallation** — ISRG Root X1 fehlt, Download erfolgreich | Idempotenz-Check schlägt fehl → Download | LE-Root wird angehängt, OK |
-| **Erstinstallation** — ISRG Root X1 fehlt, **Download fehlschlägt** | `curl -fsSL` gibt Exit-Code ≠ 0 zurück | **Abbruch mit Exit 1**, da cc_cli exec später garantiert scheitert |
-| **Folgelauf** — ISRG Root X1 bereits vorhanden | Idempotenz-Check via `openssl x509 ... | grep -q` erfolgreich | Überspringen, `log_ok`, kein Download |
+| **Download erfolgreich** | `curl -fsSL` gibt Exit-Code 0 zurück | ISRG Root X1 wird angehängt, finale Verifikation ≥ 2 → OK |
+| **Download fehlschlägt** | `curl -fsSL` gibt Exit-Code ≠ 0 zurück | `log_warn` (kein Abbruch), finale Verifikation = 1 → **Abbruch mit Exit 1** |
 
 ##### Abnahmekriterium
 
@@ -723,6 +728,12 @@ vorhanden (z. B. nur die interne CA), fehlt der öffentliche
 Vertrauensanker und `cc_cli exec` wird mit `CERTIFICATE_VERIFY_FAILED`
 scheitern.
 
+Dieser Check wird als finale Verifikation innerhalb von
+`setup_ca_trust()` direkt nach dem certifi-Block ausgeführt. Er deckt
+sowohl fehlgeschlagene Downloads als auch abgebrochene Skriptläufe zuverlässig
+auf — unabhängig davon, ob der Download selbst als Fehler oder Warnung
+quittiert wurde.
+
 ##### Festlegung
 
 `setup_ca_trust()` ist künftig verbindlich für **beide** Trust-Anker
@@ -730,10 +741,11 @@ zuständig:
 1. Die interne `civitas-core-ca` aus dem Kubernetes-Secret (via `>`)
 2. Die öffentliche ISRG Root X1 von `https://letsencrypt.org/certs/isrgrootx1.pem` (via `>>`)
 
-Der Block wird direkt nach der Secret-Extraktion innerhalb derselben
-Funktion platziert, nicht als separater nachgelagerter Schritt. Ein
-manuelles Nachziehen der ISRG Root nach Backup-Restore entfällt damit
-vollständig.
+Der LE-Root-Block wird direkt nach der Secret-Extraktion innerhalb derselben
+Funktion platziert, nicht als separater nachgelagerter Schritt. Eine finale
+Verifikation via `grep -c "BEGIN CERTIFICATE"` am Funktionsende stellt
+sicher, dass beide Trust-Anker vorhanden sind. Ein manuelles Nachziehen
+der ISRG Root nach Backup-Restore entfällt damit vollständig.
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
