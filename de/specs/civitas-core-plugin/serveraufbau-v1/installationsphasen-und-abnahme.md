@@ -637,58 +637,103 @@ vollständige Trust-Store-Befüllung einschließlich öffentlicher Root-CAs.
 
 ##### Problem
 
-`configure_ca_trust()` trägt bislang ausschließlich die interne
-`civitas-core-ca` in System-Store und certifi-Bundle ein. Wird durch den
-Backup-Restore-Mechanismus (`restore_backup_and_switch_to_prod()`)
-ein Hostname bereits mit einem öffentlich signierten LE-Zertifikat
-wiederhergestellt (issuer enthält z. B. `C=US, O=Let's Encrypt`),
-scheitert die TLS-Verifikation durch Ansible im venv mit
-`CERTIFICATE_VERIFY_FAILED`, da certifi/System-Store ausschließlich
-die interne CA kennen.
+`setup_ca_trust()` (Modul `05_addons.sh`) trägt bislang ausschließlich die
+interne `civitas-core-ca` in den System-Trust-Store und in das certifi-Bundle
+des Python-venv ein. Wird durch den Backup-Restore-Mechanismus
+(`restore_backup_and_switch_to_prod()`) ein Hostname bereits mit einem
+öffentlich signierten LE-Zertifikat wiederhergestellt (issuer enthält z. B.
+`C=US, O=Let's Encrypt`), scheitert die TLS-Verifikation durch Ansible mit
+`CERTIFICATE_VERIFY_FAILED`, da das CA-Bundle, auf das
+`inv_k8s.ingress.ca_path` zeigt, ausschließlich die interne CA kennt.
 
 ##### Root Cause
 
 Es handelt sich **nicht** um einen Konflikt zwischen
-Backup-Restore-Reihenfolge und Ansible-Build (beide laufen korrekt
-nacheinander), sondern um eine unvollständige Trust-Store-Befüllung:
-Das CA-Bundle, auf das `inv_k8s.ingress.ca_path` zeigt, kennt nur die
-interne CA, nicht die öffentliche Let's-Encrypt-Root (ISRG Root X1).
+Backup-Restore-Reihenfolge und Ansible-Build, sondern um eine
+unvollständige Trust-Store-Befüllung: Die Inventar-Variable `ca_path` zeigt
+auf `/usr/local/share/ca-certificates/civitas-core-ca.crt`. Diese Datei
+enthält ausschließlich die interne `civitas-core-ca`, nicht die öffentliche
+Let's-Encrypt-Root (ISRG Root X1). Ansible validiert TLS-Verbindungen
+gegen genau diesen `ca_path` — fehlt der LE-Aussteller, bricht das
+`uri`-Modul mit `unable to get local issuer certificate` ab.
 
 ##### Lösung
 
-`configure_ca_trust()` ergänzt zusätzlich zur `civitas-core-ca` die
-aktuelle ISRG Root X1 im selben CA-Bundle:
+Der LE-Root-Trust wird als zusätzlicher Block **innerhalb** der bestehenden
+Funktion `setup_ca_trust()` in `05_addons.sh` implementiert, und zwar
+**direkt nach** der Zeile, die die interne CA aus dem Kubernetes-Secret
+extrahiert und mit `>` in die Zieldatei schreibt. Grund: Diese Zeile
+überschreibt die Datei bei jedem Skriptdurchlauf neu — ein separater
+Schritt an anderer Stelle würde bei jedem Neuaufbau wieder verloren gehen.
 
 ```bash
-configure_ca_trust() {
-  # ... bestehende Schritte (interne CA in System-Store + certifi) ...
-
+  # ── ISRG Root X1 (Let's Encrypt) für externe Zertifikate ─────────────
+  # Inventory-Variable ca_path zeigt auf diese Datei. Bei aktivem
+  # LE-Prod-Zertifikat muss ISRG Root X1 ebenfalls vertrauenswürdig sein.
   local le_root_url="https://letsencrypt.org/certs/isrgrootx1.pem"
-  local ca_bundle="/usr/local/share/ca-certificates/civitas-core-ca.crt"
-
-  if ! openssl x509 -in "${ca_bundle}" -noout -issuer 2>/dev/null \
+  if ! openssl x509 -in "${ca_cert_local}" -noout -issuer 2>/dev/null \
        | grep -q "O = Internet Security Research Group"; then
-    log "Ergänze ISRG Root X1 (Let's Encrypt) im CA-Bundle ..."
-    curl -fsSL "${le_root_url}" >> "${ca_bundle}"
-    update-ca-certificates
-    # Analog auch im certifi-Bundle des venv ergänzen:
-    curl -fsSL "${le_root_url}" \
-      >> "${CC_CLI_VENV_PATH}"/lib/python*/site-packages/certifi/cacert.pem
-    log_ok "ISRG Root X1 ergänzt (System-Store + certifi)"
+    log "Ergänze ISRG Root X1 (Let's Encrypt) im CA-Bundle …"
+    if ! curl -fsSL "${le_root_url}" >> "${ca_cert_local}"; then
+      log_error "ISRG Root X1 konnte nicht heruntergeladen werden (${le_root_url})"
+      log_error "  Ohne LE-Root scheitert cc_cli exec mit CERTIFICATE_VERIFY_FAILED"
+      exit 1
+    fi
+    log_ok "ISRG Root X1 ergänzt in ${ca_cert_local}"
+    # Hinweis: Das certifi-Bundle wird NICHT hier befüllt, sondern durch
+    # die bestehende Zeile 'cat "${ca_cert_local}" >> "${certifi_bundle}"'
+    # einige Zeilen weiter unten in setup_ca_trust(). Da ca_cert_local zu
+    # diesem Zeitpunkt bereits beide Trust-Anker enthält (interne CA + LE Root),
+    # landen beide automatisch im certifi-Bundle — kein separater Eintrag nötig.
   else
     log_ok "ISRG Root X1 bereits im CA-Bundle vorhanden"
   fi
-}
 ```
 
-> **Hinweis Idempotenz**: Die Prüfung via `openssl x509 -noout -issuer | grep "O = Internet Security Research Group"` im bestehenden Bundle erfolgt analog zum bereits etablierten Muster für die interne CA (`grep "CN=civitas-core-ca"`). Ist die ISRG Root X1 bereits vorhanden, wird der Schritt übersprungen.
+**Wichtig:** `setup_ca_trust()` extrahiert die interne CA mit
+`kubectl ... | base64 -d > "${ca_cert_local}"` — das `>` überschreibt
+die Datei **vollständig**. Der LE-Root-Block MUSS unmittelbar nach
+dieser Zeile stehen, damit beide Trust-Anker in derselben Datei
+kombiniert werden.
+
+> **Hinweis zu `update-ca-certificates`:** Der nachgelagerte Aufruf von
+> `update-ca-certificates` verarbeitet die Datei in den System-Store
+> (`/etc/ssl/certs/ca-certificates.crt`) und bleibt als begleitende
+> Konsistenzmaßnahme für andere TLS-Konsumenten erhalten. Der kausale
+> Fix für Ansible ist jedoch der direkte Eintrag in der `ca_path`-Datei,
+> nicht das System-Bundle.
+
+##### Fehlerverhalten
+
+| Szenario | Erkennung | Reaktion |
+|---|---|---|
+| **Erstinstallation** — ISRG Root X1 fehlt, Download erfolgreich | Idempotenz-Check schlägt fehl → Download | LE-Root wird angehängt, OK |
+| **Erstinstallation** — ISRG Root X1 fehlt, **Download fehlschlägt** | `curl -fsSL` gibt Exit-Code ≠ 0 zurück | **Abbruch mit Exit 1**, da cc_cli exec später garantiert scheitert |
+| **Folgelauf** — ISRG Root X1 bereits vorhanden | Idempotenz-Check via `openssl x509 ... | grep -q` erfolgreich | Überspringen, `log_ok`, kein Download |
+
+##### Abnahmekriterium
+
+```bash
+grep -c "BEGIN CERTIFICATE" /usr/local/share/ca-certificates/civitas-core-ca.crt
+# Erwartung: 2 (interne civitas-core-ca + ISRG Root X1)
+```
+
+Die Datei enthält beide Zertifikate als PEM-Blöcke. Ist nur eines
+vorhanden (z. B. nur die interne CA), fehlt der öffentliche
+Vertrauensanker und `cc_cli exec` wird mit `CERTIFICATE_VERIFY_FAILED`
+scheitern.
 
 ##### Festlegung
 
-`configure_ca_trust()` ist künftig verbindlich für **beide** Trust-Anker
-zuständig: die interne `civitas-core-ca` **und** die öffentliche
-Let's-Encrypt-Root (ISRG Root X1). Ein manuelles Nachziehen der ISRG Root
-nach Backup-Restore entfällt damit vollständig.
+`setup_ca_trust()` ist künftig verbindlich für **beide** Trust-Anker
+zuständig:
+1. Die interne `civitas-core-ca` aus dem Kubernetes-Secret (via `>`)
+2. Die öffentliche ISRG Root X1 von `https://letsencrypt.org/certs/isrgrootx1.pem` (via `>>`)
+
+Der Block wird direkt nach der Secret-Extraktion innerhalb derselben
+Funktion platziert, nicht als separater nachgelagerter Schritt. Ein
+manuelles Nachziehen der ISRG Root nach Backup-Restore entfällt damit
+vollständig.
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
