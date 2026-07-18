@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-07-04
+lastUpdated: 2026-07-17
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -312,6 +312,73 @@ kubectl get clusterissuer selfsigned-issuer \
 
 ***
 
+## mc-Client für RustFS (Phase 1b)
+
+### Zweck
+
+Den MinIO-Client (`mc`) für die S3-Kommunikation mit RustFS bereitstellen.
+`mc` wird für das Hochladen von Masterportal-Konfigurationsdateien
+(`config.json`, `services.json`, `rest-services.json`) in den Bucket
+`portal-config` benötigt. Die Installation erfolgt in Phase 1b
+(`05_addons.sh`), da es sich um eine reine Infrastruktur-Abhängigkeit
+handelt — das Tool muss vor Phase 2 (cc_cli) verfügbar sein.
+
+### Platzierung im Phasenmodell
+
+| Aspekt | Festlegung |
+|---|---|
+| Modul | `05_addons.sh` (Phase 1b), Funktion `setup_mc_client()` |
+| Aufruf | Innerhalb von `install_addons()`, nach `setup_ca_trust()` und vor `install_nginx_ingress()` |
+| Begründung | `mc` ist ein allgemeines Infrastruktur-Tool (analog zu `helm`), nicht Teil der CIVITAS/CORE-Deployment-Logik. Die RustFS-Zugangsdaten liegen als Env-Vars vor. |
+
+### Schritte
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 1.5e.1 | `mc`-Binary von `https://dl.min.io/client/mc/release/linux-amd64/mc` nach `/usr/local/bin/mc` herunterladen und ausführbar machen (`chmod +x`) | `command -v mc` → Binary existiert und ist ausführbar; Version via `mc --version` loggen |
+| 1.5e.2 | RustFS-Endpoint als `mc`-Alias registrieren: `mc alias set ${MC_ALIAS_NAME} ${RUSTFS_ENDPOINT} ${RUSTFS_ACCESS_KEY} ${RUSTFS_SECRET_KEY}` | `mc alias list \| grep -q "${MC_ALIAS_NAME}"` → Alias bereits konfiguriert |
+| 1.5e.3 | Bucket `portal-config` anlegen: `mc mb --ignore-existing ${MC_ALIAS_NAME}/${MC_BUCKET_NAME}` | `mc mb --ignore-existing` ist nativ idempotent (kein Fehler bei existierendem Bucket) |
+
+### Konfigurationsvariablen
+
+| Variable | Beschreibung | Default |
+|---|---|---|
+| `MC_ALIAS_NAME` | Alias-Name für den RustFS-Endpoint | `civitas-rustfs` |
+| `MC_BUCKET_NAME` | S3-Bucket-Name für portal-backend-Konfiguration | `portal-config` |
+
+Die RustFS-Zugangsdaten werden aus den bereits bestehenden Env-Vars
+`RUSTFS_ENDPOINT`, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY` bezogen
+(siehe `01_config.sh`).
+
+### Fehlerverhalten
+
+| Szenario | Reaktion |
+|---|---|
+| `mc`-Download fehlschlägt (kein Internetzugang) | **Abbruch mit Exit 1** — ohne `mc` sind nachfolgende S3-Operationen nicht möglich |
+| `mc alias set` fehlschlägt (falsche Zugangsdaten, Endpoint nicht erreichbar) | `log_warn`, Funktion fährt fort — Alias kann bei erneutem Skriptlauf oder manuell nachgeholt werden |
+| `mc mb` fehlschlägt (Bucket nicht erstellbar) | `log_warn`, Funktion fährt fort — Bucket kann bei erneutem Skriptlauf oder manuell angelegt werden |
+
+### Abnahmekriterien
+
+```bash
+# mc ist installiert und ausführbar
+command -v mc && mc --version
+# Erwartung: Ausgabe der mc-Version, z. B. "mc version RELEASE.2024-..."
+
+# Alias ist konfiguriert
+mc alias list | grep -q "${MC_ALIAS_NAME}"
+echo $?  # Erwartung: 0
+
+# Bucket existiert
+mc ls "${MC_ALIAS_NAME}/${MC_BUCKET_NAME}" >/dev/null 2>&1
+echo $?  # Erwartung: 0
+```
+
+> **Abnahme bestanden**, wenn alle drei Prüfungen den beschriebenen
+> Zustand aufweisen.
+
+---
+
 ## Phase 2.0 — Repository-Klon
 
 ### Zweck
@@ -434,6 +501,8 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 > Das Skript ruft `${CC_CLI_VENV_PATH}/bin/cc_cli` direkt auf — das venv
 > muss nicht per `source activate` aktiviert werden. Das certifi-Bundle
 > jedoch muss das CA-Cert enthalten.
+>
+> **Ausführungsreihenfolge in Modul 05/06:** `configure_ca_trust()` (Phase 1b, Modul 05) muss stets vor `run_cc_cli_exec()` (Phase 2, Modul 06) abgeschlossen sein. Die erweiterte Funktion trägt nicht nur die interne `civitas-core-ca`, sondern auch die öffentliche ISRG Root X1 in den System-Trust-Store ein (siehe [§CA-Trust-Integration](#ca-trust-integration-configure_ca_trust)). `update_ca_trust_certifi()` in Schritt 2.1c übernimmt beide Trust-Anker aus dem System-Store in das certifi-Bundle des venv. Ohne diesen Ablauf scheitert die TLS-Verifikation bei per Backup-Restore wiederhergestellten LE-Produktionszertifikaten.
 
 > **Hinweis TLS (HAProxy-Architektur)**: Der HAProxy auf OPNsense leitet
 > TLS-Verbindungen f&uuml;r `*.udp.data-dna.eu` per TCP-Passthrough (Layer&thinsp;4)
@@ -623,6 +692,127 @@ kubectl apply -f templates_V1/cert_manager/production_issuer.yml
 > **Hinweis Keycloak-Ingress (HTTP-Backend)**: Der Ingress `idmkeycloak` im Namespace `cc-prd-access-stack` wird vom Bitnami-Keycloak-Helm-Chart mit `servicePort: https` gerendert, was nginx veranlasst, den Keycloak-Pod auf Port 8443 (HTTPS) anzusprechen. Da Keycloak mit `KC_HTTP_ENABLED=true` betrieben wird, erwartet es HTTP auf Port 8080 und bricht die TLS-Verbindung mit "prematurely closed connection" ab (502 Bad Gateway). Der Patch in Schritt 2.0c aendert `ingress.servicePort`, `adminIngress.servicePort` und `extraPaths.port.name` von `https` auf `http` sowie `backend-protocol` von `HTTPS` auf `HTTP` in der Datei `templates/access/keycloak/keycloak-values.yaml` des geklonten Repos. Damit spricht nginx den Keycloak-Pod per HTTP auf Port 8080 an, TLS terminiert weiterhin an nginx. Dies entspricht dem CIVITAS-Standard: Edge-TLS, interner Verkehr HTTP.
 
 ```
+
+### CA-Trust-Integration (configure_ca_trust())
+
+Die Funktion `configure_ca_trust()` in Phase 1b (Modul 05) trägt das
+Root-CA-Zertifikat (`civitas-core-ca`) in den System-Trust-Store und in das
+certifi-Bundle des Python-venv ein. Dieser Abschnitt spezifiziert die
+vollständige Trust-Store-Befüllung einschließlich öffentlicher Root-CAs.
+
+#### Öffentliche Root-CAs für externe Zertifikate
+
+##### Problem
+
+`setup_ca_trust()` (Modul `05_addons.sh`) trägt bislang ausschließlich die
+interne `civitas-core-ca` in den System-Trust-Store und in das certifi-Bundle
+des Python-venv ein. Wird durch den Backup-Restore-Mechanismus
+(`restore_backup_and_switch_to_prod()`) ein Hostname bereits mit einem
+öffentlich signierten LE-Zertifikat wiederhergestellt (issuer enthält z. B.
+`C=US, O=Let's Encrypt`), scheitert die TLS-Verifikation durch Ansible mit
+`CERTIFICATE_VERIFY_FAILED`, da das CA-Bundle, auf das
+`inv_k8s.ingress.ca_path` zeigt, ausschließlich die interne CA kennt.
+
+##### Root Cause
+
+Es handelt sich **nicht** um einen Konflikt zwischen
+Backup-Restore-Reihenfolge und Ansible-Build, sondern um eine
+unvollständige Trust-Store-Befüllung: Die Inventar-Variable `ca_path` zeigt
+auf `/usr/local/share/ca-certificates/civitas-core-ca.crt`. Diese Datei
+enthält ausschließlich die interne `civitas-core-ca`, nicht die öffentliche
+Let's-Encrypt-Root (ISRG Root X1). Ansible validiert TLS-Verbindungen
+gegen genau diesen `ca_path` — fehlt der LE-Aussteller, bricht das
+`uri`-Modul mit `unable to get local issuer certificate` ab.
+
+##### Lösung
+
+Der LE-Root-Trust wird als zusätzlicher Block **innerhalb** der bestehenden
+Funktion `setup_ca_trust()` in `05_addons.sh` implementiert, und zwar
+**direkt nach** der Zeile, die die interne CA aus dem Kubernetes-Secret
+extrahiert und mit `>` in die Zieldatei schreibt. Grund: Diese Zeile
+überschreibt die Datei bei jedem Skriptdurchlauf neu — ein separater
+Schritt an anderer Stelle würde bei jedem Neuaufbau wieder verloren gehen.
+
+```bash
+  # ── ISRG Root X1 (Let's Encrypt) für externe Zertifikate ─────────────
+  # ca_path im Inventory zeigt auf diese Datei. Die Datei wurde unmittelbar
+  # zuvor mit `>` aus dem Kubernetes-Secret überschrieben und enthält daher
+  # garantiert nur die interne CA — ein Idempotenz-Check via openssl ist
+  # strukturell nicht möglich. Der Download läuft bei jedem Durchlauf; bei
+  # Fehlschlag wird die finale Verifikation am Funktionsende zuschlagen.
+  local le_root_url="https://letsencrypt.org/certs/isrgrootx1.pem"
+  if curl -fsSL "${le_root_url}" >> "${ca_cert_local}"; then
+    log_ok "ISRG Root X1 ergänzt in ${ca_cert_local}"
+  else
+    log_warn "ISRG Root X1 konnte nicht heruntergeladen werden — ${le_root_url}"
+    log_warn "  CA-Bundle enthält nur die interne CA — cc_cli exec wird später scheitern"
+  fi
+  # Hinweis: Das certifi-Bundle wird nicht hier befüllt, sondern durch
+  # die bestehende Zeile 'cat "${ca_cert_local}" >> "${certifi_bundle}"'
+  # einige Zeilen weiter unten in setup_ca_trust(). Da ca_cert_local zu
+  # diesem Zeitpunkt bereits beide Trust-Anker enthält (interne CA + LE Root),
+  # landen beide automatisch im certifi-Bundle — kein separater Eintrag nötig.
+```
+
+**Wichtig:** `setup_ca_trust()` extrahiert die interne CA mit
+`kubectl ... | base64 -d > "${ca_cert_local}"` — das `>` überschreibt
+die Datei **vollständig**. Der LE-Root-Block MUSS unmittelbar nach
+dieser Zeile stehen, damit beide Trust-Anker in derselben Datei
+kombiniert werden. Ein Idempotenz-Check via `openssl x509 -in`
+vor dem Download ist strukturell nicht möglich, da die Datei zu diesem
+Zeitpunkt immer nur die interne CA enthält.
+
+> **Hinweis zu `update-ca-certificates`:** Der nachgelagerte Aufruf von
+> `update-ca-certificates` verarbeitet die Datei in den System-Store
+> (`/etc/ssl/certs/ca-certificates.crt`) und bleibt als begleitende
+> Konsistenzmaßnahme für andere TLS-Konsumenten erhalten. Der kausale
+> Fix für Ansible ist jedoch der direkte Eintrag in der `ca_path`-Datei,
+> nicht das System-Bundle.
+
+> **Hinweis zur Idempotenz:** Ein Idempotenz-Check via `openssl x509 -in`
+> ist hier strukturell unmöglich, da die Datei zu Beginn der Funktion mit
+> `kubectl ... > "${ca_cert_local}"` überschrieben wird. Die finale
+> Verifikation via `grep -c "BEGIN CERTIFICATE"` am Funktionsende stellt
+> sicher, dass beide Trust-Anker vorhanden sind. Ein erneuter Download
+> bei jedem Durchlauf ist korrekt und beabsichtigt.
+
+##### Fehlerverhalten
+
+| Szenario | Erkennung | Reaktion |
+|---|---|---|
+| **Download erfolgreich** | `curl -fsSL` gibt Exit-Code 0 zurück | ISRG Root X1 wird angehängt, finale Verifikation ≥ 2 → OK |
+| **Download fehlschlägt** | `curl -fsSL` gibt Exit-Code ≠ 0 zurück | `log_warn` (kein Abbruch), finale Verifikation = 1 → **Abbruch mit Exit 1** |
+
+##### Abnahmekriterium
+
+```bash
+grep -c "BEGIN CERTIFICATE" /usr/local/share/ca-certificates/civitas-core-ca.crt
+# Erwartung: 2 (interne civitas-core-ca + ISRG Root X1)
+```
+
+Die Datei enthält beide Zertifikate als PEM-Blöcke. Ist nur eines
+vorhanden (z. B. nur die interne CA), fehlt der öffentliche
+Vertrauensanker und `cc_cli exec` wird mit `CERTIFICATE_VERIFY_FAILED`
+scheitern.
+
+Dieser Check wird als finale Verifikation innerhalb von
+`setup_ca_trust()` direkt nach dem certifi-Block ausgeführt. Er deckt
+sowohl fehlgeschlagene Downloads als auch abgebrochene Skriptläufe zuverlässig
+auf — unabhängig davon, ob der Download selbst als Fehler oder Warnung
+quittiert wurde.
+
+##### Festlegung
+
+`setup_ca_trust()` ist künftig verbindlich für **beide** Trust-Anker
+zuständig:
+1. Die interne `civitas-core-ca` aus dem Kubernetes-Secret (via `>`)
+2. Die öffentliche ISRG Root X1 von `https://letsencrypt.org/certs/isrgrootx1.pem` (via `>>`)
+
+Der LE-Root-Block wird direkt nach der Secret-Extraktion innerhalb derselben
+Funktion platziert, nicht als separater nachgelagerter Schritt. Eine finale
+Verifikation via `grep -c "BEGIN CERTIFICATE"` am Funktionsende stellt
+sicher, dass beide Trust-Anker vorhanden sind. Ein manuelles Nachziehen
+der ISRG Root nach Backup-Restore entfällt damit vollständig.
 
 ### Konfigurationsvariablen (Pflichtfelder)
 
@@ -876,3 +1066,109 @@ protokolliert.
     gesetzt. `cc_cli exec` wird ausschließlich aus `/opt/civitas-core-v1`
     heraus aufgerufen. Wird das Repository bei einem Folgeaufruf bereits
     vorgefunden, ersetzt `git pull` den `git clone`-Schritt (Idempotenz).
+
+***
+
+## CIVITAS/CORE-Shutdown und -Start
+
+### Ziel
+
+Einen definierten Ablauf für das saubere Herunterfahren der CIVITAS/CORE-VM
+festlegen, der Pods ordentlich terminiert (kubectl drain), bevor k3s gestoppt
+wird, sowie die automatische Wiederherstellung der Schedulability nach dem
+Neustart.
+
+### Shutdown-Ablauf (`cico-shutdown`)
+
+Das Skript `/usr/local/bin/cico-shutdown` führt folgende Schritte aus:
+
+| Schritt | Aktion | Beschreibung |
+|---|---|---|
+| 1 | `kubectl drain civitas-core --ignore-daemonsets --delete-emptydir-data --grace-period=60 --disable-eviction` | Node cordonen und Pods evicten; DaemonSets bleiben laufen, leere Verzeichnisse werden gelöscht |
+| 2 | Polling Loop: `kubectl get pods -A --field-selector=spec.nodeName=civitas-core` | Warten bis alle Pods terminiert sind (max. `TIMEOUT` Sekunden, Default 120) |
+| 3 | `systemctl stop k3s` | Kubernetes-Dienst beenden |
+| 4 | `sync && shutdown -h now` | Dateisysteme synchronisieren und VM herunterfahren |
+
+**Fehlerverhalten:**
+
+| Szenario | Reaktion |
+|---|---|
+| `kubectl drain` schlägt fehl | Warnung, Ausführung der Folgeschritte (force-Eviction vermeiden) |
+| Pods terminieren nicht innerhalb des Timeouts | Warnung mit Liste der verbleibenden Pods, Shutdown wird trotzdem fortgesetzt |
+| `systemctl stop k3s` schlägt fehl | Warnung, Shutdown wird trotzdem fortgesetzt |
+
+**Konfigurationsvariablen:**
+
+| Variable | Beschreibung | Default |
+|---|---|---|
+| `K3S_NODE` | Kubernetes-Node-Name | `civitas-core` |
+| `TIMEOUT` | Maximale Wartezeit auf Pod-Terminierung (Sekunden) | `120` |
+| `POLL_INTERVAL` | Polling-Intervall (Sekunden) | `5` |
+
+**Abnahmekriterium:**
+
+```bash
+# Skript ist vorhanden und ausführbar
+command -v cico-shutdown
+# Nach Ausführung ist die VM heruntergefahren (manuelle Prüfung via Proxmox)
+```
+
+> **Hinweis:** Nach einem `cico-shutdown` ist der Node beim nächsten Start
+> cordoniert. Der automatische Uncordon wird durch den systemd-Dienst
+> `cico-uncordon.service` sichergestellt (siehe Abschnitt „Start-Ablauf").
+
+### Start-Ablauf (Automatischer Uncordon)
+
+Nach dem Boot der VM startet k3s automatisch (systemd). Der Node ist jedoch
+durch den vorherigen `kubectl drain` als `unschedulable` (cordoned) markiert.
+Der systemd-Dienst `cico-uncordon.service` hebt diese Sperre auf.
+
+**Systemd-Dienst `cico-uncordon.service`:**
+
+| Eigenschaft | Wert |
+|---|---|
+| Typ | `oneshot` |
+| Start nach | `k3s.service` |
+| Befehl | `/usr/local/bin/cico-uncordon` |
+| Ziel | `WantedBy=multi-user.target` |
+
+**Skript `/usr/local/bin/cico-uncordon`:**
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 1 | Warten auf k3s-API: `kubectl get nodes civitas-core` (max. 180s) | Polling loop bis API antwortet |
+| 2 | Prüfen ob Node cordoniert ist: `kubectl get node civitas-core -o jsonpath='{.spec.unschedulable}'` | Wenn `unschedulable != true` → nichts tun, log_ok |
+| 3 | Uncordon: `kubectl uncordon civitas-core` | Nur ausgeführt wenn Schritt 2 `true` ergab |
+
+**Fehlerverhalten:**
+
+| Szenario | Reaktion |
+|---|---|
+| k3s-API nach 180s nicht verfügbar | **Abbruch mit Exit 1** — systemd markiert Service als failed, nächster Boot-Versuch wiederholt den Vorgang |
+
+**Abnahmekriterium:**
+
+```bash
+# Dienst ist aktiv und aktiviert
+systemctl is-enabled cico-uncordon.service
+systemctl status cico-uncordon.service
+
+# Node ist schedulable
+kubectl get node civitas-core -o jsonpath='{.spec.unschedulable}'
+# Erwartung: kein Output (oder "false") — Node ist nicht cordoniert
+```
+
+### Bereitstellung
+
+Die Skripte und der systemd-Dienst werden in Phase 1b (Modul `05_addons.sh`)
+durch die Funktion `install_cico_utils()` bereitgestellt. Die Skriptinhalte
+sind als Here-Docs innerhalb der Funktion hinterlegt — kein separates
+`bin/`-Verzeichnis erforderlich:
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 1 | Here-Doc erzeugt `/usr/local/bin/cico-shutdown` (chmod +x) | `command -v cico-shutdown` |
+| 2 | Here-Doc erzeugt `/usr/local/bin/cico-uncordon` (chmod +x) | `command -v cico-uncordon` |
+| 3 | Here-Doc erzeugt `/etc/systemd/system/cico-uncordon.service` | `systemctl is-enabled cico-uncordon.service` |
+| 4 | `systemctl daemon-reload && systemctl enable cico-uncordon.service` | Dienst ist `active (exited)` |
+
