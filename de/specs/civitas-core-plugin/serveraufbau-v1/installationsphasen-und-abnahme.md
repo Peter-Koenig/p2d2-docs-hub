@@ -1165,8 +1165,7 @@ Die Variable `K8S_NAMESPACE` (Singular) ist obsolet und darf nicht mehr
 für Existenzprüfungen verwendet werden.
 
 > **TLS-Endpunkt-Prüfung in Phase 3:** Ein TLS-Endpunkt gilt nur als „OK",
-> wenn `curl --cacert /usr/local/share/ca-certificates/civitas-core-ca.crt
-> https://<domain>/` ohne `unknown CA` oder `self-signed certificate`
+> wenn `curl --cacert /usr/local/share/ca-certificates/civitas-core-ca.crt https://<domain>/` ohne `unknown CA` oder `self-signed certificate`
 > durchläuft. Schlägt diese Prüfung fehl, ist im entsprechenden Namespace
 > der `issuerRef` des Certificate-Objekts zu prüfen:
 > ```bash
