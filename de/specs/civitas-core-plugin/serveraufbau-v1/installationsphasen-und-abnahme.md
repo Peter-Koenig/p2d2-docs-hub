@@ -1470,4 +1470,3 @@ sind als Here-Docs innerhalb der Funktion hinterlegt — kein separates
 | 2 | Here-Doc erzeugt `/usr/local/bin/cico-uncordon` (chmod +x) | `command -v cico-uncordon` |
 | 3 | Here-Doc erzeugt `/etc/systemd/system/cico-uncordon.service` | `systemctl is-enabled cico-uncordon.service` |
 | 4 | `systemctl daemon-reload && systemctl enable cico-uncordon.service` | Dienst ist `active (exited)` |
-
