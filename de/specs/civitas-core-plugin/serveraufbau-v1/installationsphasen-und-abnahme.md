@@ -1066,3 +1066,109 @@ protokolliert.
     gesetzt. `cc_cli exec` wird ausschließlich aus `/opt/civitas-core-v1`
     heraus aufgerufen. Wird das Repository bei einem Folgeaufruf bereits
     vorgefunden, ersetzt `git pull` den `git clone`-Schritt (Idempotenz).
+
+***
+
+## CIVITAS/CORE-Shutdown und -Start
+
+### Ziel
+
+Einen definierten Ablauf für das saubere Herunterfahren der CIVITAS/CORE-VM
+festlegen, der Pods ordentlich terminiert (kubectl drain), bevor k3s gestoppt
+wird, sowie die automatische Wiederherstellung der Schedulability nach dem
+Neustart.
+
+### Shutdown-Ablauf (`cico-shutdown`)
+
+Das Skript `/usr/local/bin/cico-shutdown` führt folgende Schritte aus:
+
+| Schritt | Aktion | Beschreibung |
+|---|---|---|
+| 1 | `kubectl drain civitas-core --ignore-daemonsets --delete-emptydir-data --grace-period=60 --disable-eviction` | Node cordonen und Pods evicten; DaemonSets bleiben laufen, leere Verzeichnisse werden gelöscht |
+| 2 | Polling Loop: `kubectl get pods -A --field-selector=spec.nodeName=civitas-core` | Warten bis alle Pods terminiert sind (max. `TIMEOUT` Sekunden, Default 120) |
+| 3 | `systemctl stop k3s` | Kubernetes-Dienst beenden |
+| 4 | `sync && shutdown -h now` | Dateisysteme synchronisieren und VM herunterfahren |
+
+**Fehlerverhalten:**
+
+| Szenario | Reaktion |
+|---|---|
+| `kubectl drain` schlägt fehl | Warnung, Ausführung der Folgeschritte (force-Eviction vermeiden) |
+| Pods terminieren nicht innerhalb des Timeouts | Warnung mit Liste der verbleibenden Pods, Shutdown wird trotzdem fortgesetzt |
+| `systemctl stop k3s` schlägt fehl | Warnung, Shutdown wird trotzdem fortgesetzt |
+
+**Konfigurationsvariablen:**
+
+| Variable | Beschreibung | Default |
+|---|---|---|
+| `K3S_NODE` | Kubernetes-Node-Name | `civitas-core` |
+| `TIMEOUT` | Maximale Wartezeit auf Pod-Terminierung (Sekunden) | `120` |
+| `POLL_INTERVAL` | Polling-Intervall (Sekunden) | `5` |
+
+**Abnahmekriterium:**
+
+```bash
+# Skript ist vorhanden und ausführbar
+command -v cico-shutdown
+# Nach Ausführung ist die VM heruntergefahren (manuelle Prüfung via Proxmox)
+```
+
+> **Hinweis:** Nach einem `cico-shutdown` ist der Node beim nächsten Start
+> cordoniert. Der automatische Uncordon wird durch den systemd-Dienst
+> `cico-uncordon.service` sichergestellt (siehe Abschnitt „Start-Ablauf").
+
+### Start-Ablauf (Automatischer Uncordon)
+
+Nach dem Boot der VM startet k3s automatisch (systemd). Der Node ist jedoch
+durch den vorherigen `kubectl drain` als `unschedulable` (cordoned) markiert.
+Der systemd-Dienst `cico-uncordon.service` hebt diese Sperre auf.
+
+**Systemd-Dienst `cico-uncordon.service`:**
+
+| Eigenschaft | Wert |
+|---|---|
+| Typ | `oneshot` |
+| Start nach | `k3s.service` |
+| Befehl | `/usr/local/bin/cico-uncordon` |
+| Ziel | `WantedBy=multi-user.target` |
+
+**Skript `/usr/local/bin/cico-uncordon`:**
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 1 | Warten auf k3s-API: `kubectl get nodes civitas-core` (max. 180s) | Polling loop bis API antwortet |
+| 2 | Prüfen ob Node cordoniert ist: `kubectl get node civitas-core -o jsonpath='{.spec.unschedulable}'` | Wenn `unschedulable != true` → nichts tun, log_ok |
+| 3 | Uncordon: `kubectl uncordon civitas-core` | Nur ausgeführt wenn Schritt 2 `true` ergab |
+
+**Fehlerverhalten:**
+
+| Szenario | Reaktion |
+|---|---|
+| k3s-API nach 180s nicht verfügbar | **Abbruch mit Exit 1** — systemd markiert Service als failed, nächster Boot-Versuch wiederholt den Vorgang |
+
+**Abnahmekriterium:**
+
+```bash
+# Dienst ist aktiv und aktiviert
+systemctl is-enabled cico-uncordon.service
+systemctl status cico-uncordon.service
+
+# Node ist schedulable
+kubectl get node civitas-core -o jsonpath='{.spec.unschedulable}'
+# Erwartung: kein Output (oder "false") — Node ist nicht cordoniert
+```
+
+### Bereitstellung
+
+Die Skripte und der systemd-Dienst werden in Phase 1b (Modul `05_addons.sh`)
+durch die Funktion `install_cico_utils()` bereitgestellt. Die Skriptinhalte
+sind als Here-Docs innerhalb der Funktion hinterlegt — kein separates
+`bin/`-Verzeichnis erforderlich:
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 1 | Here-Doc erzeugt `/usr/local/bin/cico-shutdown` (chmod +x) | `command -v cico-shutdown` |
+| 2 | Here-Doc erzeugt `/usr/local/bin/cico-uncordon` (chmod +x) | `command -v cico-uncordon` |
+| 3 | Here-Doc erzeugt `/etc/systemd/system/cico-uncordon.service` | `systemctl is-enabled cico-uncordon.service` |
+| 4 | `systemctl daemon-reload && systemctl enable cico-uncordon.service` | Dienst ist `active (exited)` |
+
