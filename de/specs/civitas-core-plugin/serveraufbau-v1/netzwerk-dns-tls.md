@@ -295,6 +295,89 @@ Staging-Zertifikat erfolgreich ausgestellt und verifiziert werden.
 Produktionszertifikat) sind von der Staging-Pflicht befreit – hier wird nur
 der Erneuerungs-Flow von cert-manager durchlaufen.
 
+### LE-Zertifikats-Backup und -Wiederherstellung
+
+**Ziel:** Produktive Let's-Encrypt-Zertifikate sichern und bei einem
+Neuaufbau der VM wiederherstellen, um erneute Ausstellung (und damit
+Rate-Limit-Verbrauch) zu vermeiden.
+
+#### Backup (von der laufenden VM)
+
+Alle TLS-Zertifikate und LE-Account-Keys werden als Kubernetes-Secrets
+gesichert:
+
+```bash
+# Alle LE-TLS-Secrets + Account-Keys sichern
+> le-certs-backup.yaml
+
+kubectl get secret -n cc-prd-access-stack -o yaml \
+  api.udp.data-dna.eu-tls \
+  api-admin.udp.data-dna.eu-tls \
+  api-control.udp.data-dna.eu-tls \
+  idm.udp.data-dna.eu-tls \
+  udp.data-dna.eu \
+  geoportal.udp.data-dna.eu-tls \
+  >> le-certs-backup.yaml
+
+kubectl get secret -n cc-prd-dashboard-stack -o yaml \
+  superset.udp.data-dna.eu-tls \
+  >> le-certs-backup.yaml
+
+kubectl get secret -n cc-prd-operation-stack -o yaml \
+  pgadmin.udp.data-dna.eu-tls \
+  alertmanager.udp.data-dna.eu-tls \
+  monitoring.udp.data-dna.eu-tls \
+  >> le-certs-backup.yaml
+
+# LE-Account-Private-Keys (für ACME-Account-Identität und Rate-Limit)
+kubectl get secret -n cert-manager -o yaml \
+  letsencrypt-prod-key \
+  letsencrypt-staging-key \
+  >> le-certs-backup.yaml
+
+echo "Backup geschrieben: le-certs-backup.yaml ($(wc -l < le-certs-backup.yaml) Zeilen)"
+```
+
+Die Datei `le-certs-backup.yaml` sollte sicher aufbewahrt werden (z.B. im
+Skript-Verzeichnis auf dem Proxmox-Host oder einem externen Speicher).
+
+**Enthaltene Secrets:**
+
+| Namespace | Secrets | Typ |
+|---|---|---|
+| `cc-prd-access-stack` | `api.udp.data-dna.eu-tls`, `api-admin.udp.data-dna.eu-tls`, `api-control.udp.data-dna.eu-tls`, `idm.udp.data-dna.eu-tls`, `udp.data-dna.eu`, `geoportal.udp.data-dna.eu-tls` | TLS-Zertifikat + Private Key |
+| `cc-prd-dashboard-stack` | `superset.udp.data-dna.eu-tls` | TLS-Zertifikat + Private Key |
+| `cc-prd-operation-stack` | `pgadmin.udp.data-dna.eu-tls`, `alertmanager.udp.data-dna.eu-tls`, `monitoring.udp.data-dna.eu-tls` | TLS-Zertifikat + Private Key |
+| `cert-manager` | `letsencrypt-prod-key`, `letsencrypt-staging-key` | LE-Account-Private-Key |
+
+#### Wiederherstellung (bei Neuinstallation)
+
+Die Datei `le-certs-backup.yaml` wird vom Installationsskript automatisch
+erkannt und in die VM übertragen (Phase -1). Im VM-Kontext wird sie nach
+der Plattform-Installation und vor dem Issuer-Wechsel
+(`switch_certificate_issuer()`) eingespielt:
+
+```bash
+# In der Ziel-VM (automatisch in Phase 2)
+if [[ -f "${VM_REMOTE_INSTALL_DIR}/le-certs-backup.yaml" ]]; then
+  kubectl apply -f "${VM_REMOTE_INSTALL_DIR}/le-certs-backup.yaml"
+  log_ok "LE-Zertifikate aus Backup wiederhergestellt"
+fi
+```
+
+**Wirkung:** Die Secrets existieren bereits, wenn der `ingress-shim` die
+Certificate-Ressourcen erzeugt. cert-manager erkennt die vorhandenen Secrets,
+prüft deren Gültigkeit und setzt `READY=True`, ohne neue Zertifikate bei
+Let's Encrypt anzufordern. Die Production-Phase von
+`switch_certificate_issuer()` wird dadurch von ~5 Minuten auf wenige
+Sekunden verkürzt.
+
+**Wichtig:** Die LE-Account-Keys (`letsencrypt-prod-key`,
+`letsencrypt-staging-key`) müssen ebenfalls wiederhergestellt werden, da
+das Rate-Limit von 50 Zertifikaten/Woche/Domain **pro ACME-Account** gilt.
+Ohne die Account-Keys würde ein neuer Account erstellt und das Kontingent
+von vorne beginnen.
+
 ### Skriptfunktion `switch_certificate_issuer()`
 
 Die Funktion steuert den Wechsel des Ausstellers für alle Ingress-Ressourcen

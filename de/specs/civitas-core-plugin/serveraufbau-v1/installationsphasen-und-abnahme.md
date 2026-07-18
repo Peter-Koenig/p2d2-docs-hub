@@ -96,7 +96,8 @@ Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
 | -1.6 | Warten auf SSH-Erreichbarkeit unter der konfigurierten statischen VM-IP | `ssh root@${VM_IP_STATIC} true` erreichbar |
 | -1.7 | Anleitung für nächste Schritte ausgeben | — |
 | -1.8 | Skript-Dateien, Module und Templates per scp in die VM kopieren (nach `${VM_REMOTE_INSTALL_DIR}`) | Dateien existieren in der VM |
-| -1.9 | `.env.local` (falls vorhanden) per scp in die VM kopieren | Datei `.env.local` im Skript-Verzeichnis |
+| -1.9 | Nur `.env.local` (falls vorhanden) per scp in die VM kopieren | Datei `.env.local` im Skript-Verzeichnis |
+| -1.9a | `le-certs-backup.yaml` (falls vorhanden) per scp in die VM kopieren | Datei `${SCRIPT_DIR}/le-certs-backup.yaml` vorhanden |
 | -1.10 | SSH-Hop: Skript in der VM mit `CIVITAS_CONTEXT=vm` neu starten (Secrets aus `.env.local` werden gesourct) | — |
 
 ### Abnahmekriterien Phase -1
@@ -443,14 +444,74 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.1b | Masterportal-Release-Namen patchen: `patch_masterportal_release_name()` fügt `| lower` zu `gd_instance.instance_name` im Helm-Release-Namen hinzu (RFC-1123: Großbuchstaben in Release-Namen ungültig) | `grep -q "instance_name | lower"` in der Task-Datei |
 | 2.1c | `cc-cli` installieren (gepinnte Version `1.5.0`) + `ansible`, `kubernetes`, `openshift`, `jmespath` im venv. Ansible-Logging wird aktiviert: `ANSIBLE_LOG_PATH`, `ANSIBLE_VERBOSITY=3` | `pip show cc-cli \| grep Version` vs. `$CC_CLI_VERSION` |
 | 2.1d | CA-Trust im certifi-Bundle aktualisieren (venv existiert jetzt) | `grep "civitas-core-ca" "${certifi_bundle}"` |
+| 2.1a | Playbook-URLs patchen: `patch_playbook_urls()` fügt `follow_redirects: yes` in betroffenen Playbook-Dateien ein (behebt 404-Fehler bei POST zur Keycloak-Admin-API) | Keine (sed-Patch wird bei jedem Lauf neu angewandt; Duplikate werden von YAML ignoriert) |
 | 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen + http-Sicherheitscheck: Abbruch wenn `hostname: "http://` im gerenderten Inventory | Datei vorhanden, Platzhalter geprüft, kein `http://` im hostname |
 | 2.3 | `cc_cli validate` ausführen | Exit-Code 0 |
 | 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **cc_cli exec** (single run, alle Komponenten). Ansible-Log unter `logs/ansible_run_latest.log` | Exit-Code 0 (404 wird toleriert) |
+| 2.4a | GeoData-Ingress bereinigen: `cleanup_geodata_ingress()` entfernt doppelten Ingress-Eintrag (`geostack` vs. `geostack-geostack`) | Überspringt die Bereinigung, wenn kein doppelter Ingress existiert |
 | 2.4d | Logfile-Prüfung + Warten auf Pods | `test -f logs/ansible_run_latest.log`; `kubectl wait pods --all -n cc-prd-access-stack` |
 | 2.4e | **Staging-Vorabprüfung für Produktionszertifikate:** Vor dem ersten produktiven Let's-Encrypt-Zertifikat für einen Hostnamen MUSS zuerst ein Staging-Zertifikat per Annotation `cert-manager.io/cluster-issuer=letsencrypt-staging` auf der Ingress-Ressource ausgelöst werden. Die Staging-Pflicht gilt ausschließlich für NEU anzufordernde Zertifikate. Bereits vorhandene, gültige Zertifikate (aus laufendem Cluster oder Datei-Backup) sind von der Staging-Pflicht ausgenommen. Nach erfolgreicher Verifikation wird die Ingress mit `civitas.io/staging-verified: "true"` annotiert. | `kubectl get ingress <name> -n cc-prd-access-stack -o jsonpath='{.metadata.annotations.civitas\.io/staging-verified}' \| grep -q "true"` ODER Hostname ist bereits im Produktivbetrieb (gültiges Produktionszertifikat vorhanden) ODER ein gültiges Zertifikat für den Hostnamen liegt in einem Datei-Backup (le-certs-backup.yaml) vor UND wurde erfolgreich restauriert (notBefore-Zeitstempel vor/nach Restore identisch) |
+| 2.5 | Admin-User im Realm erzwingen: `ensure_keycloak_admin_user()` legt `ADMIN_EMAIL` im Keycloak-Realm `${CC_ENVIRONMENT}` nach, falls das Playbook die Erstellung übersprungen hat | Nur ausführen, wenn User im Ziel-Realm fehlt |
+| 2.5a | LE-Zertifikate aus Backup wiederherstellen (falls vorhanden) | `kubectl apply -f le-certs-backup.yaml` erfolgreich ODER Datei nicht vorhanden |
 | 2.4f | **`switch_certificate_issuer()`:** Automatisierter Wechsel des Ausstellers für alle Ingress-Ressourcen. Setzt staging auf ALLE Ingresses, wartet auf READY, prüft Aussteller auf `(STAGING)`, setzt dann production auf ALLE Ingresses, prüft erneut. Report mit Erfolg/Fehler pro Host, kein Abbruch bei Einzelfehlern. | `kubectl get ingress --all-namespaces -o jsonpath='{range .items[*]}{.metadata.namespace}{"\t"}{.metadata.annotations.cert-manager\.io/cluster-issuer}{"\n"}{end}'` – alle Einträge müssen `letsencrypt-prod` lauten |
 
+
+#### Schritt 2.1a — Playbook-URLs patchen (`patch_playbook_urls()`)
+
+Die Ansible-Playbooks von CIVITAS/CORE verwenden für die Keycloak-Admin-API
+URLs ohne `/auth`-Prefix. Ansible's `uri`-Modul folgt Redirects bei POST
+standardmäßig nicht (`follow_redirects=safe`), sodass POST-Aufrufe zur
+Rollenzuweisung mit HTTP 404 scheitern.
+
+Die Funktion fügt in den betroffenen Playbook-Dateien den Parameter
+`follow_redirects: yes` ein.
+
+**Betroffene Dateien:**
+- `tasks/geodata/configure/integrated_keycloak.yml`
+- `tasks/geodata/install/geoserver_setup_role_service.yml`
+- `tasks/access/keycloak/idm-config/keycloak_8_users.yml`
+- `tasks/access/keycloak/idm-config/keycloak_5_clients.yml`
+- `tasks/dashboard/superset.yml`
+- `tasks/datacatalog/piveau.yml`
+
+**Idempotenz:** Der sed-Patch wird bei jedem Skriptdurchlauf neu angewandt.
+Doppelte Zeilen verhindern keine Funktion (YAML ignoriert Duplikate).
+
+#### Schritt 2.4a — GeoData-Ingress bereinigen (`cleanup_geodata_ingress()`)
+
+Das cc_cli-Playbook erzeugt manchmal einen doppelten GeoData-Ingress
+(`geostack` vs. `geostack-geostack`). Die Funktion entfernt den
+doppelten Eintrag.
+
+**Idempotenz:** Überspringt die Bereinigung, wenn kein doppelter
+Ingress existiert.
+
+#### Schritt 2.5 — Admin-User im Realm erzwingen (`ensure_keycloak_admin_user()`)
+
+Stellt sicher, dass der Admin-User (`ADMIN_EMAIL`) im Realm `${CC_ENVIRONMENT}`
+existiert. Das cc_cli-Playbook legt den User nur beim ersten Durchlauf an.
+Bei Wiederholung überspringt das Playbook die User-Erstellung – die Funktion
+prift nach und legt den User bei Bedarf über die Keycloak-Admin-REST-API nach.
+
+**Idempotenz:** Nur ausführen, wenn der User im Ziel-Realm fehlt.
+
+#### Schritt 2.5a — LE-Zertifikate aus Backup wiederherstellen
+
+Prüft, ob die Datei `le-certs-backup.yaml` im Installationsverzeichnis
+vorhanden ist. Wenn ja, werden die darin enthaltenen TLS-Secrets und
+LE-Account-Keys via `kubectl apply -f` in den Cluster eingespielt.
+
+**Zweck:** Die Secrets existieren bereits, bevor `switch_certificate_issuer()`
+die Ingress-Annotationen setzt. cert-manager erkennt die vorhandenen Secrets
+und stellt keine neuen Zertifikate bei Let's Encrypt aus. Dadurch wird die
+Production-Phase von ~5 Minuten auf Sekunden verkürzt und das Rate-Limit
+geschont.
+
+**Idempotenz:** Überspringt, wenn die Datei nicht vorhanden ist.
+Mehrmaliges Anwenden ist unschädlich (kubectl apply ist idempotent).
+
+***
 
 > **Hinweis Arbeitsverzeichnis:** `cc_cli exec` wird aus `/opt/civitas-core-v1`
 > heraus aufgerufen (`cd /opt/civitas-core-v1 && cc_cli exec ...`).
@@ -714,7 +775,7 @@ spec:
 
 Wird stattdessen fälschlich der Bootstrap-Issuer referenziert, signiert cert-manager das Zertifikat ohne CA-Bezug – der TLS-Handshake scheitert mit `unknown CA`.
 
-### Let's-Encrypt-ClusterIssuer (Gateway API HTTP-01)
+### Let's-Encrypt-ClusterIssuer (HTTP-01 per Ingress)
 
 Für die Ausstellung öffentlich vertrauenswürdiger TLS-Zertifikate werden
 zwei ClusterIssuer vom Typ `ACME` vorgehalten:
@@ -724,7 +785,7 @@ zwei ClusterIssuer vom Typ `ACME` vorgehalten:
 | `letsencrypt-staging` | `https://acme-staging-v02.api.letsencrypt.org/directory` | Test (hohe Rate-Limits) |
 | `letsencrypt-prod` | `https://acme-v02.api.letsencrypt.org/directory` | Produktion |
 
-Beide Issuer verwenden den `gatewayHTTPRoute`-Solver:
+Beide Issuer verwenden den `http01.ingress`-Solver:
 
 ```yaml
 apiVersion: cert-manager.io/v1
@@ -734,45 +795,31 @@ metadata:
 spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: {{ inv_k8s.cert_manager.le_email }}
+    email: ${ADMIN_EMAIL}
     privateKeySecretRef:
-      name: letsencrypt-staging
+      name: letsencrypt-staging-key
     solvers:
     - http01:
-        gatewayHTTPRoute:
-          parentRefs:
-          - name: civitas-gateway
-            namespace: ingress-nginx
-            sectionName: http
+        ingress:
+          ingressClassName: nginx
 ```
 
-Der `civitas-gateway` muss vor der Issuer-Erstellung existieren
-(siehe Phase 1, Schritt 1.8). Der HTTP-01-Listener auf Port 80 wird
-vom nginx-Ingress-Controller (GatewayClass `nginx`) verarbeitet.
+Der Wechsel von selbstsignierten CA-Zertifikaten auf LE-Zertifikate erfolgt
+durch die Funktion `switch_certificate_issuer()` in Modul 06. Sie setzt die
+Annotation `cert-manager.io/cluster-issuer` auf allen Ingress-Ressourcen mit
+TLS-Block und wartet auf die Ausstellung durch Let's Encrypt.
 
-**Automatische vs. manuelle Erzeugung:**
+**LE_CERT-Schalter:** Die Umgebungsvariable `LE_CERT` steuert, ob
+Production-Zertifikate ausgestellt werden:
 
-Das CIVITAS/CORE-Playbook erzeugt die LE-ClusterIssuer automatisch, wenn
-im Inventory die folgenden Werte gesetzt sind:
-
-| Variable | Wert |
+| LE_CERT | Verhalten |
 |---|---|
-| `inv_k8s.cert_manager.le_email` | E-Mail-Adresse für ACME-Registrierung (z. B. `admin@data-dna.eu`) |
-| `inv_k8s.cert_manager.create_letsencrypt_issuer` | `true` |
+| `false` (Default) | Nur Staging-Zertifikate ausstellen. Geeignet für Entwicklung/Test. |
+| `true` | Staging bestehen → Production-Zertifikate ausstellen. Geeignet für produktionsnahe Umgebungen. |
 
-In der aktuellen Entwicklungsphase sind diese Werte auf `""` bzw.
-`false` gesetzt, um die automatische Erzeugung zu unterdrücken
-(der Gateway und der HAProxy-Durchgriff müssen zuerst getestet
-werden). Die Issuer können dann manuell aus den Templates in
-`templates_V1/cert_manager/` deployt werden:
-
-```bash
-kubectl apply -f templates_V1/cert_manager/staging_issuer.yml
-kubectl apply -f templates_V1/cert_manager/production_issuer.yml
-
-> **Hinweis Keycloak-Ingress (HTTP-Backend)**: Der Ingress `idmkeycloak` im Namespace `cc-prd-access-stack` wird vom Bitnami-Keycloak-Helm-Chart mit `servicePort: https` gerendert, was nginx veranlasst, den Keycloak-Pod auf Port 8443 (HTTPS) anzusprechen. Da Keycloak mit `KC_HTTP_ENABLED=true` betrieben wird, erwartet es HTTP auf Port 8080 und bricht die TLS-Verbindung mit "prematurely closed connection" ab (502 Bad Gateway). Der Patch in Schritt 2.0c aendert `ingress.servicePort`, `adminIngress.servicePort` und `extraPaths.port.name` von `https` auf `http` sowie `backend-protocol` von `HTTPS` auf `HTTP` in der Datei `templates/access/keycloak/keycloak-values.yaml` des geklonten Repos. Damit spricht nginx den Keycloak-Pod per HTTP auf Port 8080 an, TLS terminiert weiterhin an nginx. Dies entspricht dem CIVITAS-Standard: Edge-TLS, interner Verkehr HTTP.
-
-```
+Bei `LE_CERT=false` endet `switch_certificate_issuer()` nach erfolgreicher
+Staging-Phase und überspringt die Production-Phase. Der Report zeigt
+"Production: NICHT GESTARTET (LE_CERT=false)".
 
 ### CA-Trust-Integration (configure_ca_trust())
 
@@ -901,23 +948,25 @@ Alle Variablen werden im Konfigurationsmodul des Skripts externalisiert.
 Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 übergeben — **nie hartcodiert oder in Git eingecheckt**.
 
-| Variable | Beschreibung | Beispielwert |
+| Variable | Beschreibung | Beispielwert / Hinweis |
 |---|---|---|
-| `DOMAIN` | Basis-Domain für `idm.` und `portal.` | `udp.data-dna.eu` |
-| `SMTP_HOST` | SMTP-Server (netcup) | `mx92c.netcup.net` (exakter Hostname aus WCP) |
+| `DOMAIN_NAME` | Basis-Domain, aus `.env.local` | `data-dna.eu` |
+| `DOMAIN` | Abgeleitet aus DOMAIN_NAME | `udp.${DOMAIN_NAME}` |
+| `LE_CERT` | LE-Production aktivieren | `false` (Default), `true` für Production |
+| `APISIX_DASHBOARD` | APISIX-Dashboard aktivieren | `false` (Default), `true` für apim.<DOMAIN> |
+| `SMTP_HOST` | SMTP-Server | SMTP-Server-Hostname |
 | `SMTP_PORT` | SMTP-Port | `587` |
-| `SMTP_USER` | SMTP-Absender | `noreply@data-dna.eu` |
+| `SMTP_USER` | SMTP-Absender | `noreply@${DOMAIN_NAME}` |
 | `SMTP_PASS` | SMTP-Passwort | Aus Umgebungsvariable `$SMTP_PASS` |
-| `SMTP_FROM` | SMTP-Absenderadresse für E-Mails | `no-reply@data-dna.eu` |
+| `SMTP_FROM` | SMTP-Absenderadresse für E-Mails | `no-reply@${DOMAIN_NAME}` |
 | `CC_CLI_VERSION` | cc-cli-Version (Pinning) | `1.5.0` — nicht `latest` |
 | `CC_V1_REPO_URL` | Repository-URL des CIVITAS/CORE V1-Monorepos | `https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git` |
 | `CC_V1_REPO_PATH` | Lokaler Pfad des geklonten Repositorys | `/opt/civitas-core-v1` |
 | `CC_CLI_PLAYBOOK_DIR` | Verzeichnis mit `playbook.yml` (cc_cli CWD) | `${CC_V1_REPO_PATH}/core_platform` |
 | `CC_V1_REPO_BRANCH` | Git-Branch | `main` |
 | `TIMEOUT_CC_CLI_EXEC` | Timeout für `cc_cli exec` in Sekunden | `600` |
-| `ADMIN_EMAIL` | Platform-Admin-E-Mail (auch Keycloak-master_username) | `admin@data-dna.eu` |
+| `ADMIN_EMAIL` | Platform-Admin-E-Mail (auch Keycloak-master_username) | `admin@${DOMAIN_NAME}` |
 | `ADMIN_PASS` | Keycloak-Master-Password + initiales platform\_admin-Passwort (identisch, kein separater Wert). Muss Keycloak-Policy erfüllen: ≥12 Zeichen, 1 Ziffer, 1 Groß-/Kleinbuchstabe, 1 Sonderzeichen | Aus `.env.local` |
-| `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort (separat von ADMIN\_PASS). Nur bei `--tags tenant` aktiv (`configure_central_idm: true`). Trotzdem immer setzen, da das Playbook das Feld erwartet | Aus `.env.local` |
 | `CERT_MANAGER_ISSUER` | ClusterIssuer-Name für Anwendungszertifikate | `civitas-core-ca-issuer` (CA-Typ) |
 
 
@@ -1127,6 +1176,58 @@ für Existenzprüfungen verwendet werden.
 > (`selfsigned-issuer` oder `civitas-core-ca-issuer`), nicht auf den
 > Bootstrap-Issuer `civitas-bootstrap-selfsigned`.
 
+### Test-Vorbereitung und -Durchführung (optional)
+
+Nach erfolgreicher Verifikation kann das Skript optional die offiziellen
+CIVITAS/CORE-E2E-Tests (pytest + Playwright, siehe `02-API-UI-Tests.md` im
+offiziellen Doku-Repo) ausführen. Die Tests werden nur aktiviert, wenn
+`RUN_TESTS=true` in `.env.local` gesetzt ist.
+
+**Vorbereitung (`setup_tests_env()`):**
+
+| Schritt | Aktion |
+|---|---|
+| 3a.1 | `uv` installieren (`pip install uv`) |
+| 3a.2 | `uv sync` im `tests/`-Verzeichnis des geklonten Repos |
+| 3a.3 | Playwright-Browser installieren |
+| 3a.4 | `.env`-Datei aus Kubernetes-Secrets generieren |
+| 3a.5 | GeoServer-Grundkonfiguration (`pytest --only-geoserver-setup`) |
+
+**Durchführung (`run_test_suite()`):**
+
+```bash
+cd /opt/civitas-core-v1/tests
+source .venv/bin/activate
+pytest --prod-safe e2e_tests/
+```
+
+**Integration in Phase 3:**
+
+```bash
+run_verification() {
+  log "=== Phase 3: Verifikation ==="
+  VERIFY_ERRORS=0
+
+  verify_phase1           # Cluster, System-Pods, Add-ons
+  verify_phase2           # Namespaces, Pods, Ingresses, TLS, WireGuard
+  if [[ "${RUN_TESTS:-false}" == "true" ]]; then
+    setup_tests_env
+    run_test_suite
+  fi
+  report_result
+}
+```
+
+**Fehlerverhalten:** Fehlschlagende Tests zählen als Fehler im Report,
+unterbrechen aber nicht den Ablauf. Der Admin kann nach der Installation
+die Test-Details einsehen:
+
+```bash
+cd /opt/civitas-core-v1/tests
+source .venv/bin/activate
+pytest --prod-safe --headed e2e_tests/  # Mit Browser-Fenster für UI-Tests
+```
+
 ***
 
 ## Fehlerbehandlung
@@ -1145,6 +1246,11 @@ protokolliert.
 | Verifikationsfehler (Phase 3) | Keine Systemänderung, Fehlerbericht + Exit 1 |
 | Bereits installierte Komponente (Idempotenz) | Kein Fehler, Meldung „bereits vorhanden, überspringe" |
 | HTTP 404 bei Keycloak DELETE (z.B. Default-Resource) | Ressource bereits entfernt = Ziel erreicht. Bekanntes Problem bei Wiederholung nach abgebrochenem Run. Workaround: `kubectl delete namespace cc-prd-access-stack` und neu starten. |
+| Test-Fehler (Phase 3) | Warnung + Fehlerzähler, kein Abbruch |
+| Test-Umgebungs-Fehler (Phase 3) | Warnung + Überspringen der Tests |
+| Playbook-URL-Patch fehlgeschlagen (Phase 2) | Warnung + Fortsetzung (Skript kann ohne Patch laufen) |
+| Admin-User-Erstellung fehlgeschlagen (Phase 2) | Warnung + Fortsetzung (User muss manuell in Keycloak angelegt werden) |
+| LE-Backup-Restore fehlgeschlagen (Phase 2) | Warnung + Fortsetzung (Zertifikate müssen neu ausgestellt werden) |
 
 ***
 
@@ -1159,6 +1265,72 @@ protokolliert.
 | ~~cc-cli-Version (Pinning)~~ | ~~**Gepinnt auf `1.5.0`** in `01_config.sh`~~ | ~~durch Code festgelegt~~ |
 
 | `servicelb` und `metrics-server`: deaktivieren oder aktiv lassen? | Offen | skriptarchitektur.md |
+
+***
+
+## Nachgelagerte Konfiguration
+
+Folgende Schritte sind nach der automatischen Installation manuell
+durchzuführen. Sie sind nicht automatisierbar, da sie über die Web-UI
+der jeweiligen Komponenten konfiguriert werden.
+
+### GeoServer-JWT-Authentifizierung
+
+Damit Masterportal geschützte (nicht-öffentliche) Layer anzeigen kann,
+muss in GeoServer ein JWT-Header-Authentifizierungsfilter eingerichtet
+werden. Ohne diese Konfiguration erhalten berechtigte Nutzer einen
+`401 Unauthorized` beim Zugriff auf nicht-öffentliche Layer über
+Masterportal.
+
+**Schritte:**
+
+1. In GeoServer unter `Security → Authentication` einen neuen
+   Authentifizierungsfilter anlegen:
+   - Typ: `JWT Header (jwt-headers)`
+   - Name: `civitas-idm-jwt`
+   - Request header attribute for User Name: `Authorization`
+   - Format the Header value is in: `JWT`
+   - JSON path for the User Name: `preferred_username`
+   - Validate JWT (Access Token): ✅
+   - Validate Token Expiry: ✅
+   - Validate JWT (Access Token) Signature: ✅
+   - JSON Web Key Set URL (jwks_uri):
+     `https://idm.${DOMAIN}/realms/${CC_ENVIRONMENT}/protocol/openid-connect/certs`
+   - Validate JWT (Access Token) Against Endpoint: ✅
+   - URL (userinfo_endpoint):
+     `https://idm.${DOMAIN}/realms/${CC_ENVIRONMENT}/protocol/openid-connect/userinfo`
+   - Role Source: `Header Containing JWT`
+   - Request Header attributes for Roles: `Authorization`
+   - JSON Path: `resource_access.geostack.roles`
+   - Role Converter Map: `geoAdmin=ROLE_ADMINISTRATOR;geoAdmin=ADMIN`
+
+2. Den Filter `civitas-idm-jwt` in den Filter-Chains konfigurieren:
+
+   | Filter-Chain | Filter | Bemerkung |
+   |---|---|---|
+   | `rest` | `civitas-idm-jwt` | REST-API-Zugriff |
+   | `gwc` | `civitas-idm-jwt` | GeoWebCache |
+   | `default` | `civitas-idm-jwt` | Standard-Zugriff |
+   | `web` | `civitas-idm-oidc` (unverändert) | Web-UI |
+
+3. Änderungen speichern und ggf. GeoServer neu starten (Pod-Neustart
+   in Kubernetes: `kubectl rollout restart deployment geoserver-geoserver
+   -n ${CC_ENVIRONMENT}-geodata-stack`).
+
+### Initiale Benutzer und Rollen
+
+Nach der Installation müssen in Keycloak Benutzer angelegt und mit den
+passenden Rollen versehen werden. Siehe Keycloak-Admin-Guide der
+CIVITAS/CORE-Dokumentation für Details.
+
+Wichtige Rollen für die Administration:
+| Rolle | Dienst | Berechtigung |
+|---|---|---|
+| `geoAdmin` | GeoServer | GeoServer-Administration |
+| `supersetAdmin` | Superset | Superset-Administration |
+| `grafanaAdmin` / `grafanaServerAdmin` | Grafana | Grafana-Administration |
+| `adminToolsAdmin` | Prometheus/Grafana | Monitoring-Administration |
+| `operator` | Piveau | Datenkatalog-Verwaltung (falls aktiviert) |
 
 ***
 

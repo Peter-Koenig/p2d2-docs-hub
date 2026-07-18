@@ -201,8 +201,11 @@ CERT_MANAGER_VERSION="v1.16.0"     # Beim Skriptbau aus cert-manager-Release-Dok
 NGINX_INGRESS_VERSION="4.12.0"    # Beim Skriptbau aus ingress-nginx-Helm-Chart-Doku fixieren
 GATEWAY_API_VERSION="v1.2.1"      # Kubernetes Gateway API CRDs (standard channel)
 
+# ── Domain (Pflicht-Umgebungsvariable aus .env.local) ──────────────────
+DOMAIN_NAME="${DOMAIN_NAME:?'DOMAIN_NAME muss als Umgebungsvariable gesetzt sein (z.B. example.org)'}"
+
 # ── Plattform ────────────────────────────────────────────────────────────────
-DOMAIN="udp.data-dna.eu"             # Basis-Domain (Freigabe: Peter König)
+DOMAIN="udp.${DOMAIN_NAME}"   # Abgeleitet aus DOMAIN_NAME
 KUBECONFIG_PATH="${HOME}/.kube/config"
 export KUBECONFIG="${KUBECONFIG_PATH}"
 K3S_DATA_DIR="/var/lib/rancher/k3s"
@@ -232,14 +235,16 @@ SMTP_HOST="${SMTP_HOST:?'SMTP_HOST muss als Umgebungsvariable gesetzt sein'}"
 SMTP_PORT="${SMTP_PORT:-587}"
 SMTP_USER="${SMTP_USER:?'SMTP_USER muss als Umgebungsvariable gesetzt sein'}"
 SMTP_PASS="${SMTP_PASS:?'SMTP_PASS muss als Umgebungsvariable gesetzt sein'}"
-SMTP_FROM="${SMTP_FROM:-no-reply@data-dna.eu}"    # Absenderadresse für E-Mails
+SMTP_FROM="${SMTP_FROM:-no-reply@${DOMAIN_NAME}}"    # Absenderadresse für E-Mails
 
 # ── Admin (Werte aus Umgebungsvariablen) ────────────────────────────────────
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@data-dna.eu}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@${DOMAIN_NAME}}"   # Keycloak-Master-Admin + initialer platform_admin-User
 ADMIN_PASS="${ADMIN_PASS:?'ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
 # → master_password + initiales platform_admin-Passwort (identisch, kein separater Wert)
-TENANT_ADMIN_PASS="${TENANT_ADMIN_PASS:?'TENANT_ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
-# → inv_access.tenant.tenant_password (separat von ADMIN_PASS)
+
+
+# ── Let's Encrypt (steuert Zertifikatsausstellung) ──────────────────────
+LE_CERT="${LE_CERT:-false}"      # false = nur Staging, true = Staging + Production
 
 # ── Timeouts ─────────────────────────────────────────────────────────────────
 TIMEOUT_CC_CLI_EXEC=600            # Sekunden
@@ -255,6 +260,7 @@ STORAGECLASS_RWX="${STORAGECLASS_RWX:-local-path}"
 STORAGECLASS_LOC="${STORAGECLASS_LOC:-local-path}"
 INGRESS_CLASS="${INGRESS_CLASS:-nginx}"
 CERT_MANAGER_ISSUER="${CERT_MANAGER_ISSUER:-civitas-core-ca-issuer}"
+APISIX_DASHBOARD="${APISIX_DASHBOARD:-false}"  # APISIX-Dashboard aktivieren (apim.<DOMAIN>)
 
 # ── Phase 2.0 — Repository ───────────────────────────────────────────────────
 CC_V1_REPO_URL="https://gitlab.com/civitas-connect/civitas-core/civitas-core-v1/civitas-core.git"
@@ -317,17 +323,23 @@ Umgebungsvariablen gesetzt sein. Sie werden in `01_config.sh` mit
 `${VAR:?Fehlermeldung}` geprüft. Das Skript bricht beim Laden von
 `01_config.sh` sofort ab, wenn eine Variable fehlt oder leer ist.
 
-| Variable | Beschreibung | Beispielwert / Hinweis |
-|---|---|---|
-| `ROOT_PASSWORD` | root-Passwort der VM | Sicheres Zufallspasswort |
-| `SMTP_PASS` | SMTP-Passwort für no-reply@data-dna.eu | Aus netcup WCP |
-| `SMTP_FROM` | SMTP-Absenderadresse | `no-reply@data-dna.eu` (Default) |
-| `ADMIN_PASS` | Keycloak Initial-Admin-Passwort | Sicheres Zufallspasswort, min. 12 Zeichen |
-| `TENANT_ADMIN_PASS` | Tenant-Admin-Passwort (separat von ADMIN_PASS) | Sicheres Zufallspasswort, min. 12 Zeichen |
-| `WG_VM_PRIVATE_KEY` | WireGuard PrivateKey der VM (`wg genkey`) | Base64-String, 44 Zeichen |
-| `WG_OPN_PUBLIC_KEY` | WireGuard PublicKey von OPNsense (`wg pubkey`) | Base64-String, 44 Zeichen |
-| `WG_PRESHARED_KEY` | WireGuard PreSharedKey (`wg genpsk`) | **Optional** — leer lassen wenn nicht verwendet |
-| `WG_OPN_ENDPOINT` | Öffentliche IP:Port der OPNsense-WireGuard-Instanz | z. B. `1.2.3.4:51820` |
+| Variable | Pflicht | Default | Beschreibung |
+|---|---|---|---|
+| `DOMAIN_NAME` | **ja** | — | Basis-Domain für URLs (z.B. `example.org`) |
+| `SMTP_HOST` | ja | — | SMTP-Server |
+| `SMTP_USER` | ja | — | SMTP-Benutzer |
+| `SMTP_PASS` | ja | — | SMTP-Passwort |
+| `SMTP_PORT` | nein | `587` | SMTP-Port |
+| `SMTP_FROM` | nein | `no-reply@${DOMAIN_NAME}` | SMTP-Absenderadresse |
+| `ADMIN_EMAIL` | nein | `admin@${DOMAIN_NAME}` | Keycloak-Master-Admin |
+| `ADMIN_PASS` | **ja** | — | Keycloak-Master-Passwort (≥12 Zeichen, Policy-konform) |
+| `LE_CERT` | nein | `false` | `true` = Staging + Production-Zertifikate, `false` = nur Staging |
+| `APISIX_DASHBOARD` | nein | `false` | `true` = APISIX-Dashboard aktivieren |
+| `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
+| `WG_VM_PRIVATE_KEY` | **ja** | — | WireGuard PrivateKey |
+| `WG_OPN_PUBLIC_KEY` | **ja** | — | WireGuard PublicKey von OPNsense |
+| `WG_OPN_ENDPOINT` | **ja** | — | OPNsense-WireGuard-Endpoint |
+| `WG_PRESHARED_KEY` | nein | leer | WireGuard PreSharedKey (optional) |
 
 > **Hinweis zu `WG_PRESHARED_KEY`**: Diese Variable ist optional und wird mit
 > `${WG_PRESHARED_KEY:-}` ohne Abbruch gelesen. Ist sie leer, wird die
@@ -700,31 +712,19 @@ distributionsunabhängig.
 
 ```bash
 install_civitas() {
-  log "=== Phase 2: CIVITAS/CORE ==="
-
-  check_dns_hard              # Harte Prüfung — Abbruch bei Fehler
-  clone_civitas_repo          # Schritt 2.0: Repository klonen, Symlink anlegen
-  apply_overlay               # Schritt 2.1: Overlay-Dateien aus overlay_V1/
-                              #   in das geklonte Repo kopieren (ersetzt
-                              #   die früheren sed-basierten Einzelpatches)
-  patch_masterportal_release_name  # Schritt 2.1b: | lower für Helm-Release-Namen
-                              #   (RFC-1123: Großbuchstaben ungültig)
-
-  install_cc_cli              # Schritt 2.1c: cc-cli + ansible + openshift
-                              #   + jmespath im venv. Ansible-Logging aktiviert:
-                              #   ANSIBLE_LOG_PATH, ANSIBLE_VERBOSITY=3
-  render_inventory            # Schritt 2.2: Inventory aus Template erzeugen
-                              #   + http-Sicherheitscheck (Abbruch bei http://)
-
-  # cc_cli exec (single run, alle Komponenten)
-  run_cc_cli_validate         # Schritt 2.3
-  setup_wireguard             # Schritt 2.4b — vor cc_cli exec
-  run_cc_cli_exec             # Schritt 2.4c: single run, alle Komponenten
-                              #   Ansible-Log: logs/ansible_run_latest.log
-
-  # Logfile-Prüfung + Pods abwarten
-  wait_pods_ready "${K8S_NAMESPACE}"
-  log_ok "Phase 2 abgeschlossen"
+  check_dns_hard
+  clone_civitas_repo
+  apply_overlay
+  patch_masterportal_release_name
+  install_cc_cli
+  render_inventory
+  setup_wireguard
+  patch_playbook_urls         # 🔧 Neu
+  cleanup_geodata_ingress     # 🔧 Neu
+  run_cc_cli_validate
+  run_cc_cli_exec
+  ensure_keycloak_admin_user  # 🔧 Neu
+  switch_certificate_issuer
 }
 ```
 
@@ -1055,61 +1055,70 @@ GeoData, Superset und dem Keycloak-Tenant vollständig durch.
 
 #### Ingress-Bereinigung (`cleanup_geodata_ingress()`)
 
-Bei Wiederholung von `--tags geodata` kann der nginx-Admission-Webhook die
-Ingress-Erstellung mit `"host geoportal.udp.data-dna.eu is already defined"`
-ablehnen. Die Funktion `cleanup_geodata_ingress()` entfernt daher vor Phase 2b1
-das GeoData-Ingress, falls es aus einem vorherigen Lauf noch existiert:
+Das cc_cli-Playbook erzeugt manchmal einen doppelten GeoData-Ingress
+(`geostack` vs. `geostack-geostack`). Die Funktion bereinigt den
+doppelten Eintrag:
 
 ```bash
 cleanup_geodata_ingress() {
-  local ns="${CC_ENVIRONMENT:-cc-prd}-geodata-stack"
-  if kubectl get ingress geodata-ingress -n "${ns}" &>/dev/null; then
-    log_warn "Entferne bestehendes GeoData-Ingress …"
-    kubectl delete ingress geodata-ingress -n "${ns}"
+  local ns="${CC_ENVIRONMENT}-geodata-stack"
+  # Doppelten Ingress entfernen (falls vorhanden)
+  kubectl delete ingress geostack -n "${ns}" --ignore-not-found
+  # Prüfen ob der doppelte Eintrag entfernt wurde
+  if kubectl get ingress -n "${ns}" | grep -q 'geostack-geostack'; then
+    log_ok "Doppelter GeoData-Ingress entfernt"
   fi
 }
 ```
 
+**Idempotenz:** Nur ausführen, wenn der doppelte Ingress existiert.
+
 #### Admin-User in cc-prd erzwingen (`ensure_keycloak_admin_user()`)
 
-Die Ansible-Playbooks legen den Admin-User `admin@data-dna.eu` im `cc-prd`-Realm
-über die URL `{{ hostname }}/admin/realms/.../users` an (ohne `/auth`-Prefix).
-Keycloak antwortet auf diesen POST mit einem 302-Redirect zu
-`/auth/admin/realms/.../users`, wobei Ansible den POST-Body verliert (302 → GET).
-Der User wird daher in Phase 2a (`--tags base`) oft nicht angelegt.
-
-Die Funktion `ensure_keycloak_admin_user()` erzeugt den User daher **nach**
-Phase 2a und **vor** Phase 2b1 direkt per `curl` mit dem funktionierenden
-`/auth`-Prefix:
+Stellt sicher, dass der Admin-User (`ADMIN_EMAIL`) im Realm `${CC_ENVIRONMENT}`
+existiert und die Rolle `admin` hat. Das cc_cli-Playbook legt den User nur beim
+ersten Durchlauf an – bei Wiederholung wird er übersprungen.
 
 ```bash
 ensure_keycloak_admin_user() {
-  # 1. Admin-Token holen
-  token=$(curl -s --cacert ... \
-    -X POST "https://idm.${DOMAIN}/auth/realms/master/protocol/openid-connect/token" \
+  local ns="${CC_ENVIRONMENT}-access-stack"
+  local secret_name="${CC_ENVIRONMENT}-keycloak-admin"
+  local master_user master_pass token
+
+  # Master-Token holen
+  master_user=$(kubectl get secret "${secret_name}" -n "${ns}" \
+    -o jsonpath='{.data.MASTER_USERNAME}' | base64 -d)
+  master_pass=$(kubectl get secret "${secret_name}" -n "${ns}" \
+    -o jsonpath='{.data.MASTER_PASSWORD}' | base64 -d)
+  token=$(curl -sk "https://idm.${DOMAIN}/realms/master/protocol/openid-connect/token" \
     -d "client_id=admin-cli" \
-    -d "username=${ADMIN_EMAIL}" \
-    -d "password=${ADMIN_PASS}" \
-    -d "grant_type=password" | python3 -c '...')
+    -d "username=${master_user}" \
+    -d "password=${master_pass}" \
+    -d "grant_type=password" | jq -r '.access_token')
 
-  # 2. User anlegen (201=neu, 409=existiert bereits)
-  curl -X POST "https://idm.${DOMAIN}/auth/admin/realms/${CC_ENVIRONMENT}/users" \
+  # Prüfen ob Admin im Ziel-Realm existiert
+  local admin_id
+  admin_id=$(curl -sk "https://idm.${DOMAIN}/admin/realms/${CC_ENVIRONMENT}/users" \
     -H "Authorization: Bearer ${token}" \
-    -d '{ "username": "${ADMIN_EMAIL}", "enabled": true }'
+    -H "Content-Type: application/json" \
+    | jq -r ".[] | select(.email==\"${ADMIN_EMAIL}\") | .id")
 
-  # 3. Passwort setzen
-  curl -X PUT ".../users/${user_id}/reset-password" \
-    -d '{"type":"password","value":"${ADMIN_PASS}","temporary":false}'
+  if [[ -n "${admin_id}" ]]; then
+    log_ok "Admin-User ${ADMIN_EMAIL} existiert bereits"
+  else
+    log "Lege Admin-User ${ADMIN_EMAIL} an …"
+    # User anlegen
+    curl -sk "https://idm.${DOMAIN}/admin/realms/${CC_ENVIRONMENT}/users" \
+      -X POST \
+      -H "Authorization: Bearer ${token}" \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"${ADMIN_EMAIL}\",\"username\":\"${ADMIN_EMAIL}\",\"enabled\":true}"
+    log_ok "Admin-User ${ADMIN_EMAIL} angelegt"
+  fi
 }
 ```
 
-**Idempotenz:** Wenn der User bereits existiert, antwortet Keycloak mit
-HTTP 409 (Conflict) – die Funktion bricht dann nicht ab, sondern fährt fort.
-
-**Wirkung:** Der Admin-User `admin@data-dna.eu` existiert garantiert im
-`cc-prd`-Realm, bevor Phase 2b1 (GeoData) versucht, Rollen zuzuweisen.
-Dadurch ist `platform_user_id` nicht leer und die Role-Assignment-URL ist
-gültig.
+**Idempotenz:** Nur ausführen, wenn der User fehlt.
 
 ### Bekannte Stolperfallen
 
@@ -1121,6 +1130,22 @@ gültig.
 | Health-Check Timeout für externe URLs | WireGuard nicht aktiv vor `cc_cli exec` | `setup_wireguard` vor `run_cc_cli_exec` aufrufen |
 | `Velero: access_key is required` in cc_cli validate | `velero.enable: true` mit leeren Credentials | Template-Default: `velero.enable: false` |
 | `kubeconfig not found: ./config` | `kubeconfig_file: config` sucht relativ zum CWD | `cc_cli exec` ausschließlich aus `${CC_CLI_PLAYBOOK_DIR}` aufrufen |
+
+### Komponenten-Deaktivierung
+
+Folgende Komponenten sind im Inventory deaktiviert, können bei Bedarf aber
+aktiviert werden:
+
+| Komponente | Inventory-Pfad | Status | Begründung |
+|---|---|---|---|
+| Frost (SensorThings) | `inv_cm.frost.enable` | `false` | Für V1-Installation nicht benötigt. Geplant für V2. |
+| Stellio (NGSI-LD) | `inv_cm.stellio.enable` | `false` | Smart-City-Szenario, derzeit nicht benötigt. |
+| QuantumLeap | `inv_cm.quantumleap.enable` | `false` | Benötigt Stellio als Voraussetzung. |
+| Piveau (Datacatalog) | `inv_datacatalog.piveau.enable` | `false` | Datenkatalog, derzeit nicht benötigt. |
+| Mapfish | `inv_gd.mapfish.enable` | `false` | Print-Dienst, derzeit nicht benötigt. |
+| Velero (Backup) | `inv_op_stack.velero.enable` | `false` | Backup über Proxmox Backup Server. |
+| APISIX Dashboard | `inv_access.apisix.dashboard.enable` | `false` | APISIX-Web-UI, default deaktiviert. |
+| Monitoring Grafana (DA) | `inv_da.grafana.enable` | `false` | Operation-Stack-Grafana (monitoring.<DOMAIN>) ist aktiv. |
 
 ***
 
@@ -1397,6 +1422,55 @@ report_result() {
 }
 ```
 
+### Test-Vorbereitung (`setup_tests_env()`)
+
+Richtet die Test-Umgebung für die offiziellen CIVITAS/CORE-API-UI-Tests
+(pytest + Playwright) ein. Wird am Ende von `run_verification()` aufgerufen,
+wenn `RUN_TESTS=true` gesetzt ist.
+
+| Schritt | Aktion | Idempotenz-Prüfung |
+|---|---|---|
+| 3.1 | `uv` installieren (`pip install uv`) | `command -v uv` |
+| 3.2 | `uv sync` im `tests/`-Verzeichnis ausführen | `.venv` existiert |
+| 3.3 | Playwright-Browser installieren | `playwright install --dry-run` |
+| 3.4 | `.env`-Datei aus Kubernetes-Secrets generieren | Datei existiert und ist aktuell |
+
+### Test-Durchführung (`run_test_suite()`)
+
+Führt die CIVITAS/CORE-E2E-Tests mit `pytest --prod-safe` aus.
+
+```bash
+run_verification() {
+  log "=== Phase 3: Verifikation ==="
+  VERIFY_ERRORS=0
+
+  verify_phase1
+  verify_phase2
+  if [[ "${RUN_TESTS:-false}" == "true" ]]; then
+    setup_tests_env
+    run_test_suite
+  fi
+  report_result
+}
+```
+
+Die Tests werden nur ausgeführt, wenn `RUN_TESTS=true` in `.env.local`
+gesetzt ist. Bei `false` oder nicht gesetzt werden Tests übersprungen.
+
+**Fehlerverhalten:** Fehlschlagende Tests erhöhen `VERIFY_ERRORS`, brechen
+aber nicht ab. Der Fehlerreport am Ende zeigt die Anzahl fehlgeschlagener
+Tests.
+
+### Aktualisierte Ablaufstruktur
+
+```
+verify_phase1()       → Cluster, System-Pods, Add-ons
+verify_phase2()       → Namespaces, Pods, Ingresses, TLS, WireGuard
+setup_tests_env()     → uv, playwright, .env aus Secrets (optional)
+run_test_suite()      → pytest --prod-safe (optional)
+report_result()       → Zusammenfassung
+```
+
 ***
 
 ## Idempotenz-Strategie
@@ -1454,25 +1528,80 @@ LOG_FILE=/var/log/civitas_install.log ./install_civitas_core.sh
 
 ***
 
+## Nachgelagerte Konfigurationsschritte
+
+Folgende Schritte sind nach erfolgreicher Installation manuell oder über
+spezialisierte Skriptfunktionen durchzuführen. Sie sind nicht Teil der
+automatischen Installation, da sie entweder Benutzereingaben erfordern
+oder nur einmalig nach dem ersten Deployment anfallen.
+
+### GeoServer-JWT-Filter konfigurieren
+
+Nach der Installation muss in GeoServer ein JWT-Header-Authentifizierungsfilter
+eingerichtet werden, damit Masterportal geschützte (nicht-öffentliche) Layer
+anzeigen kann. Details siehe Known Issues in der CIVITAS/CORE-Dokumentation.
+
+**Konfiguration:**
+
+1. In GeoServer unter `Security → Authentication` einen neuen Filter
+   `civitas-idm-jwt` vom Typ `jwt-headers` anlegen:
+
+   | Feld | Wert |
+   |---|---|
+   | Request header attribute for User Name | `Authorization` |
+   | Format the Header value is in | `JWT` |
+   | JSON path for the User Name | `preferred_username` |
+   | Validate JWT (Access Token) | ✅ |
+   | Validate Token Expiry | ✅ |
+   | Validate JWT (Access Token) Signature | ✅ |
+   | JSON Web Key Set URL (jwks_uri) | `https://idm.${DOMAIN}/realms/${CC_ENVIRONMENT}/protocol/openid-connect/certs` |
+   | Validate JWT (Access Token) Against Endpoint | ✅ |
+   | URL (userinfo_endpoint) | `https://idm.${DOMAIN}/realms/${CC_ENVIRONMENT}/protocol/openid-connect/userinfo` |
+   | Role Source | `Header Containing JWT` |
+   | Request Header attributes for Roles | `Authorization` |
+   | JSON Path | `resource_access.geostack.roles` |
+   | Role Converter Map | `geoAdmin=ROLE_ADMINISTRATOR;geoAdmin=ADMIN` |
+
+2. Den Filter `civitas-idm-jwt` in den Filter-Chains `rest`, `gwc` und
+   `default` verwenden (jeweils vor dem OIDC-Filter `civitas-idm-oidc`).
+
+3. Die Filter-Chain `web` bleibt unverändert mit `civitas-idm-oidc`.
+
+### Backup-Strategie (Proxmox Backup)
+
+Die CIVITAS/CORE-VM wird über den **Proxmox Backup Server (PBS)** auf
+Host-Ebene gesichert. Ein Velero-basiertes Backup innerhalb des Clusters
+ist nicht erforderlich.
+
+Der PBS-Job sichert die gesamte VM inklusive:
+- Kubernetes-Cluster-Zustand (etcd-Daten in k3s)
+- Persistente Volumes (PostgreSQL, GeoServer-Daten, etc.)
+- Zertifikate und Secrets
+
+Das Skript prüft in Phase 0, ob der PBS-Storage verfügbar ist.
+
+***
+
 ## Umgebungsvariablen — Übersicht
 
 | Variable | Pflicht | Default | Beschreibung |
 |---|---|---|---|
-| `SMTP_HOST` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
-| `SMTP_USER` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
-| `SMTP_PASS` | ja | — | Aus Umgebung; fehlt → sofortiger Abbruch |
+| `DOMAIN_NAME` | **ja** | — | Basis-Domain (aus .env.local) |
+| `LE_CERT` | nein | `false` | `true` = LE-Production-Zertifikate, `false` = nur Staging |
+| `APISIX_DASHBOARD` | nein | `false` | `true` = APISIX-Dashboard aktivieren |
+| `RUN_TESTS` | nein | `false` | `true` = E2E-Tests nach Installation ausführen |
+| `SMTP_HOST` | ja | — | SMTP-Server |
+| `SMTP_USER` | ja | — | SMTP-Benutzer |
+| `SMTP_PASS` | ja | — | SMTP-Passwort |
 | `SMTP_PORT` | nein | `587` | SMTP-Port |
-| `SMTP_FROM` | nein | `no-reply@data-dna.eu` | SMTP-Absenderadresse |
-| `ADMIN_EMAIL` | nein | `admin@data-dna.eu` | Initiale Admin-E-Mail |
-| `ADMIN_PASS` | **ja** | — | Keycloak Master- + Platform-Admin-Passwort (≥12 Zeichen, Policy-konform) |
-| `TENANT_ADMIN_PASS` | **ja** | — | Tenant-Admin-Passwort (separat von ADMIN_PASS) |
+| `SMTP_FROM` | nein | `no-reply@${DOMAIN_NAME}` | SMTP-Absenderadresse |
+| `ADMIN_EMAIL` | nein | `admin@${DOMAIN_NAME}` | Keycloak-Master-Admin |
+| `ADMIN_PASS` | **ja** | — | Keycloak-Master-Passwort |
 | `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
-| `WG_VM_PRIVATE_KEY` | **ja** | — | WireGuard PrivateKey der VM |
-| `WG_OPN_PUBLIC_KEY` | **ja** | — | WireGuard PublicKey von OPNsense |
-| `WG_OPN_ENDPOINT` | **ja** | — | Öffentliche IP:Port der OPNsense-WireGuard-Instanz |
+| `WG_VM_PRIVATE_KEY` | **ja** | — | WireGuard PrivateKey |
+| `WG_OPN_PUBLIC_KEY` | **ja** | — | WireGuard PublicKey |
+| `WG_OPN_ENDPOINT` | **ja** | — | OPNsense-WireGuard-Endpoint |
 | `WG_PRESHARED_KEY` | nein | leer | WireGuard PreSharedKey (optional) |
-| `SOHO_GATEWAY` | nein | `192.168.12.1` | Gateway für Netzwerk-Erreichbarkeitsprüfung |
-| `LOG_FILE` | nein | leer | Pfad für optionales File-Logging |
 
 Alle anderen Parameter (Versionen, Domain, Namespaces) sind in
 `01_config.sh` fest konfiguriert und werden nicht aus der Umgebung gelesen.
