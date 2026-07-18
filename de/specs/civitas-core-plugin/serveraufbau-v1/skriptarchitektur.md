@@ -1145,7 +1145,7 @@ aktiviert werden:
 | Mapfish | `inv_gd.mapfish.enable` | `false` | Print-Dienst, derzeit nicht benötigt. |
 | Velero (Backup) | `inv_op_stack.velero.enable` | `false` | Backup über Proxmox Backup Server. |
 | APISIX Dashboard | `inv_access.apisix.dashboard.enable` | `false` | APISIX-Web-UI, default deaktiviert. |
-| Monitoring Grafana (DA) | `inv_da.grafana.enable` | `false` | Operation-Stack-Grafana (monitoring.<DOMAIN>) ist aktiv. |
+| Monitoring Grafana (DA) | `inv_da.grafana.enable` | `false` | Operation-Stack-Grafana (`monitoring.<DOMAIN>`) ist aktiv. |
 
 ***
 

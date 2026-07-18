@@ -610,8 +610,6 @@ Mehrmaliges Anwenden ist unschädlich (kubectl apply ist idempotent).
 > existiert nicht mehr &ndash; alle Pr&uuml;fungen in Phase 2 und Phase 3
 > iterieren &uuml;ber das `K8S_NAMESPACES`-Array.
 
-
-
 > **Hinweis Overlay-Mechanismus (overlay_V1/)**: Statt per sed auf Textmuster
 > im geklonten Upstream-Repo zu patchen (fragil bei Repo-Änderungen), werden
 > abweichende Dateien als vollständige Kopien in `civitas_einrichtung/overlay_V1/`
@@ -953,7 +951,7 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `DOMAIN_NAME` | Basis-Domain, aus `.env.local` | `data-dna.eu` |
 | `DOMAIN` | Abgeleitet aus DOMAIN_NAME | `udp.${DOMAIN_NAME}` |
 | `LE_CERT` | LE-Production aktivieren | `false` (Default), `true` für Production |
-| `APISIX_DASHBOARD` | APISIX-Dashboard aktivieren | `false` (Default), `true` für apim.<DOMAIN> |
+| `APISIX_DASHBOARD` | APISIX-Dashboard aktivieren | `false` (Default), `true` für `apim.<DOMAIN>` |
 | `SMTP_HOST` | SMTP-Server | SMTP-Server-Hostname |
 | `SMTP_PORT` | SMTP-Port | `587` |
 | `SMTP_USER` | SMTP-Absender | `noreply@${DOMAIN_NAME}` |
