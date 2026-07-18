@@ -953,7 +953,7 @@ Passwörter und Secrets werden ausschließlich als Umgebungsvariablen
 | `DOMAIN_NAME` | Basis-Domain, aus `.env.local` | `data-dna.eu` |
 | `DOMAIN` | Abgeleitet aus DOMAIN_NAME | `udp.${DOMAIN_NAME}` |
 | `LE_CERT` | LE-Production aktivieren | `false` (Default), `true` für Production |
-| `APISIX_DASHBOARD` | APISIX-Dashboard aktivieren | `false` (Default), `true` für apim.<DOMAIN> |
+| `APISIX_DASHBOARD` | APISIX-Dashboard aktivieren | `false` (Default), `true` für `apim.<DOMAIN>` |
 | `SMTP_HOST` | SMTP-Server | SMTP-Server-Hostname |
 | `SMTP_PORT` | SMTP-Port | `587` |
 | `SMTP_USER` | SMTP-Absender | `noreply@${DOMAIN_NAME}` |
