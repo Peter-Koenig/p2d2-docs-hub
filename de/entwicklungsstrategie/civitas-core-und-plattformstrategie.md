@@ -53,6 +53,13 @@ Dieses Handbuch beschreibt Zweck, Reihenfolge und Entscheidungsgrenzen. Die konk
 - [IDM-Provisionierung und Login](../specs/civitas-core-plugin/serveraufbau-v1/idm-provisionierung-und-login) – Rollen, Identitäten und Login-Prozesse
 - [CIVITAS/CORE: technische Einordnung](../specs/civitas-core-plugin/) – Einordnung der Spezifikationsbereiche
 
+## Komponenten-Umfang: Was für p2d2 betrieben wird
+
+p2d2 nutzt die CIVITAS/CORE-Plattform als Erweiterungsplattform; nicht alle Plattform-Komponenten werden für p2d2 betrieben.
+
+- **QuantumLeap** wird derzeit nicht betrieben. Eine Bewertung erfolgt erst, wenn ein fachlicher Bedarf an historisierten, direkt datenbankseitig abfragbaren NGSI-LD-Daten besteht.
+- **FROST** wird derzeit nicht betrieben. Eine Bewertung erfolgt erst, wenn ein konkreter SensorThings-/Messdaten-Anwendungsfall vorliegt.
+
 ## CIVITAS/CORE V2: noch nicht entschieden
 
 **Status:** offene Entscheidung

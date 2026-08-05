@@ -71,6 +71,14 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 - **Frage:** Welche Themen folgen, und wer entscheidet das?
 - **Nächster Schritt:** Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen sich für das Thema engagieren; die Auswahl erfolgt im Dialog zwischen Kommune und Bürgerschaft. Ein etablierter Prozess dafür existiert noch nicht; er lässt sich finden und wird mit den ersten Gesprächen konkretisiert. Siehe [Kommunale Einführung in Deutschland](./kommunale-einfuehrung-deutschland).
 
+### QuantumLeap und FROST (Komponenten-Bewertung)
+
+- **Status:** vertagt (Bewertung erst bei fachlichem Bedarf)
+- **Kontext:** QuantumLeap und FROST werden für p2d2 derzeit nicht betrieben.
+  - **QuantumLeap** wird erst bewertet, wenn ein fachlicher Bedarf an historisierten, direkt datenbankseitig abfragbaren NGSI-LD-Daten besteht.
+  - **FROST** wird erst bewertet, wenn ein konkreter SensorThings-/Messdaten-Anwendungsfall vorliegt.
+- **Hinweis:** Damit sind die zugehörigen E2E-Tests der CIVITAS/CORE-Suite für p2d2 derzeit nicht relevant.
+
 ## Geklärte technische Entscheidungen (CIVITAS/CORE V1)
 
 Die technischen Entscheidungen für die CIVITAS/CORE-V1-Installation sind anhand des Installationsskripts (`civitas_einrichtung/install_civitas_core_V1.sh` und `modules_V1/`) sowie des Installationskontexts (`civitas_einrichtung/supplement/civitas-core-installation-context.md`) geklärt:
@@ -86,7 +94,7 @@ Die zugehörigen Spec-Seiten unter [Serveraufbau V1](../specs/civitas-core-plugi
 
 **Status:** in Arbeit
 
-Die E2E-Testsuite (pytest/Playwright, aktiviert über `RUN_TESTS=true`) schlägt überwiegend fehl, weil ein Tool zur automatischen Erstellung von Datenbanken nicht installiert wurde. Dadurch werden die Datenbank-Secrets (u. a. `QUANTUMLEAP_DB_PASSWORD`) nicht erzeugt, und die Test-Konfiguration bricht mit `KeyError` ab (Nachweis: `civitas_einrichtung/supplement/Civitas_build_E2ETests_log.txt`). Das Tool ist für den Betrieb von p2d2 unerlässlich, da p2d2 eigene PostgreSQL/PostGIS-Datenbanken benötigt.
+Die E2E-Testsuite (pytest/Playwright, aktiviert über `RUN_TESTS=true`) schlägt überwiegend fehl, weil ein Tool zur automatischen Erstellung von Datenbanken nicht installiert wurde. Dadurch werden die Datenbank-Secrets (u. a. `QUANTUMLEAP_DB_PASSWORD`) nicht erzeugt, und die Test-Konfiguration bricht mit `KeyError` ab (Nachweis: `civitas_einrichtung/supplement/Civitas_build_E2ETests_log.txt`). Ein Teil der fehlschlagenden Tests betrifft Komponenten, die für p2d2 derzeit nicht betrieben werden (QuantumLeap, FROST – siehe Eintrag oben). Das fehlende Tool zur automatischen Erstellung von Datenbanken ist unabhängig davon für den Betrieb von p2d2 unerlässlich, da p2d2 eigene PostgreSQL/PostGIS-Datenbanken benötigt.
 
 ## Bewusst nicht behauptet
 
@@ -109,3 +117,4 @@ Frühere Dokumente mit solchen Aussagen sind ins [Archiv](./archiv/roadmap-bis-2
 | 1.1 | 2026-08-05 | Lizenzmodell-Eintrag überarbeitet: p2d2 ist unter EUPL-1.2 lizenziert; CC0 als geltende Anforderung für kommunale Daten zur OSM-Rückführung ergänzt; veraltete Lizenzangaben (GPLv3, MIT, ODbL, CC-BY-SA) als solche benannt |
 | 1.2 | 2026-08-05 | IAM-Entscheidung dokumentiert (Standalone: Zitadel; AddOn: Umstellung auf Keycloak/OIDC); veraltete Lizenzangaben als nicht mehr relevant markiert (durchgestrichen); Themenfindung im Dialog (SIGs, OSM-affine Menschen) ergänzt; Status-Legende um „geklärt“ erweitert |
 | 1.3 | 2026-08-05 | Technische Entscheidungen CIVITAS/CORE V1 anhand der Installationsskripte als geklärt dokumentiert (k3s Single-Node, cert-manager/Let's Encrypt, local-path-Storage); offener Punkt E2E-Tests ergänzt (fehlendes Tool zur automatischen Datenbank-Erstellung) |
+| 1.4 | 2026-08-05 | Komponenten-Bewertung QuantumLeap und FROST ergänzt (derzeit nicht betrieben; Bewertung erst bei fachlichem Bedarf); E2E-Test-Absatz präzisiert (fehlschlagende Tests betreffen teils nicht betriebene Komponenten) |
