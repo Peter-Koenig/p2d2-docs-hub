@@ -1,4 +1,8 @@
 ---
+title: Kommunale Ebene (Archiv)
+status: archived
+archived: true
+replacedBy: ../../kommunale-einfuehrung-deutschland
 quality:
   completeness: 50
   accuracy: 70
@@ -6,6 +10,10 @@ quality:
   reviewer: null
   reviewDate: null
 ---
+
+::: warning Archiviert
+Diese Seite gehört zum Archiv des Strategie-Handbuchs und wird nicht mehr als aktuelle Strategie ausgegeben. Aktuelle Inhalte: [Kommunale Einführung in Deutschland](../../kommunale-einfuehrung-deutschland).
+:::
 
 # Kommunale Ebene
 

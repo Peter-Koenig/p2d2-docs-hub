@@ -1,4 +1,8 @@
 ---
+title: OpenSource-Philosophie (Archiv)
+status: archived
+archived: true
+replacedBy: ../leitbild-und-prinzipien
 quality:
   completeness: 50
   accuracy: 70
@@ -6,6 +10,10 @@ quality:
   reviewer: null
   reviewDate: null
 ---
+
+::: warning Archiviert
+Diese Seite gehört zum Archiv des Strategie-Handbuchs und ist nicht mehr die aktuelle Strategie. Aktuelle Inhalte: [Leitbild und Prinzipien](../leitbild-und-prinzipien).
+:::
 
 # OpenSource-Philosophie
 

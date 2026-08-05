@@ -1,4 +1,8 @@
 ---
+title: Konzept: Föderiertes IAM für das p2d2-Netzwerk (Archiv)
+status: archived
+archived: true
+replacedBy: ../civitas-core-und-plattformstrategie
 quality:
   completeness: 50
   accuracy: 50
@@ -6,6 +10,10 @@ quality:
   reviewer: Peter König
   reviewDate: 2025-12-09
 ---
+
+::: warning Archiviert
+Diese Seite gehört zum Archiv des Strategie-Handbuchs und wird nicht mehr als aktuelle Strategie ausgegeben. Aktuelle Plattformstrategie: [CIVITAS/CORE und Plattformstrategie](../civitas-core-und-plattformstrategie).
+:::
 
 # Konzept: Föderiertes IAM für das p2d2-Netzwerk
 

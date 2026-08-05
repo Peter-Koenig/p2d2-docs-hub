@@ -1,6 +1,8 @@
 ---
-status: review-needed
-review_reason: Spekulative Inhalte - auf Realitätsnähe prüfen
+title: Vision 2030 (Archiv)
+status: archived
+archived: true
+replacedBy: ../leitbild-und-prinzipien
 quality:
   completeness: 50
   accuracy: 70
@@ -8,6 +10,10 @@ quality:
   reviewer: null
   reviewDate: null
 ---
+
+::: warning Archiviert
+Diese Seite gehört zum Archiv des Strategie-Handbuchs und ist nicht mehr die aktuelle Strategie. Aktuelles Leitbild: [Leitbild und Prinzipien](../leitbild-und-prinzipien).
+:::
 
 # Vision 2030
 

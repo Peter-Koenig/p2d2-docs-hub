@@ -1,4 +1,8 @@
 ---
+title: Entwicklungs-Roadmap (Archiv)
+status: archived
+archived: true
+replacedBy: ../ptf-roadmap-2026-2027
 quality:
   completeness: 50
   accuracy: 70
@@ -6,6 +10,10 @@ quality:
   reviewer: null
   reviewDate: null
 ---
+
+::: warning Archiviert
+Diese Seite gehört zum Archiv des Strategie-Handbuchs und ist nicht mehr die aktuelle Roadmap. Aktuelle Roadmap: [PTF-Roadmap 2026–2027](../ptf-roadmap-2026-2027).
+:::
 
 # Entwicklungs-Roadmap
 

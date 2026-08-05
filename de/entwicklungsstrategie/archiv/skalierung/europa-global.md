@@ -1,4 +1,8 @@
 ---
+title: Europa & Global (Archiv)
+status: archived
+archived: true
+replacedBy: ../../europa-und-internationale-perspektive
 quality:
   completeness: 50
   accuracy: 70
@@ -6,6 +10,10 @@ quality:
   reviewer: null
   reviewDate: null
 ---
+
+::: warning Archiviert
+Diese Seite gehört zum Archiv des Strategie-Handbuchs und wird nicht mehr als aktuelle Strategie ausgegeben. Aktuelle Perspektive: [Europa und internationale Perspektive](../../europa-und-internationale-perspektive).
+:::
 
 # Europa & Global
 
