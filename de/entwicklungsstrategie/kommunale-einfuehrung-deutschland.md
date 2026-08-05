@@ -85,7 +85,7 @@ Ob und in welcher Form diese Ergebnisse eintreten, hängt von den Gesprächen un
 
 **Status:** Vorschlag für Pilotkommunen und Fachgespräche
 
-Grabflure sind der aktuelle fachliche Einstieg, weil sie räumlich klar abgrenzbar sind, kommunale Fachverantwortung haben und für Geschichte, Erinnerungskultur, Friedhofsverwaltung sowie lokale Kartierung relevant sein können.
+Grabfluren sind ein naheliegender, aber **nicht zwingender** Einstieg: Sie sind räumlich klar abgrenzbar, haben kommunale Fachverantwortung und können für Geschichte, Erinnerungskultur, Friedhofsverwaltung sowie lokale Kartierung relevant sein. Welches Thema eine Kommune bearbeitet, entscheidet sich im verwaltungsinternen und bürgerschaftlichen Dialog.
 
 #### Ziel des Piloten
 
@@ -101,9 +101,11 @@ Eine Kommune erprobt, wie Grabflur-Daten aus ihrem Fachkontext schrittweise geö
 
 Die konkrete technische und fachliche Ausgestaltung wird erst nach Abstimmung mit Pilotkommune und OSM-Community festgelegt. Für die technische Umsetzung wird auf das [Spezifikationshandbuch](../specs/) verwiesen, insbesondere auf den [Serveraufbau CIVITAS/CORE V1](../specs/civitas-core-plugin/serveraufbau-v1/).
 
-## Weitere Themen
+## Weitere Themen und Themenfindung
 
-Friedhöfe und Grabflure sind der aktuelle Einstieg. Weitere Themen können folgen, wenn eine Kommune und lokale Gruppen sie tragen. Eine Themenauswahl wird nicht zentral vorgegeben; sie entsteht aus dem lokalen Bedarf und der Bereitschaft, Daten und Verantwortung zu teilen.
+Grabfluren bieten sich als Einstieg an, sind aber **nicht zwingend vorgeschrieben**. Welches Thema eine Kommune bearbeitet, entscheidet sich im Dialog: verwaltungsintern und mit den Bürger:innen. Gefragt ist, welche Daten eine Kommune gerne mit ihren Bürger:innen teilen möchte – mit Blick auf Synergien – und welche Daten die Menschen gerne in ihre Obhut übernehmen wollen, dort wo echtes Interesse existiert.
+
+Interessensgruppen sind in der Regel SIGs (Special Interest Groups) zu einzelnen Themen – etwa Fahrradständer für Fahrradinteressierte – sowie OSM-affine Menschen. Ein etablierter Prozess für diese Themenfindung existiert noch nicht; er lässt sich finden und wird mit den ersten Gesprächen und dem Pilot konkretisiert.
 
 ## Offene Fragen
 
@@ -112,7 +114,7 @@ Die folgenden Punkte sind bewusst offen und werden im Laufe der Gespräche und d
 - **Betriebsmodell**: Wie wird p2d2 in einer Kommune betrieben und finanziert? Gibt es tragfähige Modelle für Hosting, Support und Pflege? (Siehe auch [Governance und Verstetigung](./governance-und-verstetigung).)
 - **Rollen und Rechte**: Welche Rollen braucht eine Kommune für Datenfreigabe, Qualitätssicherung und Rückmeldungen?
 - **Datenqualität**: Wie wird die Qualität freigegebener Verwaltungsdaten bewertet und verbessert?
-- **Themen nach Grabfluren**: Welche Themen eignen sich als nächste Schritte? Das entscheidet sich mit den interessierten Kommunen und lokalen Gruppen.
+- **Themenfindung**: Welche Themen eignen sich als nächste Schritte? Das entscheidet sich im Dialog – verwaltungsintern und mit der Bürgerschaft. Ein etablierter Prozess dafür existiert noch nicht; er lässt sich finden und wird mit den ersten Gesprächen konkretisiert. Interessensgruppen sind in der Regel SIGs zu einzelnen Themen sowie OSM-affine Menschen.
 - **Datenfreigabe**: Kommunale Daten, die in OpenStreetMap eingefügt werden sollen, müssen von der Kommune unter **CC0** bereitgestellt werden. Welche Daten im Einzelfall freigegeben werden dürfen (z. B. Datenschutz), klärt die Kommune mit den zuständigen Stellen. (Siehe [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen).)
 
 ## Verwandte Seiten

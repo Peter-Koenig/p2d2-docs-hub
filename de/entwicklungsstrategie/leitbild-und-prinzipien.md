@@ -30,7 +30,7 @@ p2d2 ist **kein Datenportal**. p2d2 ist ein Prozess- und Synchronisationswerkzeu
 **Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::
 
-Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg; weitere Themen können folgen, wenn eine Kommune und lokale Gruppen sie tragen.
+Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben; welches Thema bearbeitet wird, entscheidet sich im Dialog zwischen Kommune und Bürgerschaft.
 
 Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap.
 
@@ -44,7 +44,7 @@ Der Einstieg erfolgt über Geodaten, weil diese durch Visualisierbarkeit und Wie
 
 ### Lokale Themen statt zentralem Datenkatalog
 
-Der Einstieg in p2d2 ist ein konkretes Thema vor Ort, nicht ein vorgegebener Katalog von Datenkategorien. Was bearbeitet wird, bestimmt sich aus dem Zusammenkommen von kommunaler Fachverantwortung, freigabefähigen Daten und lokalem Interesse. Diese Reihenfolge ist Grundlage der aktuellen Roadmap: Zuerst wird p2d2 verständlich gemacht, dann werden Kommunen und Multiplikatoren angesprochen, danach wird ein erstes Thema als Pilot konkretisiert.
+Der Einstieg in p2d2 ist ein konkretes Thema vor Ort, nicht ein vorgegebener Katalog von Datenkategorien. Was bearbeitet wird, bestimmt sich aus dem Zusammenkommen von kommunaler Fachverantwortung, freigabefähigen Daten und lokalem Interesse – und aus dem Dialog zwischen Kommune und Bürgerschaft darüber, welche Daten geteilt werden sollen und welche die Menschen gerne in ihre Obhut übernehmen. Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben. Diese Reihenfolge ist Grundlage der aktuellen Roadmap: Zuerst wird p2d2 verständlich gemacht, dann werden Kommunen und Multiplikatoren angesprochen, danach wird ein erstes Thema als Pilot konkretisiert.
 
 ### Datenhoheit
 
@@ -59,7 +59,7 @@ p2d2 ist unter der **European Union Public Licence v1.2 (EUPL-1.2)** veröffentl
 - **Unabhängigkeit**: Verwaltungen bleiben unabhängig von einzelnen Anbietern.
 - **Nachhaltigkeit**: Software kann auch dann weiterentwickelt werden, wenn das ursprüngliche Team nicht mehr aktiv ist.
 
-Das Lizenzmodell für **Daten und Dokumentation** ist im Repository uneinheitlich dokumentiert; ältere Hinweise nennen GPLv3, CC-BY-SA 4.0, MIT oder ODbL. Diese Frage ist unter [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen) als offene Entscheidung erfasst.
+Das Lizenzmodell für **Daten und Dokumentation** ist im Repository uneinheitlich dokumentiert; ältere Hinweise (~~GPLv3, CC-BY-SA 4.0, MIT oder ODbL~~) sind veraltet und nicht mehr relevant. Die Frage ist unter [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen) als offene Entscheidung erfasst.
 
 ### OpenStreetMap als offene Datenbasis
 
@@ -86,3 +86,4 @@ Ein digitaler Zwilling von unten trägt nur, wenn beides zusammenkommt:
 | 1.1 | 2026-08-05 | Lizenzangaben korrigiert: p2d2 ist unter EUPL-1.2 veröffentlicht; CC0-Anforderung für kommunale Daten zur OSM-Rückführung (ODbL-Kompatibilität) ergänzt |
 | 1.2 | 2026-08-05 | Formel des digitalen Zwillings präzisiert: Ein einzelnes kommunales Fachverfahren ist ein belastbarer Baustein, nicht der vollständige digitale Zwilling; Darstellung als hervorgehobene Admonition-Box |
 | 1.3 | 2026-08-05 | Formel-Darstellung finalisiert: nummerierte Liste, neuer Admonition-Titel „Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen“; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |
+| 1.4 | 2026-08-05 | Veraltete Lizenzhinweise als nicht mehr relevant markiert (durchgestrichen); Grabflur-Einstieg als naheliegend, aber nicht zwingend präzisiert; Themenfindung im Dialog zwischen Kommune und Bürgerschaft ergänzt |

@@ -19,6 +19,7 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 
 ## Status-Legende
 
+- **geklärt** – Entscheidung getroffen und dokumentiert
 - **offene Entscheidung** – Grundsatzfrage, bewusst noch nicht entschieden
 - **in Prüfung** – Optionen werden untersucht, Entscheidung steht aus
 - **vertagt** – Frage wird erst nach einem definierten Zwischenschritt behandelt
@@ -42,20 +43,19 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 ### Lizenzmodell für Daten und Dokumentation
 
 - **Status:** offene Entscheidung
-- **Kontext:** p2d2 (Code) ist unter der **EUPL-1.2** lizenziert (Nachweis: `LICENSES/EUPL-1.2.txt` im p2d2-Repository und SPDX-Header in den Projekt-Dateien). Ältere Angaben im Repository sind veraltet oder widersprüchlich:
-  - `README.md` der Dokumentation nennt „Code: GPLv3, Dokumentation: CC-BY-SA 4.0“.
-  - Eine GDI-Architekturseite nennt abweichend „MIT (Code), ODbL (Daten)“.
-  - Die archivierte OpenSource-Philosophie nannte „Code: GPLv3, Daten: ODbL“.
+- **Kontext:** p2d2 (Code) ist unter der **EUPL-1.2** lizenziert (Nachweis: `LICENSES/EUPL-1.2.txt` im p2d2-Repository und SPDX-Header in den Projekt-Dateien). Ältere Angaben im Repository sind veraltet und nicht mehr relevant (durchgestrichen):
+  - ~~`README.md` der Dokumentation nennt „Code: GPLv3, Dokumentation: CC-BY-SA 4.0“.~~
+  - ~~Eine GDI-Architekturseite nennt abweichend „MIT (Code), ODbL (Daten)“.~~
+  - ~~Die archivierte OpenSource-Philosophie nannte „Code: GPLv3, Daten: ODbL“.~~
 - **Geltende Anforderung:** Kommunale Daten, die in OpenStreetMap eingefügt werden sollen, müssen von der Kommune unter **CC0** bereitgestellt werden, damit sie mit der OSM-Datenbanklizenz (ODbL) vereinbar sind.
 - **Frage:** Wie werden die Lizenzen für Daten (insbesondere p2d2-eigene Datenbestände) und Dokumentation verbindlich geregelt, damit Kommunen, OSM-Community und Nutzer:innen klare Bedingungen haben?
 - **Nächster Schritt:** Lizenzfrage mit den Projektverantwortlichen klären und im [Leitbild und Prinzipien](./leitbild-und-prinzipien) verbindlich dokumentieren.
 
 ### IAM- und Identitätsmodell
 
-- **Status:** in Prüfung
-- **Kontext:** Die technischen Spezifikationen für CIVITAS/CORE V1 setzen auf OIDC/Keycloak mit klarer Abbildung der p2d2-Rollen und Metadaten (siehe [IDM-Provisionierung und Login](../specs/civitas-core-plugin/serveraufbau-v1/idm-provisionierung-und-login)). Ein früheres Konzept für ein föderiertes IAM mit Zitadel ist ins [Archiv](./archiv/iam-zitadel-konzept) verschoben.
-- **Frage:** Welches IAM-Modell trägt den Standalone-Betrieb und das V1-AddOn langfristig? Welche Föderations- und Datenhoheitsanforderungen ergeben sich aus der Kommunen-Praxis?
-- **Nächster Schritt:** Erkenntnisse aus dem V1-Aufbau und den Kommunengesprächen auswerten; Entscheidung im Rahmen der Plattformstrategie.
+- **Status:** geklärt (2026-08-05)
+- **Entscheidung:** p2d2-Standalone nutzt **Zitadel**; der Login über „Account anlegen“ und OIDC sind implementiert und aktiv (OIDC ist am Beispiel OpenStreetMap in Benutzung). Für p2d2 als CIVITAS/CORE-AddOn wird von Zitadel auf **Keycloak/OIDC** umgestellt.
+- **Kontext:** Die V1-Spezifikation beschreibt die OIDC-/Keycloak-Integration mit klarer Abbildung der p2d2-Rollen und Metadaten (siehe [IDM-Provisionierung und Login](../specs/civitas-core-plugin/serveraufbau-v1/idm-provisionierung-und-login)). Ein früheres Konzept für ein föderiertes IAM mit Zitadel bleibt [archiviert](./archiv/iam-zitadel-konzept).
 
 ### Internationale Ausrichtung
 
@@ -67,9 +67,9 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 ### Themen nach Grabfluren
 
 - **Status:** offene Entscheidung
-- **Kontext:** Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg. Ein zentral vorgegebener Datenkatalog ist ausdrücklich nicht vorgesehen.
+- **Kontext:** Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben. Ein zentral vorgegebener Datenkatalog ist ausdrücklich nicht vorgesehen.
 - **Frage:** Welche Themen folgen, und wer entscheidet das?
-- **Nächster Schritt:** Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen sich für das Thema engagieren. Konkretisierung über die Kommunen-Ansprache und den Grabflur-Pilot. Siehe [Kommunale Einführung in Deutschland](./kommunale-einfuehrung-deutschland).
+- **Nächster Schritt:** Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen sich für das Thema engagieren; die Auswahl erfolgt im Dialog zwischen Kommune und Bürgerschaft. Ein etablierter Prozess dafür existiert noch nicht; er lässt sich finden und wird mit den ersten Gesprächen konkretisiert. Siehe [Kommunale Einführung in Deutschland](./kommunale-einfuehrung-deutschland).
 
 ## In Prüfung (technische Entscheidungen)
 
@@ -98,3 +98,4 @@ Frühere Dokumente mit solchen Aussagen sind ins [Archiv](./archiv/roadmap-bis-2
 |---|---|---|
 | 1.0 | 2026-08-05 | Neuanlage als ADR-artige Liste im Rahmen der Neustrukturierung des Strategie-Handbuchs |
 | 1.1 | 2026-08-05 | Lizenzmodell-Eintrag überarbeitet: p2d2 ist unter EUPL-1.2 lizenziert; CC0 als geltende Anforderung für kommunale Daten zur OSM-Rückführung ergänzt; veraltete Lizenzangaben (GPLv3, MIT, ODbL, CC-BY-SA) als solche benannt |
+| 1.2 | 2026-08-05 | IAM-Entscheidung dokumentiert (Standalone: Zitadel; AddOn: Umstellung auf Keycloak/OIDC); veraltete Lizenzangaben als nicht mehr relevant markiert (durchgestrichen); Themenfindung im Dialog (SIGs, OSM-affine Menschen) ergänzt; Status-Legende um „geklärt“ erweitert |

@@ -32,7 +32,7 @@ p2d2 unterstützt Kommunen dabei, Fachverfahren schrittweise mit der Öffentlich
 
 Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap.
 
-Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg. Weitere Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen – aus Verwaltung, Stadtgesellschaft, OpenStreetMap-Community, Vereinen oder Bildung – sich für das Thema engagieren.
+Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben. Weitere Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen – aus Verwaltung, Stadtgesellschaft, OpenStreetMap-Community, Vereinen oder Bildung – sich für das Thema engagieren. Die Themenwahl selbst ist Gegenstand eines Dialogs zwischen Kommune und Bürgerschaft.
 
 ## Aktueller Fokus
 
@@ -115,7 +115,7 @@ Die überarbeitete Website wird als verständliche Grundlage für Gespräche mit
 
 **Status:** Vorschlag für Pilotkommunen und Fachgespräche
 
-Grabflure sind ein geeigneter Einstieg, weil sie räumlich klar abgrenzbar sind, kommunale Fachverantwortung haben und für Geschichte, Erinnerungskultur, Friedhofsverwaltung sowie lokale Kartierung relevant sein können.
+Grabfluren sind ein naheliegender, aber **nicht zwingender** Einstieg: Sie sind räumlich klar abgrenzbar, haben kommunale Fachverantwortung und können für Geschichte, Erinnerungskultur, Friedhofsverwaltung sowie lokale Kartierung relevant sein. Welches Thema eine Kommune letztlich bearbeitet, entscheidet sich im verwaltungsinternen und bürgerschaftlichen Dialog.
 
 ### Ziel
 
@@ -140,6 +140,8 @@ p2d2 soll weiterhin eigenständig betreibbar bleiben. Parallel wird geprüft und
 ### Ausgangspunkt
 
 Die derzeitige V1-Installation muss von einer S3-orientierten Auslieferungsvariante auf die vollständig konfigurierbare V1-Variante umgestellt werden. Dadurch entsteht die technische Voraussetzung, eigene Dienste, Routen, Rollen und Geodatenkomponenten kontrolliert einzubinden.
+
+p2d2-Standalone nutzt für den Login **Zitadel** („Account anlegen“ und OIDC, beispielsweise mit OpenStreetMap). Für die V1-AddOn-Variante wird die Identitäts- und Rollenverwaltung von Zitadel auf **Keycloak/OIDC** umgestellt.
 
 ### Technische Ziele
 
@@ -208,3 +210,4 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 | 1.1 | 2026-08-05 | Übernahme in das neustrukturierte Strategie-Handbuch als PTF-Roadmap 2026–2027; Links und Querverweise an die VitePress-Struktur angepasst |
 | 1.2 | 2026-08-05 | Leitidee präzisiert: Ein kommunales Fachverfahren ist ein belastbarer Baustein für den digitalen Zwilling von unten; der digitale Zwilling entsteht schrittweise, wenn viele Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen. Formel als hervorgehobene Admonition-Box formatiert |
 | 1.3 | 2026-08-05 | Formel-Darstellung in der Leitidee finalisiert: nummerierte Liste und neuer Admonition-Titel; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |
+| 1.4 | 2026-08-05 | IAM-Sachstand ergänzt (Standalone: Zitadel mit „Account anlegen“ und OIDC, z. B. OpenStreetMap; AddOn: Umstellung auf Keycloak/OIDC); Grabflur-Pilot als naheliegend, aber nicht zwingend präzisiert; Themenwahl im Dialog zwischen Kommune und Bürgerschaft |

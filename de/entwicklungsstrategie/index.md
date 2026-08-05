@@ -37,7 +37,7 @@ p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, d
 **Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::
 
-Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg; andere Themen können folgen, wenn eine Kommune und lokale Gruppen sie tragen.
+Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben; welches Thema bearbeitet wird, entscheidet sich im Dialog zwischen Kommune und Bürgerschaft.
 
 Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap. 
 
@@ -58,7 +58,8 @@ Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der d
 - **Aktuell:** Leitbild und Prinzipien, PTF-Roadmap 2026–2027
 - **In Arbeit:** Website-Überarbeitung, damit p2d2 verständlich und einladend wird (Roadmap, Arbeitspaket 1)
 - **Geplant:** Ansprache von Kommunen und Multiplikatoren, Grabflur-Pilot, Vorbereitung von CIVITAS/CORE V1 als Erweiterungsplattform
-- **In Prüfung / offene Entscheidung:** V2-Integration, Governance- und Verstetigungsmodelle, internationale Ausrichtung, Lizenz- und IAM-Fragen
+- **Geklärt:** IAM-Modell – p2d2-Standalone nutzt Zitadel („Account anlegen“ und OIDC, z. B. OpenStreetMap); für das CIVITAS/CORE-AddOn erfolgt die Umstellung auf Keycloak/OIDC
+- **In Prüfung / offene Entscheidung:** V2-Integration, Governance- und Verstetigungsmodelle, internationale Ausrichtung, Lizenzfragen für Daten und Dokumentation
 - **Archiviert:** Frühere Roadmaps, Vision 2030, IAM-Konzept und Skalierungsentwürfe – nachvollziehbar unter [Archiv](./archiv/roadmap-bis-2025)
 
 ## Abgrenzung zu den Spezifikationen
