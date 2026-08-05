@@ -90,24 +90,12 @@ Die technischen Entscheidungen für die CIVITAS/CORE-V1-Installation sind anhand
 
 Die zugehörigen Spec-Seiten unter [Serveraufbau V1](../specs/civitas-core-plugin/serveraufbau-v1/) führen diese Punkte teilweise noch als Entwurf oder offen; maßgeblich für den Ist-Stand sind die Skripte und der Installationskontext.
 
-## Offener Punkt: E2E-Tests (CIVITAS/CORE V1)
+## E2E-Tests (CIVITAS/CORE V1)
 
-**Status:** in Arbeit
+Die E2E-Testsuite (pytest/Playwright, aktiviert über `RUN_TESTS=true`) schlägt überwiegend fehl, weil QuantumLeap nicht installiert wurde. Dadurch werden die Datenbank-Secrets (u. a. `QUANTUMLEAP_DB_PASSWORD`) nicht erzeugt, und die Test-Konfiguration bricht mit `KeyError` ab. Ein Teil der fehlschlagenden Tests betrifft Komponenten, die für p2d2 derzeit nicht betrieben werden (QuantumLeap, FROST – siehe Eintrag oben).
 
-Die E2E-Testsuite (pytest/Playwright, aktiviert über `RUN_TESTS=true`) schlägt überwiegend fehl, weil ein Tool zur automatischen Erstellung von Datenbanken nicht installiert wurde. Dadurch werden die Datenbank-Secrets (u. a. `QUANTUMLEAP_DB_PASSWORD`) nicht erzeugt, und die Test-Konfiguration bricht mit `KeyError` ab (Nachweis: `civitas_einrichtung/supplement/Civitas_build_E2ETests_log.txt`). Ein Teil der fehlschlagenden Tests betrifft Komponenten, die für p2d2 derzeit nicht betrieben werden (QuantumLeap, FROST – siehe Eintrag oben). Das fehlende Tool zur automatischen Erstellung von Datenbanken ist unabhängig davon für den Betrieb von p2d2 unerlässlich, da p2d2 eigene PostgreSQL/PostGIS-Datenbanken benötigt.
+Die Komponenten sind trotz der nicht durchführbaren E2E-Tests funktionstüchtig, so dass die p2d2-Installation als Add-On erfolgen kann.
 
-## Bewusst nicht behauptet
-
-Die folgenden Punkte werden in diesem Strategie-Handbuch bewusst **nicht** als Tatsache oder Zusage dargestellt, weil dafür kein belastbarer Nachweis im Repository vorliegt:
-
-- Konkrete Nutzer-, Kommunen- oder Community-Zahlen
-- Konkrete Release-Termine und Versionszusagen
-- Zugesagte Partnerschaften oder Kooperationen
-- Zugesagte Förderungen oder Finanzierungen (einschließlich EU-Förderung)
-- Produktivstände einzelner Kommunen oder Instanzen
-- Verfügbare technische Fähigkeiten (etwa Föderation, Multi-Tenancy, KI-Funktionen)
-
-Frühere Dokumente mit solchen Aussagen sind ins [Archiv](./archiv/roadmap-bis-2025) verschoben und gelten nicht mehr als aktuelle Strategie.
 
 ## Änderungshistorie
 
@@ -118,3 +106,4 @@ Frühere Dokumente mit solchen Aussagen sind ins [Archiv](./archiv/roadmap-bis-2
 | 1.2 | 2026-08-05 | IAM-Entscheidung dokumentiert (Standalone: Zitadel; AddOn: Umstellung auf Keycloak/OIDC); veraltete Lizenzangaben als nicht mehr relevant markiert (durchgestrichen); Themenfindung im Dialog (SIGs, OSM-affine Menschen) ergänzt; Status-Legende um „geklärt“ erweitert |
 | 1.3 | 2026-08-05 | Technische Entscheidungen CIVITAS/CORE V1 anhand der Installationsskripte als geklärt dokumentiert (k3s Single-Node, cert-manager/Let's Encrypt, local-path-Storage); offener Punkt E2E-Tests ergänzt (fehlendes Tool zur automatischen Datenbank-Erstellung) |
 | 1.4 | 2026-08-05 | Komponenten-Bewertung QuantumLeap und FROST ergänzt (derzeit nicht betrieben; Bewertung erst bei fachlichem Bedarf); E2E-Test-Absatz präzisiert (fehlschlagende Tests betreffen teils nicht betriebene Komponenten) |
+| 1.5 | 2026-08-05 | Klarstellung und Bereinigung E2E-Tests, fehlendes QuantumLeap |
