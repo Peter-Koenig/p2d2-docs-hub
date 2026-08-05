@@ -49,7 +49,7 @@ p2d2 bleibt fachlich eigenständig. Eine CIVITAS/CORE-Integration darf nicht daz
 Dieses Handbuch beschreibt Zweck, Reihenfolge und Entscheidungsgrenzen. Die konkreten Installations-, Konfigurations- und Abnahmedetails stehen in den Spezifikationen:
 
 - [Serveraufbau CIVITAS/CORE V1](../specs/civitas-core-plugin/serveraufbau-v1/) – Übersicht
-- [Zielbild und Abgrenzung](../specs/civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung) – Geltungsbereich und offene technische Entscheidungen
+- [Zielbild und Abgrenzung](../specs/civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung) – Geltungsbereich und getroffene Entscheidungen
 - [IDM-Provisionierung und Login](../specs/civitas-core-plugin/serveraufbau-v1/idm-provisionierung-und-login) – Rollen, Identitäten und Login-Prozesse
 - [CIVITAS/CORE: technische Einordnung](../specs/civitas-core-plugin/) – Einordnung der Spezifikationsbereiche
 

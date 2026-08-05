@@ -71,13 +71,22 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 - **Frage:** Welche Themen folgen, und wer entscheidet das?
 - **Nächster Schritt:** Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen sich für das Thema engagieren; die Auswahl erfolgt im Dialog zwischen Kommune und Bürgerschaft. Ein etablierter Prozess dafür existiert noch nicht; er lässt sich finden und wird mit den ersten Gesprächen konkretisiert. Siehe [Kommunale Einführung in Deutschland](./kommunale-einfuehrung-deutschland).
 
-## In Prüfung (technische Entscheidungen)
+## Geklärte technische Entscheidungen (CIVITAS/CORE V1)
 
-Technische Entscheidungen gehören in die Spezifikationen. Die folgenden Punkte sind dort als offene Entscheidungen erfasst und werden hier nur zur Orientierung gelistet:
+Die technischen Entscheidungen für die CIVITAS/CORE-V1-Installation sind anhand des Installationsskripts (`civitas_einrichtung/install_civitas_core_V1.sh` und `modules_V1/`) sowie des Installationskontexts (`civitas_einrichtung/supplement/civitas-core-installation-context.md`) geklärt:
 
-- **Kubernetes-Distribution** für die CIVITAS/CORE-V1-Installation (Single-Node vs. Multi-Node) – siehe [Zielbild und Abgrenzung](../specs/civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung).
-- **TLS-Strategie** (eigenständiges Zertifikat vs. Terminierung über den bestehenden Reverse-Proxy) – siehe [Zielbild und Abgrenzung](../specs/civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung) und [Netzwerk, DNS und TLS](../specs/civitas-core-plugin/serveraufbau-v1/netzwerk-dns-tls).
-- **Storage-Provider** für die Plugin-VM – siehe [Zielbild und Abgrenzung](../specs/civitas-core-plugin/serveraufbau-v1/zielbild-und-abgrenzung).
+- **Kubernetes-Distribution:** **k3s v1.32.3, Single-Node** – Traefik deaktiviert, nginx-Ingress nachinstalliert (`modules_V1/04_k3s.sh`, `01_config.sh`).
+- **TLS-Strategie:** **cert-manager** mit zweistufigem Issuer – interner `selfsigned-issuer` für Bootstrap, Let's Encrypt Staging und Production (Umschaltung über `LE_CERT`) (`modules_V1/05_addons.sh`, `06a_network_certs.sh`).
+- **Storage:** **local-path** (k3s-Default-StorageClass, RWO) für alle Storage-Klassen (`STORAGECLASS_RWO/RWX/LOC=local-path` in `01_config.sh`).
+- **Gastbetriebssystem:** Debian 13 (Trixie); **DNS:** interne Auflösung über Pi-hole/Unbound; **Betriebsmodus:** Entwicklungs-/Evaluationsumgebung (Single-Node, kein HA).
+
+Die zugehörigen Spec-Seiten unter [Serveraufbau V1](../specs/civitas-core-plugin/serveraufbau-v1/) führen diese Punkte teilweise noch als Entwurf oder offen; maßgeblich für den Ist-Stand sind die Skripte und der Installationskontext.
+
+## Offener Punkt: E2E-Tests (CIVITAS/CORE V1)
+
+**Status:** in Arbeit
+
+Die E2E-Testsuite (pytest/Playwright, aktiviert über `RUN_TESTS=true`) schlägt überwiegend fehl, weil ein Tool zur automatischen Erstellung von Datenbanken nicht installiert wurde. Dadurch werden die Datenbank-Secrets (u. a. `QUANTUMLEAP_DB_PASSWORD`) nicht erzeugt, und die Test-Konfiguration bricht mit `KeyError` ab (Nachweis: `civitas_einrichtung/supplement/Civitas_build_E2ETests_log.txt`). Das Tool ist für den Betrieb von p2d2 unerlässlich, da p2d2 eigene PostgreSQL/PostGIS-Datenbanken benötigt.
 
 ## Bewusst nicht behauptet
 
@@ -99,3 +108,4 @@ Frühere Dokumente mit solchen Aussagen sind ins [Archiv](./archiv/roadmap-bis-2
 | 1.0 | 2026-08-05 | Neuanlage als ADR-artige Liste im Rahmen der Neustrukturierung des Strategie-Handbuchs |
 | 1.1 | 2026-08-05 | Lizenzmodell-Eintrag überarbeitet: p2d2 ist unter EUPL-1.2 lizenziert; CC0 als geltende Anforderung für kommunale Daten zur OSM-Rückführung ergänzt; veraltete Lizenzangaben (GPLv3, MIT, ODbL, CC-BY-SA) als solche benannt |
 | 1.2 | 2026-08-05 | IAM-Entscheidung dokumentiert (Standalone: Zitadel; AddOn: Umstellung auf Keycloak/OIDC); veraltete Lizenzangaben als nicht mehr relevant markiert (durchgestrichen); Themenfindung im Dialog (SIGs, OSM-affine Menschen) ergänzt; Status-Legende um „geklärt“ erweitert |
+| 1.3 | 2026-08-05 | Technische Entscheidungen CIVITAS/CORE V1 anhand der Installationsskripte als geklärt dokumentiert (k3s Single-Node, cert-manager/Let's Encrypt, local-path-Storage); offener Punkt E2E-Tests ergänzt (fehlendes Tool zur automatischen Datenbank-Erstellung) |
