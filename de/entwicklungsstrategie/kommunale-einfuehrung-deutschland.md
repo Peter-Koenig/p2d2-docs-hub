@@ -32,7 +32,7 @@ Welches Thema bearbeitet wird, bestimmt sich aus dem Zusammenkommen dieser vier 
 ## Was eine Kommune mitbringt
 
 - **Ein kommunales Fachverfahren**: ein Verwaltungsbereich mit fachlicher Verantwortung, zum Beispiel die Friedhofsverwaltung.
-- **Freigabefähige Daten**: Daten aus diesem Fachverfahren, die unter welchen Bedingungen auch immer bereitgestellt werden können.
+- **Freigabefähige Daten**: Daten aus diesem Fachverfahren, die die Kommune unter **CC0** bereitstellt. CC0 ist die Voraussetzung dafür, dass die Daten in OpenStreetMap (ODbL) eingefügt werden können.
 - **Fachliche Verantwortung**: eine Stelle, die Daten freigibt, pflegt und Rückmeldungen in ihre Prozesse aufnimmt.
 - **Menschen mit lokalem Interesse**: OpenStreetMap-Community, Vereine, Bildungseinrichtungen, Stadtgesellschaft – Menschen, die das Thema mit Wissen und Engagement tragen.
 
@@ -108,7 +108,7 @@ Die folgenden Punkte sind bewusst offen und werden im Laufe der Gespräche und d
 - **Rollen und Rechte**: Welche Rollen braucht eine Kommune für Datenfreigabe, Qualitätssicherung und Rückmeldungen?
 - **Datenqualität**: Wie wird die Qualität freigegebener Verwaltungsdaten bewertet und verbessert?
 - **Themen nach Grabfluren**: Welche Themen eignen sich als nächste Schritte? Das entscheidet sich mit den interessierten Kommunen und lokalen Gruppen.
-- **Lizenzierung**: Unter welcher Lizenz können kommunale Daten bereitgestellt werden? (Siehe [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen).)
+- **Datenfreigabe**: Kommunale Daten, die in OpenStreetMap eingefügt werden sollen, müssen von der Kommune unter **CC0** bereitgestellt werden. Welche Daten im Einzelfall freigegeben werden dürfen (z. B. Datenschutz), klärt die Kommune mit den zuständigen Stellen. (Siehe [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen).)
 
 ## Verwandte Seiten
 

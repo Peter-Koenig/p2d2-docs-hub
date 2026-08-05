@@ -42,11 +42,12 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 ### Lizenzmodell für Daten und Dokumentation
 
 - **Status:** offene Entscheidung
-- **Kontext:** Im Repository finden sich unterschiedliche Angaben:
-  - `README.md`: Code unter GPLv3, Dokumentation unter CC-BY-SA 4.0.
+- **Kontext:** p2d2 (Code) ist unter der **EUPL-1.2** lizenziert (Nachweis: `LICENSES/EUPL-1.2.txt` im p2d2-Repository und SPDX-Header in den Projekt-Dateien). Ältere Angaben im Repository sind veraltet oder widersprüchlich:
+  - `README.md` der Dokumentation nennt „Code: GPLv3, Dokumentation: CC-BY-SA 4.0“.
   - Eine GDI-Architekturseite nennt abweichend „MIT (Code), ODbL (Daten)“.
   - Die archivierte OpenSource-Philosophie nannte „Code: GPLv3, Daten: ODbL“.
-- **Frage:** Wie sind Daten- und Dokumentationslizenz verbindlich zu regeln, damit Kommunen, OSM-Community und Nutzer:innen klare Bedingungen haben?
+- **Geltende Anforderung:** Kommunale Daten, die in OpenStreetMap eingefügt werden sollen, müssen von der Kommune unter **CC0** bereitgestellt werden, damit sie mit der OSM-Datenbanklizenz (ODbL) vereinbar sind.
+- **Frage:** Wie werden die Lizenzen für Daten (insbesondere p2d2-eigene Datenbestände) und Dokumentation verbindlich geregelt, damit Kommunen, OSM-Community und Nutzer:innen klare Bedingungen haben?
 - **Nächster Schritt:** Lizenzfrage mit den Projektverantwortlichen klären und im [Leitbild und Prinzipien](./leitbild-und-prinzipien) verbindlich dokumentieren.
 
 ### IAM- und Identitätsmodell
@@ -96,3 +97,4 @@ Frühere Dokumente mit solchen Aussagen sind ins [Archiv](./archiv/roadmap-bis-2
 | Version | Datum | Änderung |
 |---|---|---|
 | 1.0 | 2026-08-05 | Neuanlage als ADR-artige Liste im Rahmen der Neustrukturierung des Strategie-Handbuchs |
+| 1.1 | 2026-08-05 | Lizenzmodell-Eintrag überarbeitet: p2d2 ist unter EUPL-1.2 lizenziert; CC0 als geltende Anforderung für kommunale Daten zur OSM-Rückführung ergänzt; veraltete Lizenzangaben (GPLv3, MIT, ODbL, CC-BY-SA) als solche benannt |

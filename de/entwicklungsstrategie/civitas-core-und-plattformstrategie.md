@@ -64,7 +64,7 @@ Diese Fragen sind bewusst vertagt und unter [Entscheidungen und offene Fragen](.
 ## Offene Entscheidungen im Umfeld
 
 - **IAM und Identitäten:** Welches Identitäts- und Rollenmodell trägt Standalone und V1-AddOn langfristig? Die V1-Spezifikation setzt auf Keycloak/OIDC; ein älteres Zitadel-Föderationskonzept ist [archiviert](./archiv/iam-zitadel-konzept).
-- **Lizenzmodell:** Wie sind Daten- und Dokumentationslizenzen verbindlich zu regeln? Der Bestand ist hier widersprüchlich.
+- **Lizenzmodell:** p2d2 ist unter der **EUPL-1.2** lizenziert. Offen ist, wie die Lizenzen für Daten und Dokumentation verbindlich geregelt werden. Für kommunale Daten, die in OpenStreetMap eingefügt werden sollen, gilt **CC0** als Voraussetzung für die Kompatibilität mit der OSM-Datenbanklizenz (ODbL).
 - **Betrieb und Finanzierung:** Welche tragfähigen Modelle gibt es für Hosting, Support und Pflege in Kommunen? (Siehe [Governance und Verstetigung](./governance-und-verstetigung).)
 
 ## Verwandte Seiten

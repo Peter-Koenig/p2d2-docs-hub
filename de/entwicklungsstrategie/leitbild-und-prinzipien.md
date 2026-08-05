@@ -49,18 +49,18 @@ Kommunen und Organisationen behalten die Kontrolle über ihre Daten und über di
 
 ### Open Source
 
-Der Code von p2d2 ist unter der **GNU General Public License v3.0 (GPLv3)** veröffentlicht. Offener Quellcode ermöglicht:
+p2d2 ist unter der **European Union Public Licence v1.2 (EUPL-1.2)** veröffentlicht (Nachweis: `LICENSES/EUPL-1.2.txt` im p2d2-Repository). Offener Quellcode ermöglicht:
 
 - **Transparenz**: Nachvollziehbarkeit, wie Daten und Prozesse funktionieren.
 - **Sicherheit**: Öffentliche Prüfung findet Schwachstellen schneller.
 - **Unabhängigkeit**: Verwaltungen bleiben unabhängig von einzelnen Anbietern.
 - **Nachhaltigkeit**: Software kann auch dann weiterentwickelt werden, wenn das ursprüngliche Team nicht mehr aktiv ist.
 
-Das Lizenzmodell für **Daten und Dokumentation** ist im Repository nicht eindeutig belegt (genannt werden ODbL, CC-BY-SA 4.0 und abweichende Angaben). Diese Frage ist unter [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen) als offene Entscheidung erfasst.
+Das Lizenzmodell für **Daten und Dokumentation** ist im Repository uneinheitlich dokumentiert; ältere Hinweise nennen GPLv3, CC-BY-SA 4.0, MIT oder ODbL. Diese Frage ist unter [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen) als offene Entscheidung erfasst.
 
 ### OpenStreetMap als offene Datenbasis
 
-OpenStreetMap ist die zentrale offene Datenplattform, mit der p2d2 zusammenarbeitet. Datenmodelle, Herkunft, Review, Export und Referenzen (beispielsweise eine INSPIRE-Referenz über `de:inspireid`) werden mit der OSM-Community abgestimmt, damit Unterschiede zwischen Verwaltungsdaten und OSM-Daten nachvollziehbar bleiben.
+OpenStreetMap ist die zentrale offene Datenplattform, mit der p2d2 zusammenarbeitet. Daten, die in OpenStreetMap eingefügt werden sollen, müssen von der Kommune unter **CC0** bereitgestellt werden, damit sie mit der OSM-Datenbanklizenz (ODbL) vereinbar sind. Datenmodelle, Herkunft, Review, Export und Referenzen (beispielsweise eine INSPIRE-Referenz über `de:inspireid`) werden mit der OSM-Community abgestimmt, damit Unterschiede zwischen Verwaltungsdaten und OSM-Daten nachvollziehbar bleiben.
 
 ### Fachliche Verantwortung und Beteiligung
 
@@ -80,3 +80,4 @@ Ein digitaler Zwilling von unten trägt nur, wenn beides zusammenkommt:
 | Version | Datum | Änderung |
 |---|---|---|
 | 1.0 | 2026-08-05 | Neufassung als Leitbild- und Prinzipienseite im Rahmen der Neustrukturierung des Strategie-Handbuchs; ersetzt die archivierte OpenSource-Philosophie und spekulative Vision-Inhalte |
+| 1.1 | 2026-08-05 | Lizenzangaben korrigiert: p2d2 ist unter EUPL-1.2 veröffentlicht; CC0-Anforderung für kommunale Daten zur OSM-Rückführung (ODbL-Kompatibilität) ergänzt |

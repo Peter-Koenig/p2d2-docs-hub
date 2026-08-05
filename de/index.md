@@ -83,7 +83,7 @@ p2d2 synchronisiert offene Verwaltungsdaten mit öffentlichen Datenplattformen w
 
 ### Kernprinzipien
 
-- **🔓 Open Source**: Vollständig quelloffen unter GPLv3
+- **🔓 Open Source**: Vollständig quelloffen unter EUPL-1.2
 - **🌐 Standardkonform**: OGC-konforme GDI nach GDI-DE-Prinzipien
 - **👥 Community-getrieben**: Bürger:innen als aktive Datenerfasser
 - **🔄 Bidirektional**: Synchronisation zwischen Verwaltung und Öffentlichkeit
