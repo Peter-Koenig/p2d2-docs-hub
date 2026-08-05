@@ -21,11 +21,10 @@ Sie ist kein Katalog verbindlich zugesagter Funktionen und kein Ersatz für tech
 
 p2d2 unterstützt Kommunen dabei, Fachverfahren schrittweise mit der Öffentlichkeit zu verbinden. Der Einstieg beginnt nicht mit einem starren Datenkatalog, sondern mit einem konkreten Thema vor Ort:
 
-::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen:
-1. Ein kommunales Fachverfahren
+::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft drei Dinge zusammen kommen:
+1. Das kommunale Fachverfahren, das geteilt werden soll
 2. freigabefähige Daten
-3. fachliche Verantwortung
-4. Menschen mit lokalem Interesse
+3. Menschen mit lokalem Interesse
 
 **Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::

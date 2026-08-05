@@ -21,11 +21,10 @@ p2d2 ist **kein Datenportal**. p2d2 ist ein Prozess- und Synchronisationswerkzeu
 
 ### Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**
 
-::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen:
-1. Ein kommunales Fachverfahren
+::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft drei Dinge zusammen kommen:
+1. Das kommunale Fachverfahren, das geteilt werden soll
 2. freigabefähige Daten
-3. fachliche Verantwortung
-4. Menschen mit lokalem Interesse
+3. Menschen mit lokalem Interesse
 
 **Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::
