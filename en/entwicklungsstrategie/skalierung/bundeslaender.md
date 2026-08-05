@@ -1,7 +1,7 @@
 ---
 quality:
-  completeness: 50
-  accuracy: 70
+  completeness: 0
+  accuracy: 0
   reviewed: false
   reviewer: null
   reviewDate: null
