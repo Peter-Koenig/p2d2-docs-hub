@@ -24,7 +24,7 @@ Das Strategie-Handbuch beschreibt, wohin sich p2d2 entwickelt, warum und in welc
 
 ## Was ist p2d2?
 
-p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, das Kommunen, OpenStreetMap-Community und interessierte Menschen dabei unterstützt, öffentliche Geodaten schrittweise gemeinsam sichtbar, nachvollziehbar und pflegbar zu machen.
+p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, daa die öffentliche Verwaltung, die OpenStreetMap-Community und interessierte Menschen dabei unterstützt, öffentliche Geodaten schrittweise gemeinsam sichtbar, nachvollziehbar und gleichermaßen von der Verwaltung und der Öffentlichkeit pflegbar zu machen - jeweils in ihren Zuständigkeiten.
 
 ### Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**
 
