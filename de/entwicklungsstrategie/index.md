@@ -28,15 +28,20 @@ p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, d
 
 Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**:
 
-```text
-Ein kommunales Fachverfahren
-+ freigabefähige Daten
-+ fachliche Verantwortung
-+ Menschen mit lokalem Interesse
-= ein digitaler Zwilling von unten
-```
+::: tip Digitaler Zwilling von unten
+Ein Baustein entsteht, wenn vier Dinge zusammenkommen:
+
+- ein kommunales Fachverfahren
+- freigabefähige Daten
+- fachliche Verantwortung
+- Menschen mit lokalem Interesse
+
+**Ergebnis: ein belastbarer Baustein für einen digitalen Zwilling von unten**
+:::
 
 Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg; andere Themen können folgen, wenn eine Kommune und lokale Gruppen sie tragen.
+
+Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in OpenStreetMap. Zielbild ist, dass öffentlich relevante Objekte nachvollziehbar 1:1 den Objekten der Verwaltung entsprechen – Unterschiede zwischen OSM- und Verwaltungsdaten bleiben dabei bewusst erkennbar.
 
 ## Aufbau des Handbuchs
 
