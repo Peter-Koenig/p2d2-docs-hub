@@ -40,7 +40,7 @@ Eine Idee dabei ist, dass nach einer initialen Synchonisation eines Fachverfahre
 
 Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben; welches Thema bearbeitet wird, entscheidet sich im Dialog zwischen Kommune und Bürgerschaft.
 
-Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap. 
+Der digitale Zwilling entsteht dann schrittweise: Wenn im Laufe der Zeit immer mehr Fachverfahren einer Kommune, eines Landes oder eines EU-Staates in der OpenStreetMap bidirektional abgeglichen werden, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune, des Landes, des Staates und der EU in der OpenStreetMap. 
 
 ## Aufbau des Handbuchs
 
