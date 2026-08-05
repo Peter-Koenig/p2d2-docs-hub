@@ -17,22 +17,22 @@ Diese Seite beschreibt, wie eine Kommune in Deutschland mit p2d2 starten kann: �
 
 ## Ausgangspunkt: ein lokales Thema statt eines Datenkatalogs
 
-Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem konkreten Thema vor Ort. Der Ansatz heißt **„digitaler Zwilling von unten“**:
+Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem konkreten Thema vor Ort.
 
-::: tip Digitaler Zwilling von unten
-Ein Baustein entsteht, wenn vier Dinge zusammenkommen:
+### Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**
 
-- ein kommunales Fachverfahren
-- freigabefähige Daten
-- fachliche Verantwortung
-- Menschen mit lokalem Interesse
+::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen:
+1. Ein kommunales Fachverfahren
+2. freigabefähige Daten
+3. fachliche Verantwortung
+4. Menschen mit lokalem Interesse
 
-**Ergebnis: ein belastbarer Baustein für einen digitalen Zwilling von unten**
+**Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::
 
 Welches Thema bearbeitet wird, bestimmt sich aus dem Zusammenkommen dieser vier Bausteine – nicht aus einer vorgegebenen Liste.
 
-Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in OpenStreetMap. Zielbild ist, dass öffentlich relevante Objekte nachvollziehbar 1:1 den Objekten der Verwaltung entsprechen – Unterschiede zwischen OSM- und Verwaltungsdaten bleiben dabei bewusst erkennbar.
+Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap.
 
 ## Was eine Kommune mitbringt
 

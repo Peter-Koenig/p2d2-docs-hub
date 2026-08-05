@@ -19,22 +19,20 @@ Dieses Dokument beschreibt, wofür p2d2 steht und nach welchen Prinzipien die En
 
 p2d2 ist **kein Datenportal**. p2d2 ist ein Prozess- und Synchronisationswerkzeug, das Kommunen, OpenStreetMap-Community und interessierte Menschen dabei unterstützt, öffentliche Geodaten schrittweise gemeinsam sichtbar, nachvollziehbar und pflegbar zu machen.
 
-Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**:
+### Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**
 
-::: tip Digitaler Zwilling von unten
-Ein Baustein entsteht, wenn vier Dinge zusammenkommen:
+::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen:
+1. Ein kommunales Fachverfahren
+2. freigabefähige Daten
+3. fachliche Verantwortung
+4. Menschen mit lokalem Interesse
 
-- ein kommunales Fachverfahren
-- freigabefähige Daten
-- fachliche Verantwortung
-- Menschen mit lokalem Interesse
-
-**Ergebnis: ein belastbarer Baustein für einen digitalen Zwilling von unten**
+**Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::
 
 Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg; weitere Themen können folgen, wenn eine Kommune und lokale Gruppen sie tragen.
 
-Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in OpenStreetMap. Zielbild ist, dass öffentlich relevante Objekte nachvollziehbar 1:1 den Objekten der Verwaltung entsprechen – Unterschiede zwischen OSM- und Verwaltungsdaten bleiben dabei bewusst erkennbar.
+Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap.
 
 ## Data-DNA
 
@@ -87,3 +85,4 @@ Ein digitaler Zwilling von unten trägt nur, wenn beides zusammenkommt:
 | 1.0 | 2026-08-05 | Neufassung als Leitbild- und Prinzipienseite im Rahmen der Neustrukturierung des Strategie-Handbuchs; ersetzt die archivierte OpenSource-Philosophie und spekulative Vision-Inhalte |
 | 1.1 | 2026-08-05 | Lizenzangaben korrigiert: p2d2 ist unter EUPL-1.2 veröffentlicht; CC0-Anforderung für kommunale Daten zur OSM-Rückführung (ODbL-Kompatibilität) ergänzt |
 | 1.2 | 2026-08-05 | Formel des digitalen Zwillings präzisiert: Ein einzelnes kommunales Fachverfahren ist ein belastbarer Baustein, nicht der vollständige digitale Zwilling; Darstellung als hervorgehobene Admonition-Box |
+| 1.3 | 2026-08-05 | Formel-Darstellung finalisiert: nummerierte Liste, neuer Admonition-Titel „Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen“; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |

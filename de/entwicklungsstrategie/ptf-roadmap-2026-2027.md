@@ -21,18 +21,16 @@ Sie ist kein Katalog verbindlich zugesagter Funktionen und kein Ersatz für tech
 
 p2d2 unterstützt Kommunen dabei, Fachverfahren schrittweise mit der Öffentlichkeit zu verbinden. Der Einstieg beginnt nicht mit einem starren Datenkatalog, sondern mit einem konkreten Thema vor Ort:
 
-::: tip Digitaler Zwilling von unten
-Ein Baustein entsteht, wenn vier Dinge zusammenkommen:
+::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen:
+1. Ein kommunales Fachverfahren
+2. freigabefähige Daten
+3. fachliche Verantwortung
+4. Menschen mit lokalem Interesse
 
-- ein kommunales Fachverfahren
-- freigabefähige Daten
-- fachliche Verantwortung
-- Menschen mit lokalem Interesse
-
-**Ergebnis: ein belastbarer Baustein für einen digitalen Zwilling von unten**
+**Ergebnis:** ein belastbarer Baustein für den **digitalen Zwilling von unten**
 :::
 
-Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in OpenStreetMap. Zielbild ist, dass öffentlich relevante Objekte nachvollziehbar 1:1 den Objekten der Verwaltung entsprechen – Unterschiede zwischen OSM- und Verwaltungsdaten bleiben dabei bewusst erkennbar.
+Ein einzelnes Thema ist dabei noch kein vollständiger digitaler Zwilling. Der digitale Zwilling entsteht schrittweise: Wenn zunehmend mehr kommunale Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen, wächst aus vielen fachlichen Bausteinen eine gemeinschaftlich gepflegte, immer vollständigere Abbildung der Kommune in der OpenStreetMap.
 
 Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg. Weitere Themen entstehen dort, wo eine Kommune Daten bereitstellen möchte und Menschen – aus Verwaltung, Stadtgesellschaft, OpenStreetMap-Community, Vereinen oder Bildung – sich für das Thema engagieren.
 
@@ -209,3 +207,4 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 | 1.0 | 2026-08-05 | Neufassung: aktuelle Roadmap mit Website-Überarbeitung, kommunaler Validierung, Grabflur-Pilot, CIVITAS/CORE-V1-Integration und fortlaufender Evidenzdokumentation |
 | 1.1 | 2026-08-05 | Übernahme in das neustrukturierte Strategie-Handbuch als PTF-Roadmap 2026–2027; Links und Querverweise an die VitePress-Struktur angepasst |
 | 1.2 | 2026-08-05 | Leitidee präzisiert: Ein kommunales Fachverfahren ist ein belastbarer Baustein für den digitalen Zwilling von unten; der digitale Zwilling entsteht schrittweise, wenn viele Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen. Formel als hervorgehobene Admonition-Box formatiert |
+| 1.3 | 2026-08-05 | Formel-Darstellung in der Leitidee finalisiert: nummerierte Liste und neuer Admonition-Titel; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |
