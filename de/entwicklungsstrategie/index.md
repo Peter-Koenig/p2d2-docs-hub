@@ -1,7 +1,11 @@
 ---
+title: Entwicklungsstrategie
+description: Übersicht über Leitbild, Roadmap, strategische Schwerpunkte und offene Entscheidungen von p2d2
+status: active
+lastUpdated: 2026-08-05
 quality:
-  completeness: 50
-  accuracy: 70
+  completeness: 80
+  accuracy: 85
   reviewed: false
   reviewer: null
   reviewDate: null
@@ -9,78 +13,58 @@ quality:
 
 # Entwicklungsstrategie
 
-Die Entwicklungsstrategie von p2d2 beschreibt die langfristige Vision und die schrittweise Skalierung des Projekts.
+Das Strategie-Handbuch beschreibt, wohin sich p2d2 entwickelt, warum und in welcher Reihenfolge. Es unterscheidet ausdrücklich zwischen:
 
-## Mission
+- **aktuell** – geltende Aussagen und laufende Arbeit
+- **in Arbeit** – begonnene, noch nicht abgeschlossene Schritte
+- **geplant** – vorgesehene Schritte mit definierter Reihenfolge
+- **in Prüfung** – Optionen, über die noch nicht entschieden ist
+- **offene Entscheidung** – bewusst vertagte Grundsatzfragen
+- **archiviert** – historische Inhalte, die nicht mehr als aktuelle Strategie gelten
 
-**p2d2 schafft eine Brücke zwischen offenen Verwaltungsdaten und Bürgerdaten durch eine standardkonforme, skalierbare Geodateninfrastruktur.**
+## Was ist p2d2?
 
-## Kernziele
+p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, das Kommunen, OpenStreetMap-Community und interessierte Menschen dabei unterstützt, öffentliche Geodaten schrittweise gemeinsam sichtbar, nachvollziehbar und pflegbar zu machen.
 
-### Technische Exzellenz
+Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**:
 
-- **OGC-Konformität**: Einhaltung offener Standards
-- **Performance**: Skalierung auf Millionen Features
-- **Sicherheit**: Schutz sensibler Daten
-- **Usability**: Intuitive Bedienung für alle Nutzergruppen
+```text
+Ein kommunales Fachverfahren
++ freigabefähige Daten
++ fachliche Verantwortung
++ Menschen mit lokalem Interesse
+= ein digitaler Zwilling von unten
+```
 
-### Community-Building
+Eine Kommune startet nicht mit einem zentral vorgegebenen Datenkatalog, sondern mit einem lokalen Thema, für das Daten, Fachverantwortung und echtes Interesse zusammenkommen. Friedhöfe und Grabflure sind der aktuelle fachliche Einstieg; andere Themen können folgen, wenn eine Kommune und lokale Gruppen sie tragen.
 
-- **Open Source**: Transparente Entwicklung
-- **Partizipation**: Bürger:innen als Co-Creator
-- **Qualität**: Community-getriebene Qualitätssicherung
+## Aufbau des Handbuchs
 
-### Geografische Expansion
+| Seite | Inhalt |
+|---|---|
+| [Leitbild und Prinzipien](./leitbild-und-prinzipien) | Digitaler Zwilling von unten, Data-DNA, Datenhoheit, Open Source, OSM und lokale Themen statt zentralem Datenkatalog |
+| [PTF-Roadmap 2026–2027](./ptf-roadmap-2026-2027) | Der aktuelle verbindliche Arbeitsweg: Website → Ansprache → Pilot → CIVITAS/CORE V1 → Evidenz für die Prototype-Fund-Second-Stage |
+| [Kommunale Einführung in Deutschland](./kommunale-einfuehrung-deutschland) | Wie eine Kommune ein Fachverfahren, einen Datensatz, ein Thema und eine lokale Community findet |
+| [CIVITAS/CORE und Plattformstrategie](./civitas-core-und-plattformstrategie) | Standalone-Betrieb plus V1-AddOn, V2 erst nach Praxiserfahrung, Abgrenzung zu technischen Spezifikationen |
+| [Europa und internationale Perspektive](./europa-und-internationale-perspektive) | Europa als mittelfristiger Fokus; die globale Perspektive ist langfristig und partnerorientiert |
+| [Governance und Verstetigung](./governance-und-verstetigung) | Verein, offene Governance, Beratungsgesellschaft und europäische Dachstruktur – klar als Perspektive, nicht als beschlossenes Ergebnis |
+| [Entscheidungen und offene Fragen](./entscheidungen-und-offene-fragen) | ADR-artige Liste offener Strategieentscheidungen und bewusst vertagter Fragen |
 
-- **Lokal**: Köln als Pilotstadt
-- **Regional**: NRW und weitere Bundesländer
-- **National**: Deutschland-weite Abdeckung
-- **International**: Europäische und globale Skalierung
+## Aktueller Stand im Überblick
 
-## Entwicklungs-Phasen
+- **Aktuell:** Leitbild und Prinzipien, PTF-Roadmap 2026–2027
+- **In Arbeit:** Website-Überarbeitung, damit p2d2 verständlich und einladend wird (Roadmap, Arbeitspaket 1)
+- **Geplant:** Ansprache von Kommunen und Multiplikatoren, Grabflur-Pilot, Vorbereitung von CIVITAS/CORE V1 als Erweiterungsplattform
+- **In Prüfung / offene Entscheidung:** V2-Integration, Governance- und Verstetigungsmodelle, internationale Ausrichtung, Lizenz- und IAM-Fragen
+- **Archiviert:** Frühere Roadmaps, Vision 2030, IAM-Konzept und Skalierungsentwürfe – nachvollziehbar unter [Archiv](./archiv/roadmap-bis-2025)
 
-### Phase 1: Proof of Concept (2024)
+## Abgrenzung zu den Spezifikationen
 
-**Status**: Abgeschlossen
+Dieses Handbuch beschreibt Zweck, Reihenfolge und Entscheidungsgrenzen. Technische Installationsdetails gehören nicht hierher, sondern ins [Spezifikationshandbuch](../specs/) – insbesondere unter [Serveraufbau CIVITAS/CORE V1](../specs/civitas-core-plugin/serveraufbau-v1/). Das Strategie-Handbuch verlinkt auf diese Spezifikationen, wo sie für die Strategie relevant sind.
 
-- Friedhöfe in Köln
-- Grundlegende GDI
-- Prototyp Frontend
+## Weiterführende Dokumente
 
-### Phase 2: Produktion (2025)
-
-**Status**: In Arbeit
-
-- Weitere Kategorien (Blumenbeete, Denkmäler)
-- Stabile API
-- QC-Workflow
-- OSM-Integration
-
-### Phase 3: Skalierung (2026)
-
-**Status**: Geplant
-
-- Weitere Kommunen (Bonn, ...)
-- Landesebene (NRW, SH)
-- WikiData-Integration
-- uMap-Integration
-
-### Phase 4: Europa (2027+)
-
-**Status**: Vision
-
-- EU-weite Instanzen
-- INSPIRE-Konformität
-- Mehrsprachigkeit
-- Föderation
-
-## Navigation
-
-- [Vision 2030](./vision) - Langfristige Ziele
-- [OpenSource-Philosophie](./opensource-philosophie) - Werte und Prinzipien
-- [Skalierung](./skalierung/kategorien) - Wachstumsstrategie
-- [Roadmap](./roadmap) - Konkrete Entwicklungsschritte
-
-::: tip Mitgestalten
-p2d2 lebt von der Community. Bringen Sie sich ein!
-:::
+- [Benutzerhandbuch](../benutzerhandbuch/)
+- [Verwaltungshandbuch](../verwaltungshandbuch/)
+- [Administrationshandbuch](../administrationshandbuch/)
+- [Spezifikationshandbuch](../specs/)
