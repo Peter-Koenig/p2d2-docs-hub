@@ -43,7 +43,7 @@ features:
     link: /de/administrationshandbuch/
   - icon: 🚀
     title: Entwicklungsstrategie
-    details: Vision, Skalierungspläne und die OpenSource-Philosophie hinter p2d2.
+    details: Leitbild, Roadmap und strategische Schwerpunkte von p2d2.
     link: /de/entwicklungsstrategie/
   - icon: 💻
     title: Entwicklungs-Handbuch

@@ -534,37 +534,12 @@ export const sidebar_de = {
     ],
     "/de/entwicklungsstrategie/": [
         {
-            text: "Vision & Philosophie",
+            text: "Grundlagen",
             items: [
                 { text: "Übersicht", link: "/de/entwicklungsstrategie/" },
                 {
-                    text: "Vision 2030",
-                    link: "/de/entwicklungsstrategie/vision",
-                },
-                {
-                    text: "OpenSource-Philosophie",
-                    link: "/de/entwicklungsstrategie/opensource-philosophie",
-                },
-            ],
-        },
-        {
-            text: "Skalierung",
-            items: [
-                {
-                    text: "Kategorien",
-                    link: "/de/entwicklungsstrategie/skalierung/kategorien",
-                },
-                {
-                    text: "Kommunen",
-                    link: "/de/entwicklungsstrategie/skalierung/kommunen",
-                },
-                {
-                    text: "Bundesländer",
-                    link: "/de/entwicklungsstrategie/skalierung/bundeslaender",
-                },
-                {
-                    text: "Europa & Global",
-                    link: "/de/entwicklungsstrategie/skalierung/europa-global",
+                    text: "Leitbild und Prinzipien",
+                    link: "/de/entwicklungsstrategie/leitbild-und-prinzipien",
                 },
             ],
         },
@@ -572,12 +547,82 @@ export const sidebar_de = {
             text: "Roadmap",
             items: [
                 {
-                    text: "Roadmap",
-                    link: "/de/entwicklungsstrategie/roadmap",
+                    text: "PTF-Roadmap 2026–2027",
+                    link: "/de/entwicklungsstrategie/ptf-roadmap-2026-2027",
+                },
+            ],
+        },
+        {
+            text: "Strategische Schwerpunkte",
+            items: [
+                {
+                    text: "Kommunale Einführung in Deutschland",
+                    link: "/de/entwicklungsstrategie/kommunale-einfuehrung-deutschland",
+                },
+                {
+                    text: "CIVITAS/CORE und Plattformstrategie",
+                    link: "/de/entwicklungsstrategie/civitas-core-und-plattformstrategie",
+                },
+                {
+                    text: "Europa und internationale Perspektive",
+                    link: "/de/entwicklungsstrategie/europa-und-internationale-perspektive",
+                },
+                {
+                    text: "Governance und Verstetigung",
+                    link: "/de/entwicklungsstrategie/governance-und-verstetigung",
+                },
+            ],
+        },
+        {
+            text: "Entscheidungen",
+            items: [
+                {
+                    text: "Entscheidungen und offene Fragen",
+                    link: "/de/entwicklungsstrategie/entscheidungen-und-offene-fragen",
+                },
+            ],
+        },
+        {
+            text: "Archiv",
+            collapsed: true,
+            items: [
+                {
+                    text: "Roadmap bis 2025",
+                    link: "/de/entwicklungsstrategie/archiv/roadmap-bis-2025",
+                },
+                {
+                    text: "Vision 2030",
+                    link: "/de/entwicklungsstrategie/archiv/vision-2030",
+                },
+                {
+                    text: "OpenSource-Philosophie",
+                    link: "/de/entwicklungsstrategie/archiv/opensource-philosophie",
                 },
                 {
                     text: "IAM - Zitadel (Konzept)",
-                    link: "/de/entwicklungsstrategie/iam-zitadel-konzept",
+                    link: "/de/entwicklungsstrategie/archiv/iam-zitadel-konzept",
+                },
+                {
+                    text: "Skalierung",
+                    collapsed: true,
+                    items: [
+                        {
+                            text: "Kategorien",
+                            link: "/de/entwicklungsstrategie/archiv/skalierung/kategorien",
+                        },
+                        {
+                            text: "Kommunen",
+                            link: "/de/entwicklungsstrategie/archiv/skalierung/kommunen",
+                        },
+                        {
+                            text: "Bundesländer",
+                            link: "/de/entwicklungsstrategie/archiv/skalierung/bundeslaender",
+                        },
+                        {
+                            text: "Europa & Global",
+                            link: "/de/entwicklungsstrategie/archiv/skalierung/europa-global",
+                        },
+                    ],
                 },
             ],
         },
