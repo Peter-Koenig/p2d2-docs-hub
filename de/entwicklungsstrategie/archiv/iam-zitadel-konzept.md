@@ -1,5 +1,5 @@
 ---
-title: Konzept: Föderiertes IAM für das p2d2-Netzwerk (Archiv)
+title: "Konzept: Föderiertes IAM für das p2d2-Netzwerk (Archiv)"
 status: archived
 archived: true
 replacedBy: ../civitas-core-und-plattformstrategie
