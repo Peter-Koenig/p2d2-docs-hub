@@ -24,9 +24,13 @@ Das Strategie-Handbuch beschreibt, wohin sich p2d2 entwickelt, warum und in welc
 
 ## Was ist p2d2?
 
-p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, daa die öffentliche Verwaltung, die OpenStreetMap-Community und interessierte Menschen dabei unterstützt, öffentliche Geodaten schrittweise gemeinsam sichtbar, nachvollziehbar und gleichermaßen von der Verwaltung und der Öffentlichkeit pflegbar zu machen - jeweils in ihren Zuständigkeiten.
+p2d2 ist kein Datenportal. p2d2 ist ein Prozess- und Synchronisationswerkzeug, das die öffentliche Verwaltung, die OpenStreetMap-Community und interessierte Menschen dabei unterstützt, öffentliche Geodaten schrittweise gemeinsam sichtbar, gemeinsam nutzbar und gleichermaßen von der Verwaltung und der Öffentlichkeit pflegbar zu machen - jeweils in ihren Zuständigkeiten mit nachfolgender Synchronisation.
 
-### Der zentrale Ansatz heißt **„digitaler Zwilling von unten“**
+Eine Idee dabei ist, dass nach einer initialen Synchonisation eines Fachverfahrens einer Kommune, einer Landes- oder Bundesbehörde, die nachfolgenden Detail-Änderungen zwar stetig, aber gering sind. Dadurch ist auch der Aufwand zur Pflege gering und in zunehmenden Teilen auch automatisierbar sein, so dass am Ende möglichst nur noch die jeweiligen Abweichungen nach zu pflegen sind.
+
+p2d2 will die Plattform sein, die die initale Synchonisation ermöglicht, indem sie die Angleichungs-Arbeiten und einen qualitätsgesicherten Austausch der Daten ermöglicht.
+
+### Am Ende ist das Ziel einen **„digitaler Zwilling von unten“** zu schaffen
 
 ::: tip Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen:
 1. Ein kommunales Fachverfahren
