@@ -86,7 +86,7 @@ Die technischen Entscheidungen für die CIVITAS/CORE-V1-Installation sind anhand
 - **Kubernetes-Distribution:** **k3s v1.32.3, Single-Node** – Traefik deaktiviert, nginx-Ingress nachinstalliert (`modules_V1/04_k3s.sh`, `01_config.sh`).
 - **TLS-Strategie:** **cert-manager** mit zweistufigem Issuer – interner `selfsigned-issuer` für Bootstrap, Let's Encrypt Staging und Production (Umschaltung über `LE_CERT`) (`modules_V1/05_addons.sh`, `06a_network_certs.sh`).
 - **Storage:** **local-path** (k3s-Default-StorageClass, RWO) für alle Storage-Klassen (`STORAGECLASS_RWO/RWX/LOC=local-path` in `01_config.sh`).
-- **Gastbetriebssystem:** Debian 13 (Trixie); **DNS:** interne Auflösung über Pi-hole/Unbound; **Betriebsmodus:** Entwicklungs-/Evaluationsumgebung (Single-Node, kein HA).
+- **Gastbetriebssystem:** Debian 13 (Trixie); **DNS:** Split Horizon, interne Auflösung über Pi-hole/Unbound, externe Auflösung Hetzner OPNSense/HAProxy(SSL-Passthrough)-Wireguard; **Betriebsmodus:** Entwicklungs-/Evaluationsumgebung (Single-Node, kein HA).
 
 Die zugehörigen Spec-Seiten unter [Serveraufbau V1](../specs/civitas-core-plugin/serveraufbau-v1/) führen diese Punkte teilweise noch als Entwurf oder offen; maßgeblich für den Ist-Stand sind die Skripte und der Installationskontext.
 
