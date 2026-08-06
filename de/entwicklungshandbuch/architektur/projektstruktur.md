@@ -1,9 +1,10 @@
 ---
 title: Projektstruktur
-description: Verzeichnisorganisation und Dateistruktur von p2d2
+description: Verzeichnisorganisation und Dateistruktur von p2d2 – belegter Ist-Zustand auf Basis des Quellcodes
+lastUpdated: 2026-08-06
 quality:
-  completeness: 0
-  accuracy: 0
+  completeness: 80
+  accuracy: 85
   reviewed: false
   reviewer: null
   reviewDate: null
@@ -11,90 +12,131 @@ quality:
 
 # Projektstruktur
 
-> **Status:** 🚧 Dokumentation in Arbeit
+Dieses Dokument beschreibt die aktuelle Verzeichnisorganisation von p2d2 auf Basis des Quellcodes. Es nennt nur Dateien und Verzeichnisse, die durch gelesene Quelldateien oder belegte Importe nachweisbar sind. Frühere, nicht belegbare Strukturbeschreibungen (z. B. `map-utils.ts`, `data-utils.ts`, `storage-utils.ts`, ein eigenes Map- oder Admin-Layout) wurden entfernt.
 
-## Verzeichnis-Übersicht
+## Quellcode-Baum (Ist-Zustand)
 
-Die p2d2-Projektstruktur folgt einem klaren, modularen Aufbau:
-
-```
+```text
 p2d2/
-├── src/                    # Quellcode-Hauptverzeichnis
-│   ├── components/         # Wiederverwendbare UI-Komponenten
-│   ├── layouts/           # Seitenlayouts und Templates
-│   ├── pages/             # Routen und Seiten
-│   ├── content/           # Content Collections
-│   ├── styles/            # Globale Styles und CSS
-│   └── utils/             # Hilfsfunktionen und Utilities
-├── public/                # Statische Assets
-├── dist/                  # Build-Ausgabe
-└── package.json           # Projekt-Konfiguration
+├── src/
+│   ├── components/                 # UI- und Karten-Komponenten
+│   │   ├── Header.astro            # Hauptnavigation, Login/Logout, rollenabhängige Menüs
+│   │   ├── Footer.astro            # Fußzeile mit Collections (socialmedia, intern, repositories, copyright)
+│   │   ├── HeroSection.astro       # Hero-Bereich mit Video-Hintergrund und Inhalt aus hero.md
+│   │   ├── OpenLayersMap.astro     # Karten-Sektion: Header-Links, MapCanvas, Scroll-Listener
+│   │   ├── MapCanvas.astro         # OpenLayers-Hauptkarte, CRS-Umschaltung, WFS/Popup-Integration
+│   │   ├── Kategorien.astro        # Einzelne Kategorie-Karte (Foto, Gradient, data-category-slug)
+│   │   ├── KategorienGrid.astro    # Raster der Themenkategorien mit Klick-Auswahl
+│   │   ├── KommunenGrid.astro      # Raster der Kommunen mit data-kommune-map und Click-Handler
+│   │   ├── WerteGrid.astro         # Werte-Raster der Startseite
+│   │   ├── Werte.astro             # Einzelne Werte-Karte (Import aus WerteGrid)
+│   │   ├── EventConsole.ts         # Debug-Overlay zur Live-Beobachtung protokollierter Events
+│   │   ├── feature-editor/         # Generischer Feature-Editor
+│   │   │   ├── EditorState.ts      # Reaktiver Editor-State, Dirty-Tracking, Multi-Selection
+│   │   │   ├── EditorApp.ts        # Editor-Orchestrierung (Map, Layer, Daten, Interaktion, UI)
+│   │   │   ├── FeatureEditorHeader.astro    # Editor-Header (Import aus [featureId].astro)
+│   │   │   ├── NavigationControls.astro     # Navigations-Controls (Import)
+│   │   │   ├── LayerControls.astro          # Layer-Steuerung (Import)
+│   │   │   ├── Toolbar.astro                # Werkzeugleiste (Import)
+│   │   │   ├── MapManager.ts                # Karten-Manager (Import aus EditorApp)
+│   │   │   ├── EditorLayerManager.ts        # Layer-Manager (Import)
+│   │   │   ├── EditorDataManager.ts         # Daten-Manager (Import)
+│   │   │   ├── EditorInteractionManager.ts  # Interaktions-Manager (Import)
+│   │   │   ├── EditorUIManager.ts           # UI-Manager (Import)
+│   │   │   └── grabflur/                    # Grabflur-Editor (rollenbeschränkt)
+│   │   │       ├── GrabflurEditorApp.ts     # Grabflur-Editor-Orchestrierung
+│   │   │       ├── GrabflurSessionManager.ts# Session-State-Maschine (openSession/commitAndClose/abortSession)
+│   │   │       ├── GrabflurMapManager.ts    # Karten-Manager (Import)
+│   │   │       ├── GrabflurLayerManager.ts  # Layer-Manager (Import)
+│   │   │       ├── GrabflurDataManager.ts   # Daten-Manager (Import)
+│   │   │       ├── GrabflurInteractionManager.ts # Interaktions-Manager (Import)
+│   │   │       └── GrabflurUIManager.ts     # UI-Manager (Import)
+│   │   └── ...
+│   ├── layouts/
+│   │   └── BaseLayout.astro        # Grundlayout mit Props (title, description, showFooter) und Slots (header, default)
+│   ├── pages/
+│   │   ├── index.astro             # Startseite: Karte, Grids mit Tab-Umschaltung, WerteGrid, EventConsole-Init
+│   │   ├── feature-editor/
+│   │   │   └── [featureId].astro   # Generischer Feature-Editor (URL-Parameter wp_name, container_type, name, extent, projection)
+│   │   └── verwaltung/
+│   │       └── grabflur-editor.astro # Grabflur-Editor (Rolle verwaltung, Session-Metadaten für Kommune)
+│   ├── utils/
+│   │   ├── events.ts               # Typisiertes Event-System (P2D2EventType, P2D2EventMap, dispatchP2D2Event, Queue/Retry, Persistenz)
+│   │   ├── cross-window-events.ts  # Cross-Window-Bridge (postMessage, Same-Origin, Editor-Fenster-Registry)
+│   │   ├── map-state.ts            # Globaler Karten-State (selectedKommune, selectedCategory, CRS, subscribe)
+│   │   ├── kommunen-click-handler.ts # Klick-Handler für Kommunen-Karten (KOMMUNEN_FOCUS, Persistenz)
+│   │   ├── wfs-layer-manager.ts    # Reaktive WFS-Schicht (mapState-Subscription, CQL, Signatur, Request-Lock)
+│   │   ├── feature-popup-handler.ts# Klick auf Friedhof, Grabflur-Prüfung, Editor-Öffnung oder Info-Popup
+│   │   ├── kategorie-utils.ts      # getAllKategorien (Import aus index.astro)
+│   │   ├── kommune-utils.ts        # KommuneData, getKommuneBySlug (Import aus grabflur-editor.astro)
+│   │   ├── tab-persistence.ts      # getPersistedTab/setPersistedTab (Import aus index.astro)
+│   │   ├── crs.ts                  # registerUtm, toNewViewPreservingScale, Koordinatenprüfungen (Import aus MapCanvas)
+│   │   ├── utm-resolutions.ts      # calculateUtmResolutions, isUtmProjection (Import aus MapCanvas)
+│   │   ├── wfs-auth.ts             # wfsAuthClient (buildWFSURL, fetchWFS, testConnection – Import aus MapCanvas/WFSLayerManager)
+│   │   └── ...
+│   ├── lib/
+│   │   └── auth/
+│   │       └── session.ts          # getUserSession (Import aus Header, index.astro, grabflur-editor.astro)
+│   ├── content/                    # Astro Content Collections und Markdown-Inhalte
+│   │   ├── hero.md                 # Hero-Inhalt (Claim) für HeroSection
+│   │   ├── kategorien/             # Collection "kategorien"
+│   │   ├── kommunen/               # Collection "kommunen"
+│   │   ├── werte/                  # Collection "werte"
+│   │   ├── socialmedia/            # Collection "socialmedia"
+│   │   ├── intern/                 # Collection "intern"
+│   │   ├── resources/              # Collection "resources"
+│   │   ├── repositories/           # Collection "repositories"
+│   │   └── copyright/              # Collection "copyright"
+│   ├── styles/
+│   │   ├── global.css              # Globale Styles (Import aus BaseLayout)
+│   │   ├── feature-popup.css       # Popup-Styles (Import aus MapCanvas und Feature-Editor)
+│   │   └── feature-editor.css      # Editor-Styles (Import aus Feature- und Grabflur-Editor)
+│   └── content.config.ts           # Collection-Definitionen (Zod-Schemata für alle Collections)
+├── public/                         # Statische Assets (Bilder, Videos, Favicons – im Code referenziert)
+├── package.json                    # Projekt-Konfiguration und Skripte
+├── astro.config.mjs                # Astro-Konfiguration
+└── tailwind.config.js              # TailwindCSS-Konfiguration
 ```
 
-## Hauptverzeichnisse
+## Zuständigkeiten der relevanten Komponenten
 
-### src/components/
-Wiederverwendbare Astro-Komponenten für die Benutzeroberfläche:
-- **Map-Komponenten**: Karten-Rendering und Interaktion
-- **UI-Elemente**: Buttons, Formulare, Navigation
-- **Layout-Komponenten**: Header, Footer, Sidebars
+### Startseite (`src/pages/index.astro`)
 
-### src/layouts/
-Seitenlayouts und Templates:
-- **Base-Layout**: Grundlayout für alle Seiten
-- **Map-Layout**: Spezielles Layout für Karten-Seiten
-- **Admin-Layout**: Layout für Administrations-Bereiche
+- Lädt `kategorien` und erzeugt das versteckte Element `#category-data` mit `data-category-map` für den WFSLayerManager.
+- Bindet `HeroSection`, `OpenLayersMap`, `KommunenGrid`/`KategorienGrid` (mit Tab-Umschaltung und Swipe-Unterstützung) sowie `WerteGrid` ein.
+- Stellt die Tab-Auswahl wieder her (`tab-persistence`) und initialisiert die EventConsole bei `?debug=events`.
 
-### src/pages/
-Astro-Routen und Seiten:
-- **Statische Seiten**: Über uns, Impressum, etc.
-- **Dynamische Routen**: Kommunen-spezifische Seiten
-- **API-Endpoints**: Server-seitige Funktionen
+### Karten-Komponenten
 
-### src/content/
-Content Collections für strukturierte Daten:
-- **kommunen/**: Daten der unterstützten Kommunen
-- **config/**: Konfigurationsdateien
-- **geodata/**: Geodaten-Metadaten
+- **`OpenLayersMap.astro`**: Karten-Sektion mit „Kommune / Kategorie auswählen“-Links und Scroll-Listenern auf `p2d2:kommunen:focus` und `p2d2:category:selected`.
+- **`MapCanvas.astro`**: Initialisiert die OpenLayers-Karte (Basiskarte OSM, View-Projektion aus `mapState.getConfig().defaultCRS`, optionale UTM-Auflösungen, FullScreen-Control), instanziiert `WFSLayerManager` und `FeaturePopupHandler`, realisiert CRS-Umschaltung und die Wiederherstellung des gespeicherten Kartenzustands.
 
-### src/utils/
-Hilfsfunktionen und Utilities:
-- **map-utils.ts**: Karten-bezogene Funktionen
-- **data-utils.ts**: Datenverarbeitung
-- **storage-utils.ts**: Lokale Speicherung
+### Auswahl-Grids
 
-## Build-Prozess
+- **`KommunenGrid.astro`**: Rendert Kommunen-Karten, bettet Kartendaten als `data-detail` und Kommunen-Metadaten als `data-kommune-map` ein, initialisiert den `KommunenClickHandler`.
+- **`KategorienGrid.astro`**: Rendert Kategorie-Karten; der Klick-Handler setzt `mapState.setSelectedCategory` und dispatcht `CATEGORY_SELECTED`.
 
-### Development
-- **Development-Server**: Vite Dev Server
-- **Hot-Reload**: Automatisches Neuladen bei Änderungen
-- **TypeScript**: Echtzeit-Kompilierung
+### Event-System und Debugging
 
-### Production
-- **Static Generation**: Astro Build für statische Seiten
-- **Optimization**: Code-Splitting und Asset-Optimierung
-- **Deployment**: Automatisierte Bereitstellung
+- **`src/utils/events.ts`**: Fachebene des Event-Systems (typisierte Events, Dispatcher, Listener, Queue/Retry, Persistenzhelfer).
+- **`src/utils/cross-window-events.ts`**: Cross-Window-Ebene (lokale und fensterübergreifende Events, Same-Origin-Prüfung, Editor-Fenster-Registry).
+- **`src/components/EventConsole.ts`**: Debug-Overlay, protokolliert ausschließlich Events, die `logToEventConsole()` erreichen.
 
-## Konfigurationsdateien
+### Editor-Pfade
 
-### package.json
-- Projekt-Metadaten und Abhängigkeiten
-- Build-Scripts und Development-Commands
-- TypeScript-Konfiguration
+- **Feature-Editor** (`src/pages/feature-editor/[featureId].astro`): Validierte URL-Parameter, `EditorApp` orchestriert State, Karte, Layer, Daten, Interaktion und UI; `EditorState` verwaltet den reaktiven Editor-State inklusive Dirty-Tracking.
+- **Grabflur-Editor** (`src/pages/verwaltung/grabflur-editor.astro`): Rollenbeschränkt (`verwaltung`), bestimmt Kommune und räumlichen Kontext aus der Session; `GrabflurEditorApp` orchestriert die Sub-Manager, `GrabflurSessionManager` steuert den Session-Lifecycle über die Workflow-API.
 
-### astro.config.mjs
-- Astro Framework-Konfiguration
-- Integrationen und Plugins
-- Build-Einstellungen
+## Nicht enthalten
 
-### tailwind.config.js
-- TailwindCSS-Konfiguration
-- Design-Tokens und Farbpalette
-- Responsive Breakpoints
+Folgende Strukturen aus früheren Fassungen sind **nicht** durch den Quellcode belegt und wurden entfernt:
 
-## Nächste Schritte
+- `src/utils/map-utils.ts`, `src/utils/data-utils.ts`, `src/utils/storage-utils.ts` in dieser Form
+- `src/layouts/MapLayout.astro`, `src/layouts/AdminLayout.astro`
+- Eigene `src/content/config/`- oder `src/content/geodata/`-Unterverzeichnisse (die Content-Struktur ist über `content.config.ts` definiert)
 
-- [ ] Detaillierte Komponenten-Struktur dokumentieren
-- [ ] Content Collections vollständig beschreiben
-- [ ] Build-Prozess im Detail dokumentieren
-- [ ] Deployment-Struktur hinzufügen
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |

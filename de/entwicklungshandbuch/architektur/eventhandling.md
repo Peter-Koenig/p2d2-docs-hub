@@ -1,327 +1,177 @@
 ---
 title: Event Handling & Cross-Window Kommunikation
-description: Architektur und Implementierung des Event-Systems mit Cross-Window-Kommunikation in p2d2
+description: Kanonische Architektur des Event-Systems mit drei Ebenen, Grenzen, Debugging und Cross-Window-Kommunikation
+lastUpdated: 2026-08-06
 quality:
   completeness: 85
   accuracy: 85
-  reviewed: true
-  reviewer: Peter König
-  reviewDate: 2025-12-17
+  reviewed: false
+  reviewer: null
+  reviewDate: null
 ---
 
 # Event Handling & Cross-Window Kommunikation
 
-## Übersicht
+Dieses Dokument beschreibt die kanonische Architektur des Event-Systems in p2d2. Es trennt drei Ebenen klar voneinander und definiert, welche Ebene für welche Art der Kommunikation zuständig ist. Die Beschreibung entspricht dem aktuellen Quellcode (`src/utils/events.ts`, `src/utils/cross-window-events.ts`, `src/components/EventConsole.ts`).
 
-Das Event-System in p2d2 ermöglicht eine robuste, asynchrone Kommunikation zwischen verschiedenen Komponenten der Anwendung und unterstützt insbesondere die bidirektionale Kommunikation zwischen Hauptfenster und Editor-Fenstern. Das System basiert auf einem CustomEvent-basierten Ansatz mit erweiterten Funktionen wie Retry-Mechanismen, Throttling und Cross-Window-Propagation.
+## Die drei Event-Ebenen
 
-## Architektur-Konzept
+### Ebene A: Lokale UI-Interaktion
 
-### Kernkomponenten
+Lokale Interaktionen innerhalb einer Komponente oder einer Seite nutzen **lokale DOM-Events** und **lokalen Komponenten-State**. Sie benötigen keine fachlichen p2d2-Events.
 
-1. **Event Dispatcher**: Zentrale Klasse für Event-Dispatching mit Throttling-Unterstützung
-2. **Event Console**: Debugging-Oberfläche für Live-Event-Überwachung mit Filter- und Export-Funktionen
-3. **Cross-Window Bridge**: Bidirektionale Kommunikation zwischen Browser-Fenstern
-4. **Event Queue**: Retry-Mechanismus für zuverlässige Event-Verarbeitung
+Beispiele aus dem Code:
 
-### Datenfluss-Architektur
+- Tab-Umschaltung zwischen Kommunen- und Kategorien-Grid in `src/pages/index.astro` (klickbasierte `switchTab()`-Funktion, Swipe-Gesten auf dem Grid-Container).
+- Scroll-Verhalten der Karten-Sektion in `src/components/OpenLayersMap.astro` (Listener auf `p2d2:kommunen:focus` und `p2d2:category:selected` lösen Scrollen aus; `scrollToSelectionHeader` wird global exponiert).
+- Lokaler Editor-State in `src/components/feature-editor/EditorState.ts` (Setter mit `notifyListeners()` und reaktivem `ReactiveEditorState`).
 
-```
-┌────────────────────┐      ┌──────────────────────┐      ┌──────────────────┐
-│   Hauptfenster     │      │  Cross-Window Bridge │      │  Editor-Fenster  │
-│                    │      │                      │      │                  │
-│  • Event Console   │ ◄────┤  • initialize()      │────► │ • Event Console  │
-│  • Event Dispatch  │      │  • registerWindow()  │      │ • Event Dispatch │
-│  • Event Listener  │      │  • broadcastEvent()  │      │ • Event Listener │
-└────────────────────┘      └──────────────────────┘      └──────────────────┘
-         │                            │                               │
-         └────────────────────────────┼───────────────────────────────┘
-                                      │
-                          ┌───────────▼────────────┐
-                          │ window.postMessage()   │ 
-                          │ (Same-Origin Policy)   │ 
-                          └────────────────────────┘
-```
+Für lokale UI-Interaktion sind direkte DOM-Events ausdrücklich erlaubt und der Standardweg.
 
-## Debugging in der Produktionsumgebung
+### Ebene B: Fachliche Hauptfenster-Events (`src/utils/events.ts`)
 
-Die EventConsole ist auch auf www.data-dna.eu verfügbar:
+Fachliche Ereignisse im Hauptfenster werden über das typisierte Event-System in `src/utils/events.ts` abgewickelt.
 
-**Aktivierung:**
-1. **Via URL:** Füge `?debug=events` hinzu: `https://www.data-dna.eu?debug=events`
-2. **Via Keyboard:** Drücke `Ctrl+Shift+E` (Windows/Linux) oder `Cmd+Shift+E` (Mac)
+Zentrale Bausteine:
 
-**Nutzung:**
-- Toggle: `Ctrl+Shift+E`
-- Filter: Textfeld oben rechts
-- Export: "Copy JSON" Button für Bug-Reports
+- `P2D2EventType` – Enum aller fachlichen Event-Namen (Präfix `p2d2:`).
+- `P2D2EventMap` – typsichere Zuordnung von Event-Typ zu Detail-Interface.
+- `dispatchP2D2Event(eventType, detail, { throttleMs })` – typsicherer Dispatcher mit Throttling.
+- `addP2D2EventListener(eventType, handler, options)` – typsicherer Listener mit HMR-Guard.
+- `logToEventConsole(eventName, detail, meta)` – protokolliert Ereignisse in der EventConsole, sofern diese verfügbar ist.
 
-## Event-Typologie
+Eingebaute Robustheit:
 
-### Kategorien und Prioritäten
+- **Throttling**: Standard-`THROTTLE_MS = 200 ms`; pro Event-Typ wird der letzte Dispatch-Zeitpunkt gespeichert. Aufrufer können `throttleMs: 0` setzen, um Throttling für einen Aufruf zu deaktivieren (z. B. `kommunen-click-handler` und `KategorienGrid` für `KOMMUNEN_FOCUS`/`CATEGORY_SELECTED`).
+- **Queue und Retry**: Ereignisse werden bei nicht bereitem Event-System in eine Warteschlange gelegt und bis zu `MAX_RETRIES = 3` mit `RETRY_DELAY = 250 ms` erneut versucht; die Queue wird im Intervall `QUEUE_PROCESS_INTERVAL = 100 ms` verarbeitet.
+- **EventConsole-Integration**: `dispatchP2D2Event` protokolliert über `logToEventConsole()`.
 
-Das Event-System kategorisiert Events nach Funktionsbereichen und priorisiert sie für die Cross-Window-Kommunikation:
+Event-Typen (Auszug der fachlichen Domänen):
 
-| Kategorie | Beschreibung | Beispiele | Cross-Window-Priorität |
-|-----------|--------------|-----------|------------------------|
-| **Kommune** | Kommunen-bezogene Events | `kommunen:focus`, `kommunen:selected` | Mittel-Hoch |
-| **Map** | Karteninteraktionen | `map:ready`, `map:moveend`, `map:zoomend` | Mittel |
-| **WFS** | WFS-Datenoperationen | `wfs:load:start`, `wfs:feature:created` | Hoch |
-| **Editor** | Editor-Operationen | `editor:ready`, `editor:feature:modified` | Hoch |
-| **UI** | Benutzeroberfläche | `ui:panel:toggle`, `crs:change` | Niedrig |
+- Kommune: `KOMMUNEN_FOCUS`, `KOMMUNEN_SELECTED`
+- Kategorie: `CATEGORY_SELECTED`
+- Karte: `MAP_READY`, `MAP_MOVEEND`, `MAP_ZOOMEND`, `MAP_CLICK`, `CRS_CHANGE`
+- Layer: `LAYER_TOGGLE`, `LAYER_VISIBILITY_CHANGE`
+- WFS: `WFS_LOAD_START`, `WFS_LOAD_COMPLETE`, `WFS_LOAD_ERROR`, `WFS_FEATURE_CREATED`, `WFS_FEATURE_UPDATED`, `WFS_FEATURE_DELETED`
+- Editor: `EDITOR_READY`, `EDITOR_FEATURE_MODIFIED`, `EDITOR_TOOL_SWITCH`, `EDITOR_MODE_CHANGE`, `EDITOR_FEATURE_SELECTED`, `EDITOR_FEATURE_DESELECTED`, `EDITOR_SAVE_START`, `EDITOR_SAVE_COMPLETE`, `EDITOR_SAVE_ERROR`
+- UI: `UI_PANEL_TOGGLE`
 
-### Event-Inventar
+Persistenzschlüssel in `events.ts`:
 
-| Event-Typ | Kategorie | Beschreibung | Priorität | Cross-Window | Implementiert |
-|-----------|-----------|--------------|-----------|--------------|---------------|
-| `p2d2:kommunen:focus` | Kommune | Fokus auf eine Kommune (Zoom/Pan) | Mittel | Nein | Ja |
-| `p2d2:kommunen:selected` | Kommune | Kommune ausgewählt | Hoch | Ja | Ja |
-| `p2d2:map:ready` | Map | Karte initialisiert | Hoch | Ja | Ja |
-| `p2d2:map:moveend` | Map | Kartenbewegung abgeschlossen | Niedrig | Nein | Ja |
-| `p2d2:map:zoomend` | Map | Zoom-Änderung abgeschlossen | Niedrig | Nein | Ja |
-| `p2d2:wfs:load:start` | WFS | WFS-Ladevorgang gestartet | Hoch | Ja | Ja |
-| `p2d2:wfs:load:complete` | WFS | WFS-Ladevorgang erfolgreich | Hoch | Ja | Ja |
-| `p2d2:wfs:load:error` | WFS | WFS-Ladevorgang fehlgeschlagen | Hoch | Ja | Ja |
-| `p2d2:wfs:feature:created` | WFS | Feature erstellt | Hoch | Ja | Ja |
-| `p2d2:wfs:feature:updated` | WFS | Feature aktualisiert | Hoch | Ja | Ja |
-| `p2d2:wfs:feature:deleted` | WFS | Feature gelöscht | Hoch | Ja | Ja |
-| `p2d2:editor:ready` | Editor | Editor-Fenster initialisiert | Hoch | Ja | Ja |
-| `p2d2:editor:feature:modified` | Editor | Feature im Editor modifiziert | Hoch | Ja | Ja |
-| `p2d2:editor:mode:change` | Editor | Modus (navigate/edit) geändert | Hoch | Ja | Ja |
-| `p2d2:editor:feature:selected` | Editor | Feature im Editor ausgewählt | Hoch | Ja | Ja |
+- `p2d2_selected_crs` (getSelectedCRS/setSelectedCRS)
+- `p2d2_selected_kommune` (getSelectedKommune/setSelectedKommune)
+- `clearSelections()` räumt beide Schlüssel.
 
-## Cross-Window Kommunikation
+### Ebene C: Cross-Window-Ereignisse (`src/utils/cross-window-events.ts`)
 
-### Architektur
+Ereignisse, die sowohl lokal als auch fensterübergreifend wirken müssen, laufen über die Cross-Window-Bridge in `src/utils/cross-window-events.ts`.
 
-Die Cross-Window-Kommunikation ermöglicht die Synchronisation zwischen Hauptfenster und Editor-Fenstern über die `window.postMessage()` API unter strikter Einhaltung der Same-Origin Policy.
+Zentrale Funktionen:
 
-#### Kernkomponenten
+- `dispatchCrossWindowEvent(eventType, detail, { crossWindow = true })`
+  1. Dispatcht das Ereignis lokal als `CustomEvent`.
+  2. Protokolliert es in der EventConsole mit `source`, `windowId` und (bei Weiterleitung) `crossWindow`.
+  3. Sendet es bei aktiviertem `crossWindow` an verbundene Fenster:
+     - Editor-Fenster → Hauptfenster über `window.opener.postMessage(...)`.
+     - Hauptfenster → alle registrierten Editor-Fenster über `broadcastToEditorWindows(...)`.
+- `initializeCrossWindowBridge()` – muss in jedem Fenster (Haupt- und Editor-Fenster) aufgerufen werden. Sie registriert einen `message`-Listener, prüft die Herkunft (`event.origin === window.location.origin`) und akzeptiert ausschließlich Nachrichten vom Typ `p2d2:cross-window-event`.
+- `registerEditorWindow(editorWindow)` – registriert ein geöffnetes Editor-Fenster im Hauptfenster; die Registrierung wird beim Schließen des Fensters automatisch entfernt (Intervall-Check, 1000 ms).
+- `getWindowId()` – liefert die eindeutige Fenster-ID; `getWindowType()` unterscheidet `main` und `editor` (`isMainWindow()` prüft `!window.opener`).
 
-1. **Cross-Window Bridge** (`cross-window-events.ts`):
-   - Initialisierung und Fenster-Registrierung
-   - Bidirektionale Event-Propagation
-   - Fenster-Identifikation und Lifecycle-Management
+Eingesetzt wird Ebene C unter anderem von:
 
-2. **Event Console Erweiterung**:
-   - Source-Labeling (`🏠 Main`, `🪟 Editor`)
-   - Cross-Window-Markierung (`⚡ Cross-Window`)
-   - Filterung nach Event-Quelle
+- `WFSLayerManager` für `WFS_LOAD_START`, `WFS_LOAD_COMPLETE`, `WFS_LOAD_ERROR`.
+- `EditorState` für `EDITOR_FEATURE_SELECTED`, `EDITOR_FEATURE_DESELECTED`, `EDITOR_TOOL_SWITCH`, `EDITOR_MODE_CHANGE`.
+- `MapCanvas` für `MAP_READY`.
+- `EditorApp` und `GrabflurEditorApp` für `EDITOR_READY`.
 
-3. **Event Metadata**:
-   ```typescript
-   interface LogEntryMeta {
-     source?: 'main' | 'editor' | string;
-     windowId?: string;
-     crossWindow?: boolean;
-     retryCount?: number;
-     throttled?: boolean;
-     success?: boolean;
-     error?: string;
-   }
-   ```
+Sicherheitsmodell:
 
-### Implementierungsdetails
+- **Same-Origin-Pflicht**: Nur Nachrichten der eigenen Herkunft (`window.location.origin`) werden verarbeitet.
+- **Nachrichtentyp-Prüfung**: Nur `p2d2:cross-window-event`-Nachrichten werden angenommen.
+- **Zielsteuerung**: Editor-Fenster senden an `window.opener`; das Hauptfenster sendet ausschließlich an die registrierten Editor-Fenster.
 
-#### Event-Dispatch mit Cross-Window-Propagation
+## Verbindliche Grenzen
 
-```typescript
-// Beispiel: Cross-Window Event Dispatch
-function dispatchCrossWindowEvent(
-  eventName: string, 
-  detail: any, 
-  options: { crossWindow: boolean } = { crossWindow: false }
-): void {
-  // 1. Lokales Event feuern
-  const event = new CustomEvent(eventName, { detail });
-  window.dispatchEvent(event);
-  
-  // 2. In Event Console loggen
-  eventConsole.logEvent(eventName, detail, {
-    source: getWindowType(),
-    crossWindow: options.crossWindow,
-    windowId: getWindowId()
-  });
-  
-  // 3. Bei Cross-Window-Flag an andere Fenster propagieren
-  if (options.crossWindow && crossWindowBridge) {
-    crossWindowBridge.broadcastToOtherWindows(eventName, detail);
-  }
+- `dispatchP2D2Event()` ist der **Standard** für fachliche Hauptfenster-Events.
+- `dispatchCrossWindowEvent()` ist für Ereignisse vorgesehen, die **lokale und fensterübergreifende** Kommunikation benötigen.
+- **Direkte DOM-Events** sind für lokale UI-Interaktion erlaubt (Ebene A).
+- **Direkte `window.dispatchEvent()`-Aufrufe** sind kein allgemeines Muster für neue Funktionen. Sie treten nur in bestehenden, dokumentierten Sonder- oder Fallbackpfaden auf – beispielsweise im `KommunenClickHandler`, wenn der typisierte Dispatcher fehlschlägt:
+
+```ts
+// src/utils/kommunen-click-handler.ts – dokumentierter Fallback
+try {
+  dispatchP2D2Event(P2D2EventType.KOMMUNEN_FOCUS, detail, { throttleMs: 0 });
+} catch (error) {
+  setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent(P2D2EventType.KOMMUNEN_FOCUS, { detail }),
+    );
+  }, 100);
 }
 ```
 
-#### Fenster-Registrierung und Lifecycle
+- Die **EventConsole protokolliert nur Vorgänge**, die `logToEventConsole()` erreichen. Sie beobachtet nicht automatisch beliebige DOM-Events.
 
-```typescript
-// Hauptfenster: Editor-Fenster registrieren
-function registerEditorWindow(editorWindow: Window): void {
-  editorWindows.add(editorWindow);
-  
-  // Cleanup bei Fensterschließung
-  const intervalId = setInterval(() => {
-    if (editorWindow.closed) {
-      editorWindows.delete(editorWindow);
-      clearInterval(intervalId);
-    }
-  }, 1000);
-}
+## Auswahl- und Kartenpfade (Kurzübersicht)
 
-// Editor-Fenster: Bei Hauptfenster registrieren
-function initializeEditorBridge(): void {
-  if (window.opener) {
-    window.opener.postMessage({
-      type: 'EDITOR_REGISTER',
-      windowId: getWindowId(),
-      source: 'editor'
-    }, window.location.origin);
-  }
-}
+```text
+KommunenGrid
+→ KommunenClickHandler
+→ dispatchP2D2Event(P2D2EventType.KOMMUNEN_FOCUS, detail, { throttleMs: 0 })
+→ MapCanvas-Listener (addP2D2EventListener)
+→ mapState.setSelectedKommune(detail)
+→ CRS-, Center- oder BBOX-Navigation
+
+KategorienGrid
+→ mapState.setSelectedCategory(categorySlug)
+→ dispatchP2D2Event(P2D2EventType.CATEGORY_SELECTED, detail, { throttleMs: 0 })
+→ Scrollen zur Kartenansicht
+
+mapState-Änderung
+→ WFSLayerManager-Subscription
+→ WFS-Layer laden oder leeren
+→ dispatchCrossWindowEvent(WFS_LOAD_START | WFS_LOAD_COMPLETE | WFS_LOAD_ERROR)
 ```
 
-### Sicherheitsaspekte
+## Editorpfad (Kurzübersicht)
 
-1. **Same-Origin Policy**: Nur Kommunikation zwischen Fenstern gleicher Herkunft
-2. **Event-Validation**: Eingangs-Events werden auf Gültigkeit geprüft
-3. **Window-Verifikation**: Nur registrierte Fenster dürfen Events empfangen
-4. **Payload-Limits**: Maximale Event-Größen zur Vermeidung von DoS-Angriffen
-
-## Event Console
-
-### Funktionsumfang
-
-Die Event Console dient als Debugging- und Monitoring-Tool mit folgenden Features:
-
-1. **Live-Event-Überwachung**: Echtzeit-Anzeige aller System-Events
-2. **Source-Labeling**: Visuelle Unterscheidung nach Event-Quelle
-   - `🏠 Main`: Events aus dem Hauptfenster (grün)
-   - `🪟 Editor`: Events aus Editor-Fenstern (lila)
-   - `⚡ Cross-Window`: Cross-Window-Events (gelb)
-3. **Filterung**: Nach Event-Typ, Detail-Inhalt oder Quelle
-4. **Export**: JSON-Export aller Events in die Zwischenablage
-5. **Persistenz**: Console-Zustand im LocalStorage (24h Gültigkeit)
-
-### Bedienung
-
-- **Öffnen/Schließen**: `Ctrl+Shift+E` (Windows/Linux) oder `Cmd+Shift+E` (Mac)
-- **Filter**: Text-Eingabe im Filter-Input
-- **Clear**: Alle Events löschen
-- **Export**: "Copy JSON"-Button für vollständigen Export
-
-## Priorisierungsstrategie
-
-### Phase 1: Kritische Cross-Window-Events
-
-| Event | Priorität | Begründung |
-|-------|-----------|------------|
-| `p2d2:editor:ready` | Hoch | Grundstatus des Editor-Fensters |
-| `p2d2:map:ready` | Hoch | Grundstatus des Hauptfensters |
-| `p2d2:editor:feature:modified` | Hoch | Live-Änderungen vom Editor |
-| `p2d2:wfs:load:*` | Hoch | Ladezustände vom Hauptfenster |
-
-### Phase 2: Erweiterte Synchronisation
-
-| Event | Priorität | Begründung |
-|-------|-----------|------------|
-| `p2d2:wfs:feature:*` | Hoch | Vollständige Feature-Synchronisation |
-| `p2d2:editor:mode:change` | Mittel | Editor-Kontext teilen |
-| `p2d2:layer:toggle` | Mittel | Konsistente Layer-Darstellung |
-
-### Phase 3: Debugging & Monitoring
-
-| Event | Priorität | Begründung |
-|-------|-----------|------------|
-| `p2d2:map:moveend` | Niedrig | Karteninteraktionen verfolgen |
-| `p2d2:ui:panel:toggle` | Niedrig | UI-Status überwachen |
-
-## Technische Implementierung
-
-### Event-System Konfiguration
-
-```typescript
-const EVENT_CONFIG = {
-  // Retry-Mechanismus
-  MAX_RETRIES: 3,
-  RETRY_DELAY_MS: 250,
-  
-  // Throttling
-  THROTTLE_MS: 200,
-  
-  // Cross-Window
-  WINDOW_ID_PREFIX: 'p2d2-window-',
-  MESSAGE_TARGET_ORIGIN: window.location.origin,
-  
-  // Event Console
-  MAX_LOG_ENTRIES: 50,
-  STORAGE_KEY: 'p2d2:debug:events',
-  STORAGE_TTL_MS: 24 * 60 * 60 * 1000 // 24 Stunden
-};
+```text
+OpenLayers-Klick auf ein passendes Feature
+→ FeaturePopupHandler
+→ WFS-Prüfung auf Grabflur-Daten
+→ Informationsdialog oder window.open() für den Feature-Editor
+→ registerEditorWindow()
+→ Cross-Window-Kommunikation zwischen Haupt- und Editorfenster
 ```
 
-### Performance-Optimierungen
+Der generische Feature-Editor und der Grabflur-Editor sind getrennte Anwendungen beziehungsweise Abläufe. Der Grabflur-Editor ist rollenbeschränkt und wird über `/verwaltung/grabflur-editor` aufgerufen; er bestimmt Kommune und räumlichen Kontext aus der authentifizierten Session und deren Metadaten.
 
-1. **Event Throttling**: Verhindert zu häufige Events (z.B. `map:moveend`)
-2. **Lazy Propagation**: Cross-Window-Kommunikation nur bei Bedarf
-3. **Queue-Batching**: Mehrere Events könnten gebatcht werden
-4. **Selective Listening**: Komponenten können spezifische Events abonnieren
+## Debugging mit der EventConsole
 
-### Error-Handling
+Die EventConsole (`src/components/EventConsole.ts`) ist ein Overlay zur Live-Beobachtung protokollierter p2d2-Events.
 
-1. **Retry-Mechanismus**: 3-stufiger Retry für fehlgeschlagene Events
-2. **Graceful Degradation**: Fallback bei Cross-Window-Kommunikationsfehlern
-3. **Error-Logging**: Umfassendes Logging mit Kontext-Informationen
-4. **User Feedback**: Visuelle Rückmeldung bei kritischen Fehlern
+Aktivierung und Bedienung:
 
-## Qualitätssicherung
+- **URL-Parameter**: `?debug=events` aktiviert die Konsole (in Produktion ist sie ohne diesen Parameter deaktiviert; im Dev-Modus ist sie grundsätzlich aktivierbar).
+- **Tastenkürzel**: `Ctrl+Shift+E` (Windows/Linux) bzw. `Cmd+Shift+E` (Mac) toggelt die Konsole – das Kürzel ist unabhängig vom Aktivierungszustand registriert.
+- **Filter**: Textfeld zur Filterung der Logs.
+- **Clear**: leert alle Log-Einträge.
+- **Export**: „Copy JSON“-Button exportiert die Logs als JSON.
 
-### Automatisierte Tests
+Eigenschaften:
 
-- **Unit Tests**: Event-Dispatch und Cross-Window-Kommunikation
-- **Integrationstests**: Fenster-übergreifende Event-Propagation
-- **E2E Tests**: Komplette Workflows mit Cypress/Puppeteer
+- `STORAGE_KEY = "p2d2:debug:events"` – speichert `{ visible, timestamp }`; der Zustand wird nur wiederhergestellt, wenn er jünger als 24 Stunden ist.
+- `maxLogs = 50` – ältere Einträge werden verworfen.
+- Jeder Log-Eintrag enthält Zeitstempel, Event-Typ, Detail und optionale Metadaten (`source`, `windowId`, `crossWindow`, `retryCount`, `throttled`, `success`, `error`).
+- Die Konsole wird über `window.__P2D2_EVENT_CONSOLE__` angesprochen; `logToEventConsole()` prüft genau dieses globale Objekt.
 
-### Manuelle Testszenarien
+## Dokumentierte technische Beobachtungen
 
-1. **Basisfunktionalität**:
-   - Events erscheinen in der Event Console
-   - Filter-Funktion arbeitet korrekt
-   - Export erzeugt gültiges JSON
+- `initializeCrossWindowBridge()` wird in den Editor-Einstiegspunkten mehrfach aufgerufen (unter anderem im Frontmatter und im Skript von `src/pages/feature-editor/[featureId].astro` sowie in `GrabflurEditorApp.init()`). Diese Aufgabe dokumentiert den Ist-Zustand; der Bridge-Code wird nicht verändert.
 
-2. **Cross-Window-Kommunikation**:
-   - Events werden zwischen Fenstern propagiert
-   - Source-Labels werden korrekt angezeigt
-   - Fenster-Registrierung und Cleanup
+## Änderungshistorie
 
-3. **Fehlerbehandlung**:
-   - Netzwerkausfälle während der Kommunikation
-   - Fensterschließung während aktiver Session
-   - Ungültige Event-Payloads
-
-### Monitoring-Metriken
-
-1. **Event-Throughput**: Anzahl Events pro Sekunde
-2. **Cross-Window-Latenz**: Zeit für Event-Propagation zwischen Fenstern
-3. **Error-Rate**: Anteil fehlgeschlagener Events
-4. **Console-Nutzung**: Häufigkeit der Event Console-Nutzung
-
-## Best Practices
-
-### Event-Design
-
-1. **Konsistente Namenskonvention**: `domain:component:action` (z.B. `p2d2:editor:feature:modified`)
-2. **Strukturierte Payloads**: Klare Interfaces für Event-Details
-3. **Minimale Payload-Größe**: Nur notwendige Daten übertragen
-4. **Immutable Daten**: Events sollten unveränderlich sein
-
-### Cross-Window-Kommunikation
-
-1. **Selective Propagation**: Nur notwendige Events cross-window senden
-2. **Window-Lifecycle**: Saubere Registrierung/Deregistrierung
-3. **Error-Resilience**: Robust gegenüber Fenster-Ausfällen
-4. **Security-First**: Strikte Origin-Überprüfung
-
-### Debugging mit Event Console
-
-1. **Source-Filterung**: Nach `main` oder `editor` filtern für Problem-Isolation
-2. **JSON-Export**: Für detaillierte Analyse und Bug-Reports
-3. **Performance-Monitoring**: Event-Häufigkeit und Latenz beobachten
-4. **Reproduktion**: Event-Sequenzen für Bug-Reproduktion exportieren
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |
