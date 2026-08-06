@@ -35,6 +35,10 @@ Während Administrations- und Entwicklungshandbuch den Ist-Zustand beschreiben, 
 
 - [Serveraufbau V1](./civitas-core-plugin/) — Spezifikation des Serveraufbaus für die CIVITAS/CORE-Plattform
 
+## PTF-Roadmap-Umsetzung
+
+- [Startseite, Karten-Onboarding und Navigation](./ptf-roadmap-umsetzung/webauftritt-startseite/startseite-onboarding-und-navigation.md) — Soll-Spezifikation für eine verständlichere öffentliche p2d2-Startseite (erste operative Maßnahme der PTF-Roadmap)
+
 ## Navigationsübersicht
 
 - [Serveraufbau V1 — Übersicht](./civitas-core-plugin/)
