@@ -1,6 +1,7 @@
 ---
 title: Entwicklungs-Handbuch
 description: Umfassende technische Dokumentation für p2d2-Entwickler
+lastUpdated: 2026-08-06
 quality:
   completeness: 75
   accuracy: 70
@@ -31,6 +32,7 @@ Das p2d2 Entwicklungs-Handbuch bietet eine umfassende technische Dokumentation f
 - **Kommunen**: Content-Collections, Datenstruktur, Routing
 - **UI-Komponenten**: Astro-Komponenten, TailwindCSS-Styling
 - **Utilities**: Layer-Interaktion, Koordinaten-Utils, Storage-Management
+- **Website**: [Startseite und Onboarding](./website/startseite-und-onboarding) – heutige Startseitenstruktur und geplante Onboarding-Spezifikation
 
 ### Entwicklungsworkflow
 - Lokales Setup und Entwicklungsumgebung
@@ -72,3 +74,9 @@ Bei Fragen zur Entwicklung oder zur Dokumentation:
 - GitLab Issues: [p2d2 Repository](https://gitlab.opencode.de/OC000028072444/p2d2)
 - Entwicklungsteam kontaktieren
 - Code-Review-Prozess beachten
+
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |
