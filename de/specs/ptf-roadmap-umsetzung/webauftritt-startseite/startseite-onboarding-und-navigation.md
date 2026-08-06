@@ -454,4 +454,5 @@ Folgende Spezifikationen sind abhängig, werden aber mit dieser Datei nicht ange
 
 | Version | Datum | Änderung |
 |---|---|---|
+| 1.0 | 2026-08-06 | Erstanlage: Soll-Spezifikation für Startseite, Karten-Onboarding und Navigation. |
 | 1.1 | 2026-08-06 | Präzisierung: Entwurfsstatus verbindlich formuliert, Ankerziel „Entdecken“ (DOM-ID `entdecken`) definiert, Beteiligungssektion als `ParticipationSection.astro` benannt, Footer-Änderung dateigenau festgelegt (Überschrift „Technisches & Ressourcen“, Link unterhalb der Repository-Links). |
