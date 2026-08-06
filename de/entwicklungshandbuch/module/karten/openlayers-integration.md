@@ -1,9 +1,10 @@
 ---
 title: OpenLayers Integration
-description: Integration der OpenLayers-Bibliothek mit Projektionsverwaltung, Map-Initialisierung und CRS-Utilities
+description: Hauptkarte, MapCanvas, Controls, CRS und Initialzustand – belegter Ist-Zustand auf Basis des Quellcodes
+lastUpdated: 2026-08-06
 quality:
-  completeness: 80
-  accuracy: 75
+  completeness: 85
+  accuracy: 85
   reviewed: false
   reviewer: null
   reviewDate: null
@@ -11,295 +12,155 @@ quality:
 
 # OpenLayers Integration
 
-## Übersicht
+Dieses Dokument beschreibt die OpenLayers-Integration der p2d2-Hauptkarte auf Basis von `src/components/MapCanvas.astro`. Es dokumentiert ausschließlich den belegten Ist-Zustand. Frühere, nicht durch den Quellcode belegbare API-Beschreibungen (z. B. `UTM32`/`UTM33`-Projektionsdefinitionen, `MAP_INIT`, `createMap()`, ein `LayerManager` oder Tile-Caching) wurden entfernt.
 
-Die OpenLayers-Integration in p2d2 umfasst die Map-Initialisierung, Projektionsverwaltung und Koordinatentransformation. Das System verwendet die `crs.ts` Utilities für erweiterte Projektionsunterstützung und die `map-config.ts` für konsistente Konfiguration.
+## Karteninitialisierung
 
-## Projektionsverwaltung (crs.ts)
+Die Hauptkarte wird im Skript von `MapCanvas.astro` direkt mit der OpenLayers-API erzeugt und an das DOM-Element `#map` gebunden:
 
-### Unterstützte Koordinatensysteme
+    const targetProjection = mapState.getConfig().defaultCRS;
 
-| EPSG-Code | Name | Verwendung |
-|-----------|------|------------|
-| EPSG:25832 | ETRS89 / UTM 32N | Standard-Projektion für p2d2 |
-| EPSG:25833 | ETRS89 / UTM 33N | Alternative UTM-Zone |
-| EPSG:3857 | Web Mercator | Web-Karten-Standard |
-| EPSG:4326 | WGS84 | Geografische Koordinaten |
-
-### Vordefinierte UTM-Projektionen
-
-```typescript
-// crs.ts - Projektionsdefinitionen
-export const UTM32 = new Projection({
-  code: 'EPSG:25832',
-  extent: [-2500000, 3500000, 3045984, 9045984],
-  units: 'm'
-});
-
-export const UTM33 = new Projection({
-  code: 'EPSG:25833',
-  extent: [-2500000, 3500000, 3045984, 9045984],
-  units: 'm'
-});
-
-export const WEB_MERCATOR = new Projection({
-  code: 'EPSG:3857',
-  extent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
-  units: 'm'
-});
-```
-
-### Koordinatentransformation
-
-```typescript
-// Transformation zwischen Koordinatensystemen
-export function transformCoordinate(
-  coordinate: Coordinate,
-  sourceProjection: string,
-  targetProjection: string
-): Coordinate {
-  return transform(coordinate, sourceProjection, targetProjection);
-}
-
-// WGS84 zu UTM32 Transformation
-export function wgs84ToUTM32(lon: number, lat: number): Coordinate {
-  return transform([lon, lat], 'EPSG:4326', 'EPSG:25832');
-}
-
-// UTM32 zu WGS84 Transformation
-export function utm32ToWgs84(x: number, y: number): Coordinate {
-  return transform([x, y], 'EPSG:25832', 'EPSG:4326');
-}
-```
-
-## Map-Initialisierung
-
-### Basis-Konfiguration
-
-```typescript
-// map-config.ts - Map-Initialisierung
-export const MAP_INIT: MapOptions = {
-  target: 'map',
-  layers: [
-    new TileLayer({
-      source: new OSM(),
-      zIndex: Z_INDEX.BASE
-    })
-  ],
-  view: new View({
-    projection: 'EPSG:25832',
-    center: [691874, 5627920], // Köln in UTM32
-    zoom: 14,
-    minZoom: 10,
-    maxZoom: 20
-  }),
-  controls: defaultControls({
-    attribution: false,
-    zoom: false
-  }).extend([
-    new Zoom(),
-    new FullScreen()
-  ])
-};
-```
-
-### Erweiterte Map-Erstellung
-
-```typescript
-// Erweiterte Map-Factory
-export function createMap(config: Partial<MapOptions> = {}): Map {
-  const mapConfig = {
-    ...MAP_INIT,
-    ...config
-  };
-
-  const map = new Map(mapConfig);
-
-  // Event-Handler registrieren
-  map.on('click', handleMapClick);
-  map.on('moveend', handleMapMove);
-  map.on('pointermove', handlePointerMove);
-
-  return map;
-}
-
-// Event-Handler für Map-Interaktionen
-function handleMapClick(event: MapBrowserEvent<UIEvent>): void {
-  const coordinate = event.coordinate;
-  const features = map.getFeaturesAtPixel(event.pixel);
-  
-  if (features.length > 0) {
-    // Feature-Selektion verarbeiten
-    dispatchEvent(new CustomEvent('feature-select', {
-      detail: { features, coordinate }
-    }));
-  }
-}
-
-function handleMapMove(event: MapEvent): void {
-  // Viewport-Änderungen verarbeiten
-  const view = map.getView();
-  const extent = view.calculateExtent(map.getSize());
-  
-  // Layer-Update basierend auf Viewport
-  updateLayersForExtent(extent);
-}
-```
-
-## Layer-Management
-
-### Dynamische Layer-Erstellung
-
-```typescript
-// Layer-Factory für verschiedene Quellen
-export function createWMSLayer(
-  url: string,
-  layers: string,
-  zIndex: number,
-  visible: boolean = false
-): TileLayer {
-  return new TileLayer({
-    source: new TileWMS({
-      url,
-      params: { LAYERS: layers, TILED: true },
-      serverType: 'geoserver',
-      crossOrigin: 'anonymous'
-    }),
-    zIndex,
-    visible
-  });
-}
-
-export function createVectorLayer(
-  source: VectorSource,
-  zIndex: number,
-  style?: StyleFunction
-): VectorLayer {
-  return new VectorLayer({
-    source,
-    zIndex,
-    style: style || defaultVectorStyle
-  });
-}
-```
-
-### Interaktive Layer-Steuerung
-
-```typescript
-// Layer-Manager für dynamische Steuerung
-export class LayerManager {
-  private layers: Map<string, BaseLayer> = new Map();
-  private map: Map;
-
-  constructor(map: Map) {
-    this.map = map;
-  }
-
-  addLayer(name: string, layer: BaseLayer): void {
-    this.layers.set(name, layer);
-    this.map.addLayer(layer);
-  }
-
-  removeLayer(name: string): void {
-    const layer = this.layers.get(name);
-    if (layer) {
-      this.map.removeLayer(layer);
-      this.layers.delete(name);
+    // Nur für UTM-Projektionen: eigene Auflösungsstufen
+    let resolutions;
+    if (isUtmProjection(targetProjection)) {
+        resolutions = calculateUtmResolutions();
     }
-  }
 
-  setLayerVisibility(name: string, visible: boolean): void {
-    const layer = this.layers.get(name);
-    if (layer) {
-      layer.setVisible(visible);
+    const map = new Map({
+        target: "map",
+        layers: [new TileLayer({ source: new OSM() })],
+        view: new View({
+            projection: targetProjection,
+            center: [0, 0],
+            zoom: 2,
+            resolutions: resolutions,
+            constrainResolution: false,
+        }),
+        controls: defaults().extend([new FullScreen()]),
+    });
+
+Belegte Eigenschaften:
+
+- **Basiskarte**: `TileLayer` mit `OSM`-Source (OpenStreetMap-Kacheln).
+- **View-Projektion**: `mapState.getConfig().defaultCRS` – Default `EPSG:3857` (Web Mercator), gesetzt in `src/utils/map-state.ts`.
+- **View-Startwerte**: Center `[0, 0]`, Zoom `2`, `constrainResolution: false`.
+- **UTM-Auflösungen**: `resolutions` werden nur gesetzt, wenn `isUtmProjection()` zutrifft; die Berechnung erfolgt über `calculateUtmResolutions()` aus `src/utils/utm-resolutions.ts`.
+- **Controls**: OpenLayers-Standard-Controls (`defaults()`) erweitert um `FullScreen`.
+- **MAP_READY**: Unmittelbar nach der Initialisierung wird `dispatchCrossWindowEvent(P2D2EventType.MAP_READY, { projection, center, zoom, timestamp })` gesendet.
+
+Nach dem ersten `postrender`-Ereignis werden die Canvas-Elemente der Karte nachgestylt (`borderRadius`, `willChange`). Ein `MutationObserver` auf `#map` (`childList`, `subtree`) stellt sicher, dass später hinzugefügte `CANVAS`-Knoten dasselbe Styling erhalten.
+
+## CRS-Verwaltung
+
+Die Karte unterstützt ein generisches Koordinatensystem (Default `EPSG:3857`) und – sofern pro Kommune hinterlegt – ein lokales UTM-Koordinatensystem.
+
+### mapState
+
+Der Karten-State (`src/utils/map-state.ts`) hält die relevanten CRS-Werte:
+
+- `activeCRS` – aktuell aktive Projektion.
+- `localCRS` – optionales, kommunenspezifisches UTM-Koordinatensystem (z. B. `EPSG:25832` für Köln).
+- `mapState.getConfig().defaultCRS` – Standard-Projektion der Karte.
+
+### Verwendete CRS-Utilities
+
+Importiert und verwendet werden (aus `src/utils/crs.ts`):
+
+- `registerUtm(crs)` – registriert eine UTM-Projektion bei OpenLayers, damit sie für die View verwendet werden kann.
+- `toNewViewPreservingScale(map, targetCRS)` – wechselt die View-Projektion unter Erhalt des Maßstabs.
+- `isValidWgs84Coordinate()` / `isValidWgs84Extent()` – validieren WGS84-Koordinaten bzw. -Extents vor der Navigation.
+
+Die interne Implementierung von `crs.ts` wird hier nicht beschrieben; dokumentiert sind nur die im Quellcode verwendeten Importe.
+
+### CRS-Umschaltung (Toggle)
+
+- Der Button `#crs-toggle-button` zeigt den aktuellen Zustand an.
+- `updateCRSButton()`: Zeigt `CRS: UTM`, wenn `activeCRS === localCRS`; sonst `CRS: generisch`. Ist kein `localCRS` vorhanden, wird der Button deaktiviert.
+- `toggleCRS()`: Wechselt zwischen `localCRS` und `defaultCRS`, aktualisiert `mapState.setActiveCRS()` und wechselt die View per `toNewViewPreservingScale()`.
+
+## Kommune-Fokus-Navigation
+
+Ein Listener auf `P2D2EventType.KOMMUNEN_FOCUS` (`addP2D2EventListener`, `{ passive: true }`) verarbeitet die Auswahl einer Kommune:
+
+1. `mapState.setSelectedKommune(detail)` – speichert die gewählte Kommune.
+2. `mapState.setLocalCRS(detail.projection)` – übernimmt die kommunenspezifische Projektion, sofern vorhanden.
+3. `registerUtm(localCRS)` – registriert die UTM-Projektion (bei Fehlern wird `localCRS` auf `undefined` zurückgesetzt).
+4. `mapState.setActiveCRS(localCRS || defaultCRS)` und `toNewViewPreservingScale(map, targetCRS)` – wechselt die aktive Projektion.
+5. Navigation in WGS84-Daten:
+
+    // BBOX bevorzugt, sonst Center
+    if (extent valide) {
+        const fitExtent = transformExtent(extent, "EPSG:4326", targetCRS);
+        map.getView().fit(fitExtent, {
+            padding: [20, 20, 20, 20],
+            duration: 300,
+            constrainResolution: false,
+            maxZoom: 19,
+            ...(detail.extra?.fitOptions || {}),
+        });
+    } else if (center valide) {
+        const c = transform(center, "EPSG:4326", targetCRS);
+        map.getView().animate({
+            center: c,
+            zoom: zoom ?? map.getView().getZoom() ?? 11,
+            duration: 300,
+            ...(detail.extra || {}),
+        });
     }
-  }
 
-  getLayer(name: string): BaseLayer | undefined {
-    return this.layers.get(name);
-  }
+Das WFS-Layer-Management wird dabei nicht direkt angestoßen; es erfolgt reaktiv über die `mapState`-Subscription des `WFSLayerManager` (siehe [WFS-Layer-Architektur](../../architektur/wfs-layer-architektur)).
 
-  // Layer-Reihenfolge anpassen
-  setLayerZIndex(name: string, zIndex: number): void {
-    const layer = this.layers.get(name);
-    if (layer) {
-      layer.setZIndex(zIndex);
-    }
-  }
-}
-```
+## Initialzustand (DOMContentLoaded)
 
-## Performance-Optimierungen
+Beim Laden der Seite wird der gespeicherte Kartenzustand wiederhergestellt:
 
-### Tile-Caching
+- `mapState.restoreFromStorage()` liest `selectedCRS`, `selectedCategory` und `selectedMunicipalityDetail` aus dem `localStorage`.
+- Existiert ein gespeicherter Zustand mit aktiver UTM-Projektion und gespeicherter Kommune, werden `localCRS` und `selectedKommune` wiederhergestellt; nach 100 ms wird `KOMMUNEN_FOCUS` mit den gespeicherten Details erneut dispatched.
+- Existiert kein gespeicherter Zustand, wird auf **Köln** als Initialansicht zentriert:
 
-```typescript
-// Optimierte WMS-Quellen mit Caching
-export function createCachedWMSSource(
-  url: string,
-  params: WMSParams
-): TileWMS {
-  return new TileWMS({
-    url,
-    params: { ...params, TILED: true },
-    serverType: 'geoserver',
-    crossOrigin: 'anonymous',
-    cacheSize: 256 // Erhöhtes Cache für bessere Performance
-  });
-}
-```
+    const koelnCenter = [6.9603, 50.9375];
+    const koelnZoom = 11;
+    const koelnProjection = "EPSG:25832";
 
-### Viewport-Optimierung
+    registerUtm(koelnProjection);
+    toNewViewPreservingScale(map, koelnProjection, false);
+    map.getView().setCenter(transform(koelnCenter, "EPSG:4326", koelnProjection));
+    map.getView().setZoom(koelnZoom);
+    mapState.setActiveCRS(koelnProjection);
+    mapState.setLocalCRS(koelnProjection);
 
-```typescript
-// Nur sichtbare Features laden
-export function createViewportOptimizedSource(
-  source: VectorSource,
-  map: Map
-): VectorSource {
-  const optimizedSource = new VectorSource();
+- Abschließend wird `mapState.setInitialized(true)` gesetzt.
 
-  map.getView().on('change:center', () => {
-    const extent = map.getView().calculateExtent(map.getSize());
-    const features = source.getFeaturesInExtent(extent);
-    optimizedSource.clear();
-    optimizedSource.addFeatures(features);
-  });
+## Tab-Buttons der Karte
 
-  return optimizedSource;
-}
-```
+Die Buttons `#tab-kommunen` und `#tab-kategorien` (Overlay auf der Karte) scrollen zum Grid-Container und rufen `window.switchTab("kommunen" | "kategorien")` auf. Ist die globale Funktion nicht verfügbar, wird als Fallback der entsprechende `.tab-button` per DOM-Click ausgelöst.
 
-## Error-Handling
+## Globale Exponierung
 
-### Robustheit bei Netzwerk-Fehlern
+Für Debugging und die Anbindung weiterer Module werden folgende Objekte global exponiert:
 
-```typescript
-// Fehlerbehandlung für Tile-Loading
-export function createRobustTileSource(
-  source: TileSource,
-  fallbackUrls: string[] = []
-): TileSource {
-  let currentUrlIndex = 0;
+- `window.map` – die OpenLayers-Karte.
+- `window.wfsManager` – die `WFSLayerManager`-Instanz.
+- `window.popupHandler` – die `FeaturePopupHandler`-Instanz.
+- `window.mapState` – der Karten-State.
 
-  source.on('tileloaderror', (event) => {
-    console.warn('Tile load error:', event);
-    
-    if (fallbackUrls.length > 0 && currentUrlIndex < fallbackUrls.length) {
-      // Zur nächsten URL wechseln
-      currentUrlIndex++;
-      source.setUrl(fallbackUrls[currentUrlIndex]);
-    }
-  });
+## Einordnung der Komponenten
 
-  return source;
-}
-```
+- `OpenLayersMap.astro` ist die Karten-Sektion der Startseite (Header-Links, `MapCanvas`, Scroll-Listener auf `p2d2:kommunen:focus` und `p2d2:category:selected`).
+- `MapCanvas.astro` enthält die eigentliche OpenLayers-Initialisierung und verdrahtet `WFSLayerManager` und `FeaturePopupHandler`.
+- Die WFS-Schicht ist in [WFS-Layer-Architektur](../../architektur/wfs-layer-architektur) beschrieben, das Event-System in [Event Handling & Cross-Window Kommunikation](../../architektur/eventhandling) und der Datenfluss in [Datenfluss](../../architektur/datenfluss).
 
-## Nächste Schritte
+## Nicht enthalten
 
-- [ ] Vector-Tile Unterstützung implementieren
-- [ ] 3D-View für Geländedarstellung
-- [ ] Offline-Caching für mobile Nutzung
-- [ ] Performance-Monitoring für Layer-Loading
-- [ ] Touch-Optimierung für mobile Geräte
+Folgende Inhalte früherer Fassungen sind **nicht** durch den Quellcode belegt und wurden entfernt:
+
+- Vordefinierte `UTM32`/`UTM33`-Projektionsobjekte (`crs.ts` wird nur über die genannten Funktionen genutzt).
+- Eine `MAP_INIT`-Konfigurationskonstante oder `createMap()`-Factory.
+- Ein `LayerManager` mit `addLayer`/`removeLayer`/`setLayerVisibility`.
+- Tile-Caching-Funktionen oder Viewport-optimierte Vector-Sources.
+
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |

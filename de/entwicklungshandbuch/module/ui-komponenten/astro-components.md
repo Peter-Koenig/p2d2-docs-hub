@@ -1,9 +1,10 @@
 ---
 title: "Astro Components"
-description: "Dokumentation aller Astro-Komponenten in p2d2: Struktur, Props, Slots, Client-Directives"
+description: "Dokumentation der belegten Astro-Komponenten in p2d2: Layout, Header, Footer, Hero, Karten- und Grid-Komponenten"
+lastUpdated: 2026-08-06
 quality:
-  completeness: 80
-  accuracy: 75
+  completeness: 85
+  accuracy: 85
   reviewed: false
   reviewer: null
   reviewDate: null
@@ -11,554 +12,198 @@ quality:
 
 # Astro Components
 
-## Übersicht
+Dieses Dokument beschreibt die Astro-Komponenten der p2d2-Startseite und des Editors auf Basis des aktuellen Quellcodes. Es dokumentiert ausschließlich den belegten Ist-Zustand. Frühere, nicht durch den Quellcode belegbare Komponentenbeschreibungen (z. B. `Modal.astro`, `ThemenbereichCard.astro`, `CommunitySection.astro`, `CallToAction.astro`, `MissionStatement.astro`) wurden entfernt.
 
-p2d2 nutzt Astro-Komponenten für die UI-Architektur. Astro-Komponenten sind serverseitig gerendert und können optional Client-Side-JavaScript enthalten. Das System besteht aus 21 Hauptkomponenten, die in Layout-, Feature- und UI-Komponenten unterteilt sind.
+## Aufbau der Startseite
 
-## Komponenten-Hierarchie
+Die Startseite (`src/pages/index.astro`) nutzt `BaseLayout` und die folgenden Komponenten in dieser Reihenfolge:
 
-```
-BaseLayout.astro (Root-Layout)
-├── Header.astro
-├── <slot /> (Seiten-Content)
-│   ├── HeroSection.astro
-│   ├── OpenLayersMap.astro
-│   │   └── MapCanvas.astro
-│   ├── KommunenGrid.astro
-│   ├── KategorienGrid.astro
-│   ├── WerteGrid.astro
-│   └── [Weitere Seiten-Komponenten]
-└── Footer.astro
+```text
+BaseLayout
+→ Header (über slot "header")
+→ index.astro
+   → HeroSection
+   → OpenLayersMap
+      → MapCanvas
+   → KommunenGrid / KategorienGrid (mit Tab-Umschaltung)
+   → WerteGrid
+→ Footer
 ```
 
-## Kern-Komponenten
+## BaseLayout.astro
 
-### BaseLayout.astro
-
-**Zweck:** Root-Layout für alle Seiten mit HTML-Grundstruktur, Meta-Tags, Favicon-Konfiguration und globalen Styles.
-
-**Props:** Keine Props - dient als Wrapper-Komponente
-
-**Verwendung:**
-```astro
----
-import BaseLayout from '../layouts/BaseLayout.astro';
----
-
-<BaseLayout>
-  <h1>Seiteninhalt</h1>
-</BaseLayout>
-```
-
-**Features:**
-- HTML5-Grundstruktur mit deutschem Language-Tag
-- Responsive Viewport-Meta-Tag
-- Favicon-Konfiguration für alle Browser (SVG, ICO, PNG)
-- Web App Manifest für PWA-Unterstützung
-- Theme Color (#000080)
-- TailwindCSS-Integration
-- Header/Footer-Einbindung
-
-**Code-Ausschnitt:**
-```astro
----
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
-import "../styles/global.css";
----
-
-<html lang="de">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>P2D2 - Public-Public Data-DNA</title>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any" />
-        <!-- Weitere Favicon-Links -->
-    </head>
-    <body class="bg-white text-gray-900 flex flex-col min-h-screen">
-        <Header />
-        <main class="flex-1 flex flex-col">
-            <slot />
-        </main>
-        <Footer />
-    </body>
-</html>
-```
-
-***
-
-### Header.astro
-
-**Zweck:** Globaler Header mit Logo, Navigation und Dropdown-Menüs.
-
-**Props:** Keine expliziten Props - nutzt Astro.url.pathname für aktive Links
-
-**Features:**
-- Responsive Navigation mit Dropdown für "Über p2d2"
-- Active-State-Highlighting basierend auf aktueller URL
-- Mouseenter/Mouseleave für Dropdown-Interaktion
-- Touch/Tab-Fallback mit Click-Handler
-- Logo mit p2d2-Branding
-- Sticky Positioning mit Backdrop-Blur
-
-**Client-Script:**
-```javascript
-<script is:inline>
-// Fallback für Touch/Tab: Dropdown per Klick öffnen/schließen
-document.querySelectorAll("li.relative > button[data-dropdown]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-        const target = e.target;
-        if (!target.closest("[data-dropdown]")) return;
-        e.preventDefault();
-        const dropdown = btn.parentElement.querySelector("ul");
-        if (dropdown) dropdown.classList.toggle("hidden");
-    });
-});
-</script>
-```
-
-**Navigation-Struktur:**
-```javascript
-const nav = [
-    {
-        name: "Über p2d2",
-        key: "about",
-        children: [
-            { name: "Hintergrund", href: "/ueber/hintergrund" },
-            { name: "Ziel", href: "/ueber/ziel" },
-            { name: "Umsetzung", href: "/ueber/umsetzung" },
-            { name: "Status", href: "/ueber/status" },
-        ],
-    },
-    { name: "Themenbereiche", href: "/themenbereiche", key: "themen" },
-    { name: "Community", href: "/community", key: "community" },
-    { name: "Mitmachen", href: "/mitmachen", key: "mitmachen" },
-    { name: "Kontakt", href: "/kontakt", key: "kontakt" },
-];
-```
-
-***
-
-### Footer.astro
-
-**Zweck:** Globaler Footer mit dynamischen Links aus Content Collections.
-
-**Props:** Keine Props - lädt Daten aus Content Collections
-
-**Features:**
-- Dynamische Links aus Content Collections (socialmedia, intern, resources, repositories, legal)
-- Copyright-Text aus Content Collection
-- Responsive 3-Spalten-Layout
-- Social Media Icons
-- Förderpartner-Logo
-- Rechtliche Links
-
-**Daten-Loading:**
-```astro
----
-import { getCollection, getEntryBySlug } from "astro:content";
-
-const socialmedia = await getCollection("socialmedia");
-const intern = await getCollection("intern");
-const resources = await getCollection("resources");
-const repositories = await getCollection("repositories");
-const legal = await getCollection("legal");
-const copyrightEntry = await getCollection("copyright");
-const copyright = copyrightEntry[0]?.data.text ?? "";
----
-```
-
-***
-
-### OpenLayersMap.astro
-
-**Zweck:** Container-Komponente für die OpenLayers-Karte mit MapCanvas.
-
-**Props:** Keine Props - dient als Wrapper für MapCanvas
-
-**Verwendung:**
-```astro
-<OpenLayersMap />
-```
-
-**Features:**
-- Responsive Container für Karte
-- Zentrierte Ausrichtung
-- MapCanvas-Integration
-
-**Code:**
-```astro
----
-import MapCanvas from "./MapCanvas.astro";
----
-
-<div class="w-full mb-section">
-    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
-        Kommune / Kategorie auswählen und los gehts!
-    </h2>
-    <div class="w-full h-[30rem] text-lg text-grey-900 mb-8 text-center relative">
-        <main class="w-full h-full">
-            <MapCanvas />
-        </main>
-    </div>
-</div>
-```
-
-***
-
-### MapCanvas.astro
-
-**Zweck:** Haupt-Kartenkomponente mit OpenLayers-Integration und Interaktionslogik.
-
-**Props:** Keine Props - komplexe Client-Side-Implementierung
-
-**Client-Directive:** `client:load`  
-**Warum:** Karte muss sofort interaktiv sein für optimale UX
-
-**Features:**
-- OpenLayers-Karteninitialisierung
-- WFS-Layer-Management
-- Popup-Handler für Feature-Informationen
-- CRS-Toggle-Button (Koordinatensystem-Wechsel)
-- Tab-System für Kommunen/Kategorien
-- Responsive Design mit Media Queries
-- Performance-Optimierungen (Throttled Logger)
-
-**Wichtige Script-Funktionen:**
-- `createThrottledLogger()` - Performance-Optimierung für Logging
-- `updateCRSButton()` - UI-Update für Koordinatensystem
-- `toggleCRS()` - Wechsel zwischen Koordinatensystemen
-- MutationObserver für Canvas-Detection
-
-**Styling:**
-- Responsive Breakpoints für Mobile/Desktop
-- Custom CSS für OpenLayers-Controls
-- Shadow und Border-Effekte
-- Hover-Animationen
-
-***
-
-### KommunenGrid.astro
-
-**Zweck:** Grid-Komponente für die Darstellung aller Kommunen mit Click-Handling.
-
-**Props:** Keine Props - lädt Daten aus Content Collection
-
-**Features:**
-- Dynamische Kommunen-Daten aus Content Collection
-- Sortierung nach Order-Feld
-- Client-seitige Click-Handler-Initialisierung
-- Validierung von Karten-Daten vor Dispatch
-- Responsive Grid-Layout
-- Hover-Effekte und Animationen
-
-**Daten-Struktur:**
-```typescript
-const kommuneDataMap: Record<
-    string,
-    { wp_name: string; osmAdminLevels: number[] }
-> = {};
-```
-
-**Client-Integration:**
-```astro
-<script>
-import KommunenClickHandler from "../utils/kommunen-click-handler";
-
-let kommunenHandler: KommunenClickHandler | null = null;
-let isHandlerBound = false;
-
-if (typeof window !== "undefined") {
-    if (!(window as any).__p2d2KommunenHandlerBound && !isHandlerBound) {
-        // Handler-Initialisierung
-    }
-}
-</script>
-```
-
-***
-
-### HeroSection.astro
-
-**Zweck:** Hero-Bereich mit Video-Hintergrund und Content-Overlay.
-
-**Props:** Keine Props - statischer Hero-Bereich
-
-**Features:**
-- Video-Hintergrund mit WebM/MP4-Fallback
-- Content aus Markdown-Datei (`hero.md`)
-- MVP-Overlay in den vier Ecken
-- Responsive Design
-- Konsistente Breite mit Karten-Komponente
-
-**Styling:**
-- Custom CSS für Hero-Typography
-- Absolute Positionierung für Overlay
-- Neon-Effekte für MVP-Text
-- Backdrop-Effekte
-
-***
-
-### Modal.astro
-
-**Zweck:** Reusable Modal-Komponente mit HTML5 Dialog-Element.
+**Zweck:** Zentrales Seitenlayout mit HTML-Grundstruktur, Header- und Footer-Einbindung.
 
 **Props:**
-```typescript
-interface Props {
-  id: string;           // Eindeutige Modal-ID
-  open: string;         // Text für Öffnen-Button
-  children: any;        // Modal-Inhalt
-}
-```
+
+| Prop | Typ | Default | Beschreibung |
+|---|---|---|---|
+| `title` | `string` | – (Pflicht) | Seitentitel im `<title>`-Tag |
+| `description` | `string` | – | Optionale Beschreibung (im Code definiert, wird an die Head-Sektion übergeben) |
+| `showFooter` | `boolean` | `true` | Steuert, ob der Footer gerendert wird |
 
 **Slots:**
-- `button`: Custom Button-Content (optional)
-- `default`: Modal-Inhalt
 
-**Verwendung:**
-```astro
-<Modal id="info-modal" open="Mehr Informationen">
-  <p>Modal-Inhalt hier</p>
-</Modal>
+- `header` (named): Überschreibt den Standard-Header. Wird z. B. vom Feature-Editor genutzt (`<FeatureEditorHeader slot="header">`).
+- `default`: Seiteninhalt innerhalb des `<main>`-Elements.
 
-<Modal id="custom-modal" open="Öffnen">
-  <div slot="button">
-    <CustomButton>Custom Öffnen</CustomButton>
-  </div>
-  <p>Custom Modal-Inhalt</p>
-</Modal>
-```
+**Eigenschaften:**
 
-**Features:**
-- HTML5 `<dialog>` Element
-- Native Browser-Modal-Funktionalität
-- Custom Styling mit Shadow und Border-Radius
-- Accessibility-freundlich
-- Schließen-Button mit Form-Method
+- `<html lang="de">`, responsive Viewport-Meta-Tag.
+- Favicon-Konfiguration für viele Formate (SVG, ICO, 16/32/48/64/128 px, Apple-Touch-Icon) sowie Web-App-Manifest.
+- `theme-color: #000080`.
+- `body` mit `text-gray-900 flex flex-col min-h-screen`.
+- `<main class="flex-1 flex flex-col">` enthält den Default-Slot.
+- `{showFooter && <Footer />}` bindet den Footer nur bei Bedarf ein.
 
-***
+## Header.astro
 
-## Weitere wichtige Komponenten
+**Zweck:** Globale Hauptnavigation mit Logo, Desktop- und Mobile-Menü, Login/Logout und rollenabhängigen Menüpunkten.
 
-### KategorienGrid.astro
-- Grid für Themenkategorien
-- Sortierung nach Order-Feld
-- Responsive Layout
+**Rollenabhängige Sichtbarkeit** (aus `src/lib/auth/session`, `getUserSession(Astro.locals)`):
 
-### WerteGrid.astro  
-- Darstellung der p2d2-Werte
-- Icon-Unterstützung
-- Sortierung nach Order-Feld
+- `canShowVerwaltung`: `isAuthenticated && roles.includes("verwaltung")` → Menüpunkt „Verwaltung" (`/verwaltung`).
+- `canShowOsm`: `isAuthenticated && roles.includes("osm")` → Menüpunkt „OSM" (`/osm`).
 
-### Feature-Editor Komponenten
-- Spezielle Komponenten für Feature-Editor-Funktionalität
-- Client-seitige Interaktionen
-- OpenLayers-Integration
+**Navigationsstruktur (`nav`-Array):**
 
-### UI-Komponenten
-- `ThemenbereichCard.astro` - Karten-Komponente für Themen
-- `TestimonialCard.astro` - Testimonial-Darstellung
-- `CommunitySection.astro` - Community-Bereich
-- `CallToAction.astro` - Call-to-Action-Bereich
+- „Über p2d2" (Dropdown mit children): Hintergrund `/ueber/hintergrund`, Ziel `/ueber/ziel`, Umsetzung `/ueber/umsetzung`, CIVITAS/CORE `/ueber/civitas-core`, Status `/ueber/status`, Zukunft `/ueber/zukunft`, Tests `/ueber/testen`.
+- Themenbereiche `/themenbereiche`
+- Community `/community`
+- Mitmachen `/mitmachen`
+- Kontakt `/kontakt`
+- Bedingt: Verwaltung `/verwaltung`, OSM `/osm`
 
-## Komponenten-Katalog
+**Aktive Zustände:** `currentPath = Astro.url.pathname`; `isActive()` prüft bei `/` exakt und sonst per `startsWith`.
 
-| Komponente | Pfad | Props | Slots | Client | Zweck |
-|------------|------|-------|-------|--------|-------|
-| BaseLayout | layouts/BaseLayout.astro | - | default | - | Root-Layout |
-| Header | components/Header.astro | - | - | inline | Globaler Header |
-| Footer | components/Footer.astro | - | - | - | Globaler Footer |
-| OpenLayersMap | components/OpenLayersMap.astro | - | - | - | Karten-Container |
-| MapCanvas | components/MapCanvas.astro | - | - | client:load | Haupt-Karte |
-| KommunenGrid | components/KommunenGrid.astro | - | - | load | Kommunen-Grid |
-| KategorienGrid | components/KategorienGrid.astro | - | - | - | Kategorien-Grid |
-| WerteGrid | components/WerteGrid.astro | - | - | - | Werte-Grid |
-| HeroSection | components/HeroSection.astro | - | - | - | Hero-Bereich |
-| Modal | components/Modal.astro | id, open, children | button, default | - | Dialog-Modal |
-| ThemenbereichCard | components/ThemenbereichCard.astro | - | - | - | Themen-Karte |
-| CommunitySection | components/CommunitySection.astro | - | - | - | Community-Bereich |
-| MissionStatement | components/MissionStatement.astro | - | - | - | Mission-Statement |
-| CallToAction | components/CallToAction.astro | - | - | - | CTA-Bereich |
+**User-Bereich:**
 
-## Props-System
+- Nicht angemeldet: Link „Anmelden" auf `/api/auth/login`.
+- Angemeldet: Dropdown mit Initialen (aus `displayName ?? userName`, erste zwei Buchstaben) und „Abmelden" auf `/api/auth/logout`.
 
-### Explizite Props (Modal.astro)
+**Client-Script:** `<script is:inline>` für Mobile-Menü (Hamburger, Overlay, Sidebar) und User-Dropdowns (`openMobileMenu`/`closeMobileMenu`).
 
-```typescript
----
-const { id, open, children } = Astro.props;
----
-```
+## Footer.astro
 
-### Implizite Props (URL-basiert)
+**Zweck:** Globaler Footer mit dynamischen Inhalten aus Content Collections.
 
-```typescript
----
-const currentPath = Astro.url.pathname;
----
-```
+**Geladene Collections:** `socialmedia`, `intern`, `repositories`, `copyright`.
 
-### Content Collection Props
+**Aufbau:**
 
-```typescript
----
-const kommunen = await getCollection("kommunen");
-const sorted = kommunen.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
----
-```
+- Linke Spalte: Logo, Kurztext, Social-Media-Icons (`/images/icons/{icon}.svg`).
+- Mittlere Spalte: „Über uns" mit `intern`-Links und Dokumentations-Links (`https://doc.data-dna.eu/de/` und `/en/`).
+- Rechte Spalte: „Ressourcen" mit `repositories`-Links und Förderpartner-Bildern („Unterstützt durch", `/ueber/partner`).
+- Untere Leiste: Copyright-Text (aus Collection `copyright`) sowie Legal-Links `/legal/impressum`, `/legal/datenschutz`, `/legal/lizenzen`.
 
-## Slots-System
+## HeroSection.astro
 
-### Default Slot (BaseLayout.astro)
+**Zweck:** Hero-Bereich der Startseite mit Video-Hintergrund und Content-Overlay.
 
-```astro
-<BaseLayout>
-  <div>Seiteninhalt im Default-Slot</div>
-</BaseLayout>
-```
+**Eigenschaften:**
 
-### Named Slots (Modal.astro)
+- Video (autoplay, loop, muted, playsinline) mit `poster="/images/hero-fallback.jpg"` und den Quellen `/videos/hero-bg.webm` und `/videos/hero-bg.mp4`.
+- Inhalt stammt aus `src/content/hero.md` (`import { Content as HeroContent } from "../content/hero.md"`).
+- Entwurf-Overlay: In den vier Ecken wird „v0.5" eingeblendet (`.entwurf-ecke`-Elemente), als sichtbarer Hinweis auf den Prototyp-Status.
+- Responsive Höhen (`h-[20rem]` mobil, `md:h-[30rem]`).
 
-```astro
-<Modal id="custom" open="Öffnen">
-  <div slot="button">
-    Custom Button
-  </div>
-  <div>Modal Content (Default Slot)</div>
-</Modal>
-```
+## OpenLayersMap.astro
 
-## Client-Directives
+**Zweck:** Karten-Sektion der Startseite mit Auswahl-Links und Einbindung von `MapCanvas`.
 
-### Hydration-Strategien
+**Eigenschaften:**
 
-| Directive | Verwendung | Begründung |
-|-----------|------------|------------|
-| `client:load` | MapCanvas.astro | Karte muss sofort interaktiv sein |
-| Inline Script | Header.astro | Einfache Dropdown-Interaktion |
-| Keine Directive | Statische Komponenten | Nur SSR, keine Interaktion nötig |
+- Überschrift `#kommune-kategorie-header` mit Links „Kommune" (orange, auf `#kommunen-grid`) und „Kategorie" (grün, auf `#kategorien-grid`).
+- `<main>`-Container mit `MapCanvas`.
+- `<script is:inline>`:
+  - `handleKommuneClick()` / `handleKategorieClick()`: scrollen zum Grid-Container und rufen `window.switchTab("kommunen" | "kategorien")` auf (Fallback: `.tab-button[data-tab="..."]` per DOM-Click).
+  - `scrollToSelectionHeader()`: scrollt zur Karte (`#map`) bzw. zum Auswahl-Header, berücksichtigt die feste Header-Höhe; wird global als `window.scrollToSelectionHeader` exponiert.
+  - Listener auf `p2d2:kommunen:focus` und `p2d2:category:selected` lösen das Scrollen nach 300 ms aus.
 
-### Performance-Optimierung
+## MapCanvas.astro
 
-- **SSR-First:** Alle Komponenten serverseitig rendern
-- **Selective Hydration:** Nur MapCanvas benötigt Client-JavaScript
-- **Inline Scripts:** Für einfache Interaktionen ohne Bundle
+**Zweck:** Hauptkarte mit OpenLayers und Interaktionslogik (CRS, WFS, Popup, Tabs).
 
-## Styling-Architektur
+**Wichtig:** `MapCanvas.astro` verwendet **normale Astro-`<script>`-Blöcke** und **keine** `client:load`-Directive. Die frühere Dokumentation, die eine Client-Directive behauptete, ist damit korrigiert.
 
-### TailwindCSS-Primary
+**Eigenschaften:**
 
-```astro
-<header class="w-full bg-green-50/90 backdrop-blur-sm shadow-sm sticky top-0 z-50">
-```
+- Karteninitialisierung im Skript: `new Map({ target: "map", layers: [TileLayer mit OSM], view: View mit mapState.getConfig().defaultCRS, FullScreen-Control })`.
+- Nach dem ersten `postrender`: Canvas-Styling und `MutationObserver` für spätere Canvas-Knoten.
+- CRS-Umschaltung über `#crs-toggle-button` (`updateCRSButton()`, `toggleCRS()`); der Button ist ohne `localCRS` deaktiviert.
+- Tab-Buttons `#tab-kommunen` und `#tab-kategorien` als Overlay auf der Karte (scrollen zum Grid und rufen `switchTab` auf).
+- Initialzustand: Wiederherstellung aus `localStorage` (`mapState.restoreFromStorage`) oder Köln-Fallback (Center `[6.9603, 50.9375]`, Zoom 11, `EPSG:25832`).
+- Instanziiert `WFSLayerManager` und `FeaturePopupHandler`.
+- Exponiert global: `window.map`, `window.wfsManager`, `window.popupHandler`, `window.mapState`.
 
-### Scoped Styles (HeroSection.astro)
+## Kategorien.astro
 
-```astro
-<style>
-:global(.hero-section h1) {
-    font-family: "Poppins", sans-serif;
-    font-weight: 800;
-    font-size: 3.75rem;
-}
-</style>
-```
+**Zweck:** Einzelne Kategorie-Karte im Kategorien-Raster.
 
-### Responsive Design
+**Props:** `title`, `icon`, `description`, `id`, `slug`, `imageVersion` (Default `"001"`).
 
-```astro
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-```
+**Eigenschaften:**
 
-## Script-Blöcke
+- `<button class="kategorie-card" data-category-slug={slug}>` mit Foto, Gradient und grünem Farbstreifen.
+- Bildpfad: `/images/kategorien/{slug}_{imageVersion}.jpg`.
 
-### Standard Script (MapCanvas.astro)
+## KategorienGrid.astro
 
-```astro
-<script>
-// Wird von Vite gebundelt
-import Map from 'ol/Map';
-import View from 'ol/View';
-// Komplexe Karten-Logik
-</script>
-```
+**Zweck:** Raster der Themenkategorien mit Klick-Auswahl.
 
-### Inline Script (Header.astro)
+**Eigenschaften:**
 
-```astro
-<script is:inline>
-// Direkt in HTML - einfache Interaktion
-document.querySelectorAll("button[data-dropdown]").forEach(btn => {
-    btn.addEventListener("click", handleClick);
-});
-</script>
-```
+- Lädt `kategorien` über `getCollection("kategorien")`, sortiert nach `order`, begrenzt auf 12 Einträge.
+- Das Grid-Element trägt die `id="kategorien-grid"`.
+- Klick-Script: dokumentweiter Listener auf `[data-category-slug]`; setzt `mapState.setSelectedCategory(categorySlug)` (Toggle bei erneutem Klick), dispatched `P2D2EventType.CATEGORY_SELECTED` mit `{ throttleMs: 0 }` und ruft als Fallback `window.scrollToSelectionHeader()` nach 350 ms auf.
 
-## Best Practices
+## KommunenGrid.astro
 
-### Daten-Loading Pattern
+**Zweck:** Raster der teilnehmenden Kommunen.
 
-```astro
----
-// Serverseitiges Data-Fetching
-const data = await getCollection("collection");
-const sorted = data.sort((a, b) => a.data.order - b.data.order);
----
+**Eigenschaften:**
 
-<!-- Client-seitige Daten-Nutzung -->
-<div data-map={JSON.stringify(sorted)}>
-```
+- Lädt `kommunen` über `getCollection("kommunen")`, sortiert nach `order`.
+- Baut `kommuneDataMap` (`slug → { wpName, osmAdminLevels }`) und übergibt sie als `data-kommune-map` an das Grid-Element.
+- Pro Karte: `data-slug`, `data-kommune-slug`, `data-detail` (JSON mit `center`, `extent`, `zoom`, `projection`, `extra`, `slug`) und Farbstreifen über `--color-stripe`.
+- Bildpfad: `/images/kommunen/{slug}_{imageVersion}.jpg`.
+- Klick-Verarbeitung: `KommunenClickHandler` (`src/utils/kommunen-click-handler.ts`); Initialisierung mit Guard (`window.__p2d2KommunenHandlerBound`) und HMR-Cleanup über `import.meta.hot.dispose`.
 
-### Component Composition
+## WerteGrid.astro
 
-```astro
-<OpenLayersMap>
-  <MapCanvas client:load />
-</OpenLayersMap>
-```
+**Zweck:** Werte-Raster der Startseite.
 
-### Performance
+**Eigenschaften:**
 
-- Minimale Client-JavaScript-Nutzung
-- Lazy Loading wo möglich
-- SSR für statische Inhalte
-- Selective Hydration für interaktive Teile
+- Lädt `werte` über `getCollection("werte")`, sortiert nach `order`, begrenzt auf 12 Einträge.
+- Rendert pro Eintrag die Komponente `Werte.astro` mit `title`, `icon` und `description` (Markdown-Body).
 
-## Verwendungsbeispiel
+## Dokumentierte technische Beobachtungen
 
-### Komplette Startseite
+Folgende Punkte werden als bestätigter Ist-Zustand festgehalten und in dieser Aufgabe nicht behoben:
 
-```astro
----
-import BaseLayout from '../layouts/BaseLayout.astro';
-import HeroSection from '../components/HeroSection.astro';
-import OpenLayersMap from '../components/OpenLayersMap.astro';
-import KommunenGrid from '../components/KommunenGrid.astro';
----
+- Die ID `kategorien-grid` kommt aktuell sowohl in `src/pages/index.astro` (Tab-Container) als auch in `src/components/KategorienGrid.astro` (Grid-Element) vor. Das ist eine doppelte DOM-ID.
+- Persistenzschlüssel für Kommune und Kategorie sind in mehreren Dateien nicht einheitlich benannt (z. B. `selectedMunicipalityDetail`, `p2d2_selected_kommune_slug`, `selectedCategory`). Siehe dazu [Datenfluss](../../architektur/datenfluss), Abschnitt Persistenz.
 
-<BaseLayout>
-  <HeroSection />
-  
-  <OpenLayersMap />
-  
-  <KommunenGrid />
-</BaseLayout>
-```
+## Nicht enthalten
 
-## Abhängigkeiten
+Folgende Komponenten wurden in früheren Fassungen beschrieben, sind aber durch die gelesenen Quelldateien nicht belegt und daher entfernt:
 
-**Astro:**
-- `astro` - Framework
-- `@astrojs/tailwind` - TailwindCSS-Integration
-- `astro:content` - Content Collections
+- `Modal.astro`
+- `ThemenbereichCard.astro`
+- `CommunitySection.astro` (nur als auskommentierter Import in `index.astro` vorhanden)
+- `CallToAction.astro`
+- `MissionStatement.astro` (nur als auskommentierter Import in `index.astro` vorhanden)
 
-**UI-Libraries:**
-- TailwindCSS - Utility-First CSS
-- OpenLayers - Karten-Rendering
-- Poppins Font - Typography
+## Verwandte Dokumente
 
-**Eigene Module:**
-- `src/utils/kommunen-click-handler.ts` - Grid-Interaktion
-- `src/content/` - Content Collections
+- [Projektstruktur](../../architektur/projektstruktur) – Quellcode-Baum und Zuständigkeiten
+- [OpenLayers Integration](../karten/openlayers-integration) – MapCanvas und Karteninitialisierung
+- [Kommunen Content Collections](../kommunen/content-collections) – Collections und HTML-Datenübergabe
+- [Event Handling & Cross-Window Kommunikation](../../architektur/eventhandling) – Events der Grids und der Karte
+
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |

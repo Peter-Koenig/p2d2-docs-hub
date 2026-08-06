@@ -1,9 +1,10 @@
 ---
 title: Kommunen Content Collections
-description: Astro Content Collections für Kommunen-Daten mit vollständigem Zod-Schema und Frontmatter-Struktur
+description: Kategorien- und Kommunen-Collections, Frontmatter-Felder und HTML-Datenübergabe – belegter Ist-Zustand auf Basis des Quellcodes
+lastUpdated: 2026-08-06
 quality:
-  completeness: 80
-  accuracy: 75
+  completeness: 85
+  accuracy: 85
   reviewed: false
   reviewer: null
   reviewDate: null
@@ -11,16 +12,52 @@ quality:
 
 # Kommunen Content Collections
 
-## Übersicht
+Dieses Dokument beschreibt die Astro Content Collections von p2d2 auf Basis von `src/content.config.ts` sowie ihre Verwendung in den Komponenten. Es dokumentiert ausschließlich den belegten Ist-Zustand. Frühere, nicht durch den Quellcode belegbare Inhalte (z. B. OSM-Polygon-Interfaces, Erweiterungsvorschläge für zusätzliche Felder) wurden entfernt.
 
-Das Kommunen-System nutzt Astro Content Collections, um strukturierte Daten über Städte und Gemeinden zu verwalten. Jede Kommune wird als Markdown-Datei mit Frontmatter gespeichert und durch ein Zod-Schema validiert. Das System ermöglicht die Verwaltung von geografischen Daten, OSM-Integration und dynamische Visualisierung.
+## Collection-Definitionen (`src/content.config.ts`)
 
-## Collection-Definition
+Alle Collections werden in `src/content.config.ts` mit `defineCollection` und Zod-Schemata definiert und unter `collections` exportiert:
 
-### Zod-Schema
+```ts
+export const collections = {
+  socialmedia,
+  intern,
+  resources,
+  repositories,
+  copyright,
+  kategorien,
+  werte,
+  kommunen,
+};
+```
 
-```typescript
-// src/content.config.ts
+### Collection `kategorien`
+
+```ts
+const kategorien = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    icon: z.string(),
+    order: z.number(),
+    description: z.string(),
+    containerType: z.string().optional(),
+    image_version: z.string().default("001"),
+  }),
+});
+```
+
+| Feld | Typ | Default | Beschreibung |
+|---|---|---|---|
+| `title` | `string` | – | Anzeigename der Kategorie |
+| `icon` | `string` | – | Icon-Identifier |
+| `order` | `number` | – | Sortierreihenfolge |
+| `description` | `string` | – | Kurzbeschreibung |
+| `containerType` | `string` (optional) | – | GeoServer-Container-Typ (z. B. `cemetery`, `administrative`) für die WFS-Schicht |
+| `image_version` | `string` | `"001"` | Bildversion für das Kategorie-Foto |
+
+### Collection `kommunen`
+
+```ts
 const kommunen = defineCollection({
   schema: z.object({
     title: z.string(),
@@ -30,15 +67,16 @@ const kommunen = defineCollection({
       .string()
       .min(3, "Wikipedia identifier must be at least 3 characters")
       .regex(/^[a-z]{2,3}-/, "Must start with language code and hyphen")
-      .refine((val) => {
+      .refine((val: string) => {
         const parts = val.split("-", 2);
         return parts.length === 2 && parts[1].length > 0;
       }, "Must contain exactly one hyphen separating language code and article name"),
     osm_refinement: z.string().optional(),
     icon: z.string().optional(),
     order: z.number().optional(),
+    image_version: z.string().default("001"),
     map: z.object({
-      center: z.tuple([z.number(), z.number()]).optional(), // [lon, lat] WGS84
+      center: z.tuple([z.number(), z.number()]).optional(),
       zoom: z.number().optional(),
       extent: z
         .tuple([z.number(), z.number(), z.number(), z.number()])
@@ -50,254 +88,115 @@ const kommunen = defineCollection({
 });
 ```
 
-## Frontmatter-Felder
+| Feld | Typ | Default | Beschreibung |
+|---|---|---|---|
+| `title` | `string` | – | Anzeigename der Kommune |
+| `colorStripe` | `string` | `"#FF6900"` | Farbstreifen für die Kommune-Karte |
+| `osmAdminLevels` | `number[]` (optional) | – | OSM-Verwaltungsebenen der Kommune, verwendet für die `osmAdminLevel`-Ableitung in der WFS-Schicht |
+| `wp_name` | `string` | – | Wikipedia-Identifier (Sprachcode + Name), validiert (siehe unten) |
+| `osm_refinement` | `string` (optional) | – | Overpass-/OSM-Abfrage-Verfeinerung |
+| `icon` | `string` (optional) | – | Icon-Identifier |
+| `order` | `number` (optional) | – | Sortierreihenfolge |
+| `image_version` | `string` | `"001"` | Bildversion für das Kommune-Foto |
+| `map` | `object` (optional) | – | Kartendaten, siehe unten |
 
-### Pflichtfelder
+Felder des `map`-Objekts:
 
-#### `title`
-- **Typ**: `string`
-- **Beschreibung**: Anzeigename der Kommune
-- **Beispiel**: `"Köln"`, `"Bonn"`
-- **Zweck**: Primärer Anzeigename in der Benutzeroberfläche
+| Feld | Typ | Beschreibung |
+|---|---|---|
+| `center` | `[number, number]` (optional) | Kartenmittelpunkt in WGS84 `[lon, lat]` |
+| `zoom` | `number` (optional) | Initiale Zoom-Stufe |
+| `extent` | `[number, number, number, number]` (optional) | Kartenausdehnung `[minx, miny, maxx, maxy]` |
+| `projection` | `string` (optional) | CRS-Code (z. B. `EPSG:25832`, `EPSG:3857`) |
+| `extra` | `Record<string, any>` (optional) | Zusätzliche Kartenkonfiguration |
 
-#### `wp_name`
-- **Typ**: `string`
-- **Format**: `{language-code}-{City-Name}`
-- **Beispiel**: `"de-Köln"`, `"de-Bonn"`
-- **Validierung**: 
-  - Mindestens 3 Zeichen
-  - Muss mit Sprachcode und Bindestrich beginnen (`/^[a-z]{2,3}-/`)
-  - Muss genau einen Bindestrich enthalten
-- **Zweck**: Wikipedia-Name für externe Referenzierung und OSM-Abfragen
+### Weitere Collections
 
-### Optionale Felder
+| Collection | Felder | Verwendung |
+|---|---|---|
+| `werte` | `title`, `icon`, `order` | Werte-Raster der Startseite |
+| `socialmedia` | `name`, `url` (URL), `icon` | Social-Media-Icons im Footer |
+| `intern` | `name`, `url` | Interne Links im Footer („Über uns") |
+| `resources` | `name`, `url` | Ressourcen-Links im Footer |
+| `repositories` | `name`, `url` (URL) | Repository-Links im Footer |
+| `copyright` | `text` | Copyright-Text im Footer |
 
-#### `colorStripe`
-- **Typ**: `string`
-- **Default**: `"#FF6900"`
-- **Format**: Hex-Color `#RRGGBB`
-- **Beispiel**: `"#FF6900"`
-- **Zweck**: Farbkodierung für visuelle Darstellung in Karten und UI-Elementen
+## Validierung von `wp_name`
 
-#### `osmAdminLevels`
-- **Typ**: `number[]` (optional)
-- **Erlaubte Werte**: 2, 4, 6, 7, 8, 9, 10
-- **Beispiel**: `[6, 9, 10]`
-- **Zweck**: OSM Administrative Levels für Polygon-Abfragen und Geodaten-Synchronisation
+Das Feld `wp_name` wird in drei Schritten validiert:
 
-#### `osm_refinement`
-- **Typ**: `string` (optional)
-- **Beispiel**: `"boundary=administrative"`
-- **Zweck**: Overpass-API-Query-Verfeinerung für spezifischere OSM-Abfragen
+1. **Mindestlänge**: mindestens 3 Zeichen.
+2. **Sprachcode-Präfix**: muss mit `^[a-z]{2,3}-` beginnen (z. B. `de-`).
+3. **Genau ein Bindestrich**: `split("-", 2)` muss genau zwei Teile ergeben, und der zweite Teil (der Artikelname) darf nicht leer sein.
 
-#### `icon`
-- **Typ**: `string` (optional)
-- **Zweck**: Icon-Identifier für visuelle Darstellung
+Ein gültiger Wert folgt also dem Muster `{sprachcode}-{Artikelname}`, z. B. `de-Koeln`.
 
-#### `order`
-- **Typ**: `number` (optional)
-- **Default**: `0`
-- **Zweck**: Sortierreihenfolge in Listen und Grids
+## Verwendung in den Komponenten
 
-#### `map`
-- **Typ**: `object` (optional)
-- **Felder**:
-  - `center`: `[number, number]` - Kartenmittelpunkt in WGS84-Koordinaten [lon, lat]
-  - `zoom`: `number` - Initial-Zoom-Stufe
-  - `extent`: `[number, number, number, number]` - Kartenausdehnung [minx, miny, maxx, maxy]
-  - `projection`: `string` - CRS-Code (z.B. `"EPSG:25832"`, `"EPSG:3857"`)
-  - `extra`: `Record<string, any>` - Zusätzliche Kartenkonfiguration
+### `KommunenGrid.astro` – Kommunen-Raster
 
-**Beispiel:**
-```yaml
-map:
-  center: [6.9603, 50.9375]
-  zoom: 11
-  projection: "EPSG:25832"
-  extent: [6.8, 50.8, 7.2, 51.1]
-```
+- Lädt `kommunen` über `getCollection("kommunen")` und sortiert nach `order`.
+- Erzeugt eine clientseitig verfügbare Kommunen-Datenstruktur:
 
-## OSM Admin Levels
-
-### Level-Hierarchie
-
-| Level | Typ | Beschreibung | Beispiel Deutschland |
-|-------|-----|--------------|----------------------|
-| 2 | Land | Nationalstaat | Deutschland |
-| 4 | Bundesland | Bundesland | Nordrhein-Westfalen |
-| 6 | Regierungsbezirk | Regierungsbezirk | Köln |
-| 7 | Kreis | Kreisfreie Stadt | Stadt Köln |
-| 8 | Gemeindeverband | Gemeindeverband | - |
-| 9 | Gemeinde | Gemeinde | - |
-| 10 | Stadtteil | Stadtteil/Bezirk | Ehrenfeld, Nippes |
-
-### Typische Kombinationen
-
-**Großstadt (z.B. Köln):**
-```yaml
-osmAdminLevels: [6, 9, 10]
-```
-
-**Kleinstadt:**
-```yaml
-osmAdminLevels: [7, 9]
-```
-
-## TypeScript-Interfaces
-
-### KommuneData
-
-```typescript
-// src/utils/kommune-utils.ts
-export interface KommuneData {
-  slug: string;
-  title: string;
-  osmAdminLevels?: number[];
-  wp_name: string;
-  osm_refinement?: string;
-  colorStripe: string;
-  map: {
-    center: [number, number];
-    zoom: number;
-    projection: string;
-    extent?: [number, number, number, number];
-    extra?: Record<string, any>;
+```ts
+const kommuneDataMap: Record<
+  string,
+  { wpName: string; osmAdminLevels: number[] }
+> = {};
+kommunen.forEach((kommune) => {
+  kommuneDataMap[kommune.slug] = {
+    wpName: kommune.data.wp_name,
+    osmAdminLevels: kommune.data.osmAdminLevels || [],
   };
-  order?: number;
-  icon?: string;
-}
-```
-
-### OSM-Polygon-Interfaces
-
-```typescript
-// src/types/admin-polygon.ts
-export interface OSMPolygonFeature extends GeoJSON.Feature {
-  id: number;
-  properties: {
-    name: string;
-    admin_level: number;
-    wikipedia?: string;
-    wikidata?: string;
-    type: string;
-    timestamp: string;
-    version: number;
-    changeset: number;
-    user: string;
-    uid: number;
-  };
-  geometry: GeoJSON.Geometry;
-}
-
-export interface OSMPolygonCollection extends GeoJSON.FeatureCollection {
-  features: OSMPolygonFeature[];
-}
-
-export interface OverpassResponse {
-  version: number;
-  generator: string;
-  osm3s: {
-    timestamp_osm_base: string;
-    copyright: string;
-  };
-  elements: Array<{
-    type: "node" | "way" | "relation";
-    id: number;
-    tags?: Record<string, string>;
-    geometry?: Array<{ lat: number; lon: number }>;
-    members?: Array<{
-      type: "node" | "way" | "relation";
-      ref: number;
-      role: string;
-      geometry?: Array<{ lat: number; lon: number }>;
-    }>;
-  }>;
-}
-```
-
-## Collection-Queries
-
-### Alle Kommunen abrufen
-
-```typescript
-import { getCollection } from 'astro:content';
-
-const kommunen = await getCollection('kommunen');
-```
-
-**Rückgabe:**
-```typescript
-Array<{
-  id: string;        // z.B. "koeln"
-  slug: string;      // z.B. "koeln"
-  data: {
-    title: string;
-    colorStripe: string;
-    osmAdminLevels?: number[];
-    wp_name: string;
-    osm_refinement?: string;
-    icon?: string;
-    order?: number;
-    map: {
-      center?: [number, number];
-      zoom?: number;
-      extent?: [number, number, number, number];
-      projection?: string;
-      extra?: Record<string, any>;
-    };
-  };
-  body: string;      // Markdown-Content
-}>
-```
-
-### Filtern nach Admin Level
-
-```typescript
-const cities = await getCollection('kommunen', (entry) => {
-  return entry.data.osmAdminLevels?.includes(7) ?? false;
 });
 ```
 
-### Sortieren nach Order
+- Übergibt die Daten als `data-kommune-map={JSON.stringify(kommuneDataMap)}` an das Grid-Element.
+- Pro Kommune-Karte werden die Kartendaten (`center`, `extent`, `zoom`, `projection`, `extra`, `slug`) als `data-detail`-Attribut eingebettet; Klicks verarbeitet der `KommunenClickHandler` (`src/utils/kommunen-click-handler.ts`).
+- Beobachtung (Ist-Zustand): Im TypeScript-Mapping wird der Collection-Wert `wp_name` als `wpName` geführt; der `KommunenClickHandler` enthält dazu den Vermerk „KORRIGIERT: wpName statt wp_name".
 
-```typescript
-const sorted = kommunen.sort((a, b) => {
-  return (a.data.order ?? 0) - (b.data.order ?? 0);
-});
+### `KategorienGrid.astro` – Kategorien-Raster
+
+- Lädt `kategorien` über `getCollection("kategorien")` und sortiert nach `order`.
+- Rendert die Kategorie-Karten über `Kategorien.astro`; jede Karte trägt `data-category-slug={slug}`.
+- Der Klick-Handler (dokumentweiter `click`-Listener auf `[data-category-slug]`) setzt `mapState.setSelectedCategory(categorySlug)` und dispatched `CATEGORY_SELECTED` (Details siehe [Event Handling & Cross-Window Kommunikation](../../architektur/eventhandling)).
+
+### `Kategorien.astro` – einzelne Kategorie-Karte
+
+- Erwartet die Props `title`, `icon`, `description`, `id`, `slug`, `imageVersion`.
+- Das Foto wird als `/images/kategorien/{slug}_{imageVersion}.jpg` referenziert.
+
+### `src/pages/index.astro` – `data-category-map`
+
+- Lädt `kategorien` über `getAllKategorien()` (aus `src/utils/kategorie-utils.ts`).
+- Erzeugt ein Mapping `slug → { containerType }` und bettet es als JSON in das versteckte Element `#category-data` ein:
+
+```astro
+<div
+    id="category-data"
+    data-category-map={JSON.stringify(categoryMap)}
+    style="display: none;"
+    aria-hidden="true"
+>
+</div>
 ```
 
-### Einzelne Kommune
+- Der `WFSLayerManager` liest den `containerType` aus diesem Element für die CQL-Konstruktion (siehe [WFS-Layer-Architektur](../../architektur/wfs-layer-architektur)).
 
-```typescript
-import { getEntry } from 'astro:content';
+### `WerteGrid.astro` – Werte-Raster
 
-const koeln = await getEntry('kommunen', 'koeln');
-```
+- Lädt `werte` über `getCollection("werte")`, sortiert nach `order` und zeigt die ersten 12 Einträge an.
 
-## Markdown-Dateistruktur
+## Frontmatter-Beispiel (`kommunen`)
 
-### Dateinamen-Konvention
+Ein Frontmatter-Eintrag einer Kommune nutzt die belegten Felder, beispielsweise:
 
-**Format:** `{slug}.md`  
-**Beispiele:**
-- `koeln.md`
-- `bonn.md`
-- `berlin.md`
-
-**Slug-Extraktion:**
-```typescript
-const slug = filename.replace(/\.md$/, '');
-```
-
-### Vollständiges Beispiel
-
-```markdown
+```yaml
 ---
 title: "Köln"
-slug: "koeln"
 colorStripe: "#FF6900"
-osmAdminLevels: [6,9,10]
-wp_name: "de-Köln"
+osmAdminLevels: [6, 9, 10]
+wp_name: "de-Koeln"
 map:
   center: [6.9603, 50.9375]
   zoom: 11
@@ -305,198 +204,36 @@ map:
 order: 10
 ---
 
-Köln ist eine der größten Städte Deutschlands und bekannt für ihren Dom sowie ihre lebendige Kultur- und Wirtschaftsszene. Die Stadt bietet zahlreiche Möglichkeiten für bürgerschaftliches Engagement und innovative Projekte.
+Kurzbeschreibung der Kommune als Markdown-Body.
 ```
 
-## Validierung
+> Hinweis: Das Beispiel zeigt die belegten Felder und ihre Struktur. Welche Werte im Einzelnen für eine Kommune gepflegt sind, ergibt sich aus den Collections-Dateien unter `src/content/kommunen/`.
 
-### Zod-Validierungsregeln
+## Bedeutung von `osmAdminLevels` im WFS-Kontext
 
-**title:**
-```typescript
-z.string() // Pflichtfeld
-```
+`osmAdminLevels` fließt in die WFS-Schicht ein: Der `WFSLayerManager` leitet daraus den `osmAdminLevel` für den CQL-Filter ab.
 
-**colorStripe:**
-```typescript
-z.string().default("#FF6900") // Default-Wert falls nicht angegeben
-```
+- Für `containerType === "cemetery"` gilt fest Level `8`.
+- Für `containerType === "administrative"` wird die **nächste Untergliederung** verwendet: bei mehreren Ebenen das zweite Element, bei genau einer Ebene dieses Element, andernfalls Fallback `8`.
 
-**osmAdminLevels:**
-```typescript
-z.array(z.number()).optional() // Optionales Array von Zahlen
-```
+Details siehe [WFS-Layer-Architektur](../../architektur/wfs-layer-architektur).
 
-**wp_name:**
-```typescript
-z.string()
-  .min(3, "Wikipedia identifier must be at least 3 characters")
-  .regex(/^[a-z]{2,3}-/, "Must start with language code and hyphen")
-  .refine((val) => {
-    const parts = val.split("-", 2);
-    return parts.length === 2 && parts[1].length > 0;
-  }, "Must contain exactly one hyphen separating language code and article name")
-```
+## Nicht enthalten
 
-**map.center:**
-```typescript
-z.tuple([z.number(), z.number()]).optional() // Exakt 2 Zahlen
-```
+Folgende Inhalte früherer Fassungen sind **nicht** durch den Quellcode belegt und wurden entfernt:
 
-### Fehlerbehandlung
+- TypeScript-Interfaces zu OSM-Polygonen (`admin-polygon.ts`) und Overpass-Antworten.
+- Vorschläge für zusätzliche Frontmatter-Felder (z. B. `population`, `area`, `website`) oder Mehrsprachigkeits-Schemata.
+- Eine OSM-Level-Hierarchie-Tabelle mit festen Level-Bedeutungen (die Bedeutung von `osmAdminLevels` wird nur im WFS-Kontext dokumentiert).
 
-**Validation Error:**
-```
-[KommuneSchema] Invalid frontmatter in koeln.md:
-  - wp_name: Must start with language code and hyphen
-  - map.center: Expected tuple of length 2
-```
+## Verwandte Dokumente
 
-## Verwendung in Astro-Komponenten
+- [WFS-Layer-Architektur](../../architektur/wfs-layer-architektur) – `containerType` und `osmAdminLevel` in der WFS-Schicht
+- [Datenfluss](../../architektur/datenfluss) – Auswahl- und WFS-Pfade
+- [Event Handling & Cross-Window Kommunikation](../../architektur/eventhandling) – `CATEGORY_SELECTED`, `KOMMUNEN_FOCUS` und Cross-Window-Events
 
-### Kommunen-Grid-Komponente
+## Änderungshistorie
 
-```astro
----
-// src/components/KommunenGrid.astro
-import { getCollection } from "astro:content";
-
-const kommunen = await getCollection("kommunen");
-const sorted = kommunen.sort(
-    (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
-);
-
-// Create client-side accessible kommune data map
-const kommuneDataMap: Record<
-    string,
-    { wp_name: string; osmAdminLevels: number[] }
-> = {};
-kommunen.forEach((kommune) => {
-    kommuneDataMap[kommune.slug] = {
-        wp_name: kommune.data.wp_name,
-        osmAdminLevels: kommune.data.osmAdminLevels || [],
-    };
-});
----
-
-<div
-    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"
-    data-kommune-map={JSON.stringify(kommuneDataMap)}
->
-    {sorted.map((entry) => (
-        <button
-            type="button"
-            class="kommunen-card"
-            style={`--color-stripe: ${entry.data.colorStripe ?? "#FF6900"}`}
-            data-slug={entry.slug}
-            data-kommune-slug={entry.slug}
-        >
-            <h3>{entry.data.title}</h3>
-            <div>
-                {entry.body || `Entdecke Projekte in ${entry.data.title}`}
-            </div>
-        </button>
-    ))}
-</div>
-```
-
-### Feature-Editor Integration
-
-```astro
----
-// src/pages/feature-editor/[featureId].astro
-import { getCollection } from "astro:content";
-
-try {
-    const kommunen = await getCollection("kommunen");
-    const kommune = kommunen.find((k) => k.data.wp_name === wp_name);
-
-    if (kommune?.data.map?.projection) {
-        targetProjection = kommune.data.map.projection;
-    }
-} catch (error) {
-    console.warn("Could not load kommunen collection:", error);
-}
----
-
-<!-- Verwende targetProjection für Karten-Konfiguration -->
-```
-
-## Best Practices
-
-### Datei-Organisation
-1. **Naming**: Slug = Dateiname ohne `.md`
-2. **Encoding**: Immer UTF-8
-3. **Order**: Sinnvolle Sortierung mit `order`-Feld
-4. **Konsistenz**: Einheitliche Frontmatter-Struktur
-
-### Frontmatter-Qualität
-1. **title**: Offizielle Schreibweise verwenden
-2. **wp_name**: Korrekter Wikipedia-Artikelname mit Sprachcode
-3. **osmAdminLevels**: Nur relevante Levels angeben
-4. **colorStripe**: Konsistente Farbpalette nutzen
-5. **map.center**: Präzise Koordinaten (WGS84)
-
-### Validierung
-1. Zod-Schema vor Deployment testen
-2. Alle Kommunen-Dateien validieren
-3. Fehlerhafte Frontmatter-Daten korrigieren
-4. TypeScript-Interfaces für Type-Safety nutzen
-
-## Abhängigkeiten
-
-**Astro:**
-- `astro:content` - Collection-System
-- `defineCollection`, `z` (Zod) - Schema-Definition
-
-**Eigene Module:**
-- `src/utils/kommune-utils.ts` - Helper-Funktionen und Interfaces
-- `src/types/admin-polygon.ts` - OSM-spezifische TypeScript-Interfaces
-
-**Externe:**
-- `zod` - Schema-Validierung
-- `gray-matter` - Frontmatter-Parsing (in Utils)
-
-## Erweiterungsmöglichkeiten
-
-### Zusätzliche Felder
-
-```typescript
-// Beispiel: Einwohnerzahl und Fläche
-schema: z.object({
-  // ... bestehende Felder
-  population: z.number().optional(),
-  area: z.number().optional(), // km²
-  website: z.string().url().optional(),
-  established: z.number().optional() // Gründungsjahr
-})
-```
-
-### Mehrsprachigkeit
-
-```typescript
-title: z.object({
-  de: z.string(),
-  en: z.string().optional(),
-  fr: z.string().optional()
-})
-```
-
-### Geodaten-Erweiterung
-
-```typescript
-geodata: z.object({
-  boundingBox: z.tuple([z.number(), z.number(), z.number(), z.number()]),
-  area: z.number(),
-  populationDensity: z.number()
-}).optional()
-```
-
-## Performance-Optimierungen
-
-1. **Lazy Loading**: Kommunen-Daten nur bei Bedarf laden
-2. **Caching**: Collection-Queries cachen
-3. **Tree Shaking**: Nur benötigte Felder abrufen
-4. **Pagination**: Bei vielen Kommunen Pagination implementieren
-
-Das Content Collections System bietet eine robuste Grundlage für die Verwaltung von Kommunen-Daten mit vollständiger Type-Safety und Validierung.
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |

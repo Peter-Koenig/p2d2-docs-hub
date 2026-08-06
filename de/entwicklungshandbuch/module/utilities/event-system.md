@@ -1,591 +1,266 @@
 ---
-title: Event System & API Integration
-description: Umfassende Dokumentation für robustes Event-Handling und API-Integrationen
+title: Event System – API-Referenz
+description: API-orientierte Referenz zum typisierten Event-System in src/utils/events.ts
+lastUpdated: 2026-08-06
 quality:
-  completeness: 80
-  accuracy: 75
+  completeness: 85
+  accuracy: 90
   reviewed: false
   reviewer: null
   reviewDate: null
 ---
 
-# Event System & API Integration
+# Event System – API-Referenz
 
-> **Status:** ✅ Vollständig dokumentiert
+Dieses Dokument ist die API-orientierte Referenz zu `src/utils/events.ts`. Es beschreibt die öffentlichen Exporte, Event-Typen, Dispatcher, Listener, Queue-/Retry-Mechanik und Persistenzfunktionen. Die Architektur und die Abgrenzung der drei Event-Ebenen (lokal, Hauptfenster, Cross-Window) sind im Dokument [Event Handling & Cross-Window Kommunikation](../../architektur/eventhandling) beschrieben.
 
 ## Übersicht
 
-Das Event-System und die API-Integrationen in p2d2 bieten eine robuste Infrastruktur für asynchrone Kommunikation zwischen Anwendungskomponenten und externe Service-Integrationen. Diese Module gewährleisten zuverlässige Event-Verarbeitung mit Retry-Mechanismen und sichere API-Aufrufe mit Authentifizierung.
+`events.ts` ist die Ebene B des p2d2-Event-Systems: die fachlichen Hauptfenster-Events. Das Modul ist vollständig typsicher aufgebaut:
 
-## Hauptmodule
+- `P2D2EventType` definiert alle fachlichen Event-Namen (Präfix `p2d2:`).
+- `P2D2EventMap` verknüpft jeden Event-Typ mit einem Detail-Interface.
+- `dispatchP2D2Event()` dispatcht typisierte Events mit Throttling.
+- Eine interne Queue mit Retry-Mechanik macht das Dispatchen robust gegenüber einem noch nicht bereiten Event-System.
+- `logToEventConsole()` integriert die EventConsole, sofern sie als `window.__P2D2_EVENT_CONSOLE__` verfügbar ist.
+- Kleine Persistenzhelfer verwalten ausgewählte Kommune und CRS in `localStorage`.
 
-### 1. Event System (`events.ts`)
+Konstanten:
 
-Robustes Event-Handling mit Retry-Mechanismus, Throttling und Queue-Management.
-
-#### Event-Architektur
-
-```typescript
-// Event Queue für Retry-Mechanismus
-interface QueuedEvent {
-  eventName: string;
-  detail: any;
-  timestamp: number;
-  retryCount: number;
-  maxRetries: number;
-}
-
-// Globale Event-Konfiguration
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 250; // ms
-const THROTTLE_MS = 200;
-const QUEUE_PROCESS_INTERVAL = 100;
+```ts
+const THROTTLE_MS = 200;              // Standard-Throttling in ms
+const MAX_RETRIES = 3;                // Maximale Wiederholungen der Queue
+const RETRY_DELAY = 250;              // Verzögerung zwischen Retries in ms
+const QUEUE_PROCESS_INTERVAL = 100;   // Intervall der Queue-Verarbeitung in ms
 ```
 
-#### Event-Typen
+## P2D2EventType
 
-```typescript
-// Standard-Event-Typen
-export const EVENT_KOMMUNEN_FOCUS = "kommunen:focus";
+Das Enum `P2D2EventType` ist der zentrale Event-Katalog. Alle Werte tragen das Präfix `p2d2:`.
 
-// Event-Detail-Interfaces
-interface KommunenFocusDetail {
+| Enum-Konstante | Event-String | Domäne |
+|---|---|---|
+| `KOMMUNEN_FOCUS` | `p2d2:kommunen:focus` | Kommune fokussieren (Karte/Zoom) |
+| `KOMMUNEN_SELECTED` | `p2d2:kommunen:selected` | Kommune ausgewählt |
+| `CATEGORY_SELECTED` | `p2d2:category:selected` | Kategorie ausgewählt |
+| `MAP_READY` | `p2d2:map:ready` | Karte initialisiert |
+| `MAP_MOVEEND` | `p2d2:map:moveend` | Kartenbewegung abgeschlossen |
+| `MAP_ZOOMEND` | `p2d2:map:zoomend` | Zoom abgeschlossen |
+| `MAP_CLICK` | `p2d2:map:click` | Klick auf die Karte |
+| `LAYER_TOGGLE` | `p2d2:layer:toggle` | Layer umgeschaltet |
+| `LAYER_VISIBILITY_CHANGE` | `p2d2:layer:visibility:change` | Layer-Sichtbarkeit geändert |
+| `WFS_LOAD_START` | `p2d2:wfs:load:start` | WFS-Ladevorgang gestartet |
+| `WFS_LOAD_COMPLETE` | `p2d2:wfs:load:complete` | WFS-Ladevorgang erfolgreich |
+| `WFS_LOAD_ERROR` | `p2d2:wfs:load:error` | WFS-Ladevorgang fehlgeschlagen |
+| `WFS_FEATURE_CREATED` | `p2d2:wfs:feature:created` | WFS-Feature erstellt |
+| `WFS_FEATURE_UPDATED` | `p2d2:wfs:feature:updated` | WFS-Feature aktualisiert |
+| `WFS_FEATURE_DELETED` | `p2d2:wfs:feature:deleted` | WFS-Feature gelöscht |
+| `EDITOR_READY` | `p2d2:editor:ready` | Editor initialisiert |
+| `EDITOR_FEATURE_MODIFIED` | `p2d2:editor:feature:modified` | Feature im Editor modifiziert |
+| `EDITOR_TOOL_SWITCH` | `p2d2:editor:tool:switch` | Werkzeug gewechselt |
+| `EDITOR_MODE_CHANGE` | `p2d2:editor:mode:change` | Editor-Modus geändert |
+| `EDITOR_FEATURE_SELECTED` | `p2d2:editor:feature:selected` | Feature ausgewählt |
+| `EDITOR_FEATURE_DESELECTED` | `p2d2:editor:feature:deselected` | Feature abgewählt |
+| `EDITOR_SAVE_START` | `p2d2:editor:save:start` | Speichern begonnen |
+| `EDITOR_SAVE_COMPLETE` | `p2d2:editor:save:complete` | Speichern erfolgreich |
+| `EDITOR_SAVE_ERROR` | `p2d2:editor:save:error` | Speichern fehlgeschlagen |
+| `CRS_CHANGE` | `p2d2:crs:change` | Koordinatensystem gewechselt |
+| `UI_PANEL_TOGGLE` | `p2d2:ui:panel:toggle` | UI-Panel umgeschaltet |
+
+Zusätzlich wird ein Kompatibilitäts-Alias exportiert:
+
+```ts
+export const EVENT_KOMMUNEN_FOCUS = P2D2EventType.KOMMUNEN_FOCUS;
+```
+
+## P2D2EventMap
+
+`P2D2EventMap` bildet jeden Event-Typ typsicher auf sein Detail-Interface ab. Sie wird von Dispatcher und Listenern verwendet, damit beim Aufruf bereits zur Compile-Zeit die korrekten Details erzwungen werden.
+
+```ts
+export interface P2D2EventMap {
+  [P2D2EventType.KOMMUNEN_FOCUS]: KommunenFocusDetail;
+  [P2D2EventType.KOMMUNEN_SELECTED]: KommunenSelectedDetail;
+  [P2D2EventType.CATEGORY_SELECTED]: CategorySelectedDetail;
+  // ... alle übrigen Event-Typen analog
+}
+```
+
+Belegte Detail-Interfaces (Auszug der gelesenen Felder):
+
+```ts
+export interface KommunenFocusDetail {
   center?: [number, number];
   extent?: [number, number, number, number];
   zoom?: number;
   projection?: string;
   extra?: any;
   slug?: string;
+  wpName?: string;
+  osmAdminLevels?: number[];
+}
+
+export interface KommunenSelectedDetail {
+  slug: string;
+  wpName: string;
+  osmAdminLevels?: number[];
+  timestamp: number;
+}
+
+export interface CategorySelectedDetail {
+  categorySlug: string;
+  timestamp: number;
+}
+
+export interface MapReadyDetail {
+  mapId?: string;
+  view?: any;
+  projection?: string;
+  timestamp: number;
+  center: number[];
+  zoom: number | undefined;
+}
+
+export interface WFSLoadStartDetail {
+  layerName: string;
+  kommuneSlug?: string;
+  categorySlug?: string;
+  timestamp: number;
+}
+
+export interface WFSLoadCompleteDetail {
+  layerName: string;
+  kommuneSlug?: string;
+  categorySlug?: string;
+  featureCount: number;
+  timestamp: number;
+  success: boolean;
+  error?: string;
+}
+
+export interface WFSLoadErrorDetail {
+  layerName: string;
+  kommuneSlug?: string;
+  categorySlug?: string;
+  error: string;
+  timestamp: number;
 }
 ```
 
-#### Core-Funktionen
+Weitere Interfaces in `P2D2EventMap`: `LayerToggleDetail`, `MapMoveEndDetail`, `MapZoomEndDetail`, `MapClickDetail`, `LayerVisibilityChangeDetail`, `WFSFeatureCreatedDetail`, `WFSFeatureUpdatedDetail`, `WFSFeatureDeletedDetail`, `EditorReadyDetail`, `EditorFeatureModifiedDetail`, `EditorToolSwitchDetail`, `EditorModeChangeDetail`, `EditorFeatureSelectedDetail`, `EditorFeatureDeselectedDetail`, `EditorSaveStartDetail`, `EditorSaveCompleteDetail`, `EditorSaveErrorDetail`, `CRSChangeDetail`, `UIPanelToggleDetail`.
 
-```typescript
-// Event-Dispatching mit Throttling
-export function dispatchThrottledEvent(
-  eventName: string,
-  detail: any = {},
-  throttleMs: number = THROTTLE_MS
+## dispatchP2D2Event()
+
+Der typsichere Standard-Dispatcher für fachliche Hauptfenster-Events.
+
+```ts
+export function dispatchP2D2Event<T extends P2D2EventType>(
+  eventType: T,
+  detail: P2D2EventMap[T],
+  options?: { throttleMs?: number },
 ): void
+```
 
-// Robuste Kommunen-Focus-Event-Dispatch
-export function dispatchKommunenFocus(detail: KommunenFocusDetail): void
+- Standard-Throttling: `THROTTLE_MS` (200 ms) pro Event-Typ.
+- Mit `options.throttleMs: 0` kann das Throttling für einen einzelnen Aufruf deaktiviert werden (verwendet zum Beispiel im `KommunenClickHandler` und im `KategorienGrid`).
+- Der Dispatch durchläuft intern `dispatchThrottledEvent()`, das bei Bedarf die Queue- und Retry-Mechanik anstößt.
 
-// Event-Listener mit HMR-Guard
+## addP2D2EventListener()
+
+Typsicherer Listener zum Registrieren eines Event-Handlers.
+
+```ts
+export function addP2D2EventListener<T extends P2D2EventType>(
+  eventType: T,
+  handler: (event: CustomEvent<P2D2EventMap[T]>) => void,
+  options?: AddEventListenerOptions,
+): void
+```
+
+Beispiel aus `MapCanvas.astro`:
+
+```ts
+addP2D2EventListener(P2D2EventType.KOMMUNEN_FOCUS, (e) => {
+  const d = (e as CustomEvent)?.detail || {};
+  // ...
+}, { passive: true });
+```
+
+## addEventListener()
+
+Generischer Listener mit HMR-Schutz. Er erzeugt pro Registrierung einen eindeutigen Handler-Schlüssel und entfernt einen bereits registrierten Handler gleichen Schlüssels, bevor der neue hinzugefügt wird. So werden doppelte Listener bei Hot Module Replacement vermieden.
+
+```ts
 export function addEventListener(
   eventName: string,
   handler: (event: any) => void,
-  options?: AddEventListenerOptions
+  options?: AddEventListenerOptions,
 ): void
 ```
 
-### 2. WFS Auth Client (`wfs-auth.ts`)
+## logToEventConsole()
 
-Sicherer Client für WFS-Service-Integrationen mit Authentifizierung und Proxy-Unterstützung.
+Protokolliert ein Event in der EventConsole, sofern diese verfügbar ist.
 
-#### Konfiguration
-
-```typescript
-export interface WFSCredentials {
-  username: string;
-  password: string;
-}
-
-export interface WFSConfig {
-  endpoint: string;
-  workspace: string;
-  namespace: string;
-  credentials: WFSCredentials;
-}
-
-export class WFSAuthClient {
-  private config: WFSConfig;
-  
-  constructor(config: Partial<WFSConfig> = {})
-}
-```
-
-#### Hauptfunktionen
-
-```typescript
-// WFS-URL-Konstruktion
-buildAuthorizedWFSURL(
-  typeName: string,
-  params: Record<string, string> = {}
-): string
-
-// Authentifizierte Requests
-async fetchWithAuth(
-  url: string,
-  options: RequestInit = {}
-): Promise<Response>
-
-// GeoJSON-Features abrufen
-async getFeatures(
-  typeName: string,
-  params: Record<string, string> = {}
-): Promise<any>
-
-// BBox-basierte Abfragen
-async getFeaturesInBBox(
-  typeName: string,
-  bbox: number[],
-  crs: string = "EPSG:4326"
-): Promise<any>
-```
-
-### 3. Logger System (`logger.ts`)
-
-Konsistente Logging-Infrastruktur mit Astro-Integration.
-
-#### Logger-Interface
-
-```typescript
-export interface Logger {
-  info(message: string, data?: any): void;
-  warn(message: string, data?: any): void;
-  error(message: string, error?: Error | string, data?: any): void;
-  debug(message: string, data?: any): void;
-}
-
-// Globale Logger-Instanz
-export const logger: Logger;
-```
-
-#### Logger-Erstellung
-
-```typescript
-// Adaptiver Logger für Astro und Console
-export function createLogger(astroLogger?: AstroIntegrationLogger): Logger
-
-// Astro-Logger setzen
-export function setAstroLogger(astroLogger: AstroIntegrationLogger): void
-```
-
-## Verwendung in der Praxis
-
-### Komplette Event-Integration
-
-```typescript
-import { 
-  dispatchKommunenFocus, 
-  addEventListener,
-  dispatchThrottledEvent 
-} from '../utils/events';
-import { logger } from '../utils/logger';
-
-// 1. Event-Listener registrieren
-addEventListener("kommunen:focus", (event) => {
-  const detail = event.detail;
-  
-  logger.info("Kommune fokussiert", {
-    slug: detail.slug,
-    center: detail.center,
-    zoom: detail.zoom
-  });
-  
-  // Weitere Verarbeitung
-  handleKommuneFocus(detail);
-});
-
-// 2. Events mit Throttling auslösen
-function onKommuneClick(kommune: KommuneData) {
-  dispatchThrottledEvent("kommunen:focus", {
-    center: kommune.map.center,
-    zoom: kommune.map.zoom,
-    slug: kommune.slug,
-    projection: kommune.map.projection
-  }, 200);
-}
-
-// 3. Robuste Event-Dispatch
-try {
-  dispatchKommunenFocus({
-    center: [6.95, 50.94],
-    zoom: 12,
-    slug: 'koeln'
-  });
-} catch (error) {
-  logger.error("Event-Dispatch fehlgeschlagen", error);
-}
-```
-
-### WFS-API-Integration
-
-```typescript
-import { wfsAuthClient } from '../utils/wfs-auth';
-import { logger } from '../utils/logger';
-
-// 1. WFS-Features abrufen
-async function loadWFSFeatures(kommune: KommuneData, category: string) {
-  try {
-    const features = await wfsAuthClient.getFeatures("p2d2_containers", {
-      CQL_FILTER: `wp_name='${kommune.wp_name}' AND container_type='${category}'`
-    });
-    
-    logger.info("WFS-Features geladen", {
-      kommune: kommune.slug,
-      category: category,
-      featureCount: features.features?.length || 0
-    });
-    
-    return features;
-  } catch (error) {
-    logger.error("WFS-Request fehlgeschlagen", error, {
-      kommune: kommune.slug,
-      category: category
-    });
-    throw error;
-  }
-}
-
-// 2. BBox-basierte Abfragen
-async function loadFeaturesInViewport(bbox: number[], crs: string = "EPSG:4326") {
-  const features = await wfsAuthClient.getFeaturesInBBox(
-    "p2d2_containers", 
-    bbox, 
-    crs
-  );
-  return features;
-}
-
-// 3. Connection-Test
-async function testWFSAccess(): Promise<boolean> {
-  return await wfsAuthClient.testConnection();
-}
-```
-
-### Logging-Strategien
-
-```typescript
-import { logger } from '../utils/logger';
-
-// Unterschiedliche Log-Level verwenden
-logger.info("Anwendung gestartet", { timestamp: new Date().toISOString() });
-
-logger.debug("Detailierte Debug-Information", {
-  state: currentState,
-  userActions: userActionLog
-});
-
-logger.warn("Nicht-kritische Warnung", {
-  context: "Feature läuft im Fallback-Modus",
-  reason: "Externer Service nicht verfügbar"
-});
-
-logger.error("Kritischer Fehler", error, {
-  component: "MapInitializer",
-  user: currentUser?.id
-});
-```
-
-## Konfiguration
-
-### Event-System-Einstellungen
-
-```typescript
-// Optimale Event-Konfiguration für p2d2
-const EVENT_CONFIG = {
-  // Retry-Mechanismus
-  MAX_RETRIES: 3,
-  RETRY_DELAY: 250,
-  
-  // Performance
-  THROTTLE_MS: 200,
-  QUEUE_PROCESS_INTERVAL: 100,
-  
-  // Event-Spezifische Einstellungen
-  EVENT_TIMEOUTS: {
-    KOMMUNEN_FOCUS: 5000,
-    LAYER_LOAD: 10000,
-    DATA_SYNC: 30000
-  }
-};
-```
-
-### WFS-Client-Konfiguration
-
-```typescript
-// Environment-spezifische WFS-Konfiguration
-const WFS_CONFIG = {
-  development: {
-    endpoint: "https://wfs.data-dna.eu/geoserver/ows",
-    workspace: "Verwaltungsdaten",
-    credentials: {
-      username: "p2d2_wfs_user",
-      password: "eif1nu4ao9Loh0oobeev"
-    }
-  },
-  production: {
-    endpoint: "https://wfs.data-dna.eu/geoserver/Verwaltungsdaten/ows",
-    workspace: "Verwaltungsdaten", 
-    credentials: {
-      username: "p2d2_wfs_user", 
-      password: "eif1nu4ao9Loh0oobeev"
-    }
-  }
-};
-```
-
-### Logging-Konfiguration
-
-```typescript
-// Log-Level basierend auf Environment
-const LOG_LEVELS = {
-  development: {
-    info: true,
-    debug: true,
-    warn: true,
-    error: true
-  },
-  production: {
-    info: false,
-    debug: false, 
-    warn: true,
-    error: true
-  }
-};
-```
-
-## Performance-Optimierungen
-
-### 1. Event-Throttling
-
-```typescript
-// Verhindert zu häufige Events
-export function dispatchThrottledEvent(
+```ts
+export function logToEventConsole(
   eventName: string,
-  detail: any = {},
-  throttleMs: number = 200
-): void {
-  const lastDispatch = lastDispatchTimes.get(eventName) || 0;
-  const currentTime = Date.now();
-
-  if (currentTime - lastDispatch < throttleMs) {
-    logger.debug(`Event throttled: ${eventName}`);
-    return;
-  }
-
-  lastDispatchTimes.set(eventName, currentTime);
-  queueEvent(eventName, detail);
-}
-```
-
-### 2. Event-Queue mit Retry
-
-```typescript
-// Robuste Event-Verarbeitung
-function processEventQueue(): void {
-  while (eventQueue.length > 0) {
-    const queuedEvent = eventQueue.shift();
-    
-    try {
-      if (isEventSystemReady()) {
-        window.dispatchEvent(
-          new CustomEvent(queuedEvent.eventName, { detail: queuedEvent.detail })
-        );
-      } else {
-        // Retry-Logik
-        if (queuedEvent.retryCount < queuedEvent.maxRetries) {
-          queuedEvent.retryCount++;
-          eventQueue.unshift(queuedEvent);
-        }
-      }
-    } catch (error) {
-      // Error-Handling mit Retry
-      if (queuedEvent.retryCount < queuedEvent.maxRetries) {
-        queuedEvent.retryCount++;
-        eventQueue.unshift(queuedEvent);
-      }
-    }
-  }
-}
-```
-
-### 3. WFS-Request-Caching
-
-```typescript
-// Caching für wiederholte WFS-Requests
-const wfsCache = new Map<string, { data: any; timestamp: number }>();
-
-async function getCachedWFSFeatures(
-  typeName: string, 
-  params: Record<string, string>,
-  cacheTtl: number = 5 * 60 * 1000 // 5 Minuten
-): Promise<any> {
-  const cacheKey = `${typeName}-${JSON.stringify(params)}`;
-  const cached = wfsCache.get(cacheKey);
-  
-  if (cached && Date.now() - cached.timestamp < cacheTtl) {
-    logger.debug("WFS-Cache-Treffer", { cacheKey });
-    return cached.data;
-  }
-  
-  const data = await wfsAuthClient.getFeatures(typeName, params);
-  wfsCache.set(cacheKey, { data, timestamp: Date.now() });
-  
-  return data;
-}
-```
-
-## Fehlerbehandlung
-
-### Robuste Event-Dispatch
-
-```typescript
-// Graceful Degradation bei Event-Fehlern
-function safeDispatchEvent(eventName: string, detail: any): boolean {
-  try {
-    dispatchThrottledEvent(eventName, detail);
-    return true;
-  } catch (error) {
-    logger.warn(`Event-Dispatch fehlgeschlagen: ${eventName}`, error);
-    
-    // Fallback: Direkte Funktion aufrufen
-    if (window[`handle${eventName}`]) {
-      window[`handle${eventName}`](detail);
-    }
-    
-    return false;
-  }
-}
-```
-
-### WFS-Error-Recovery
-
-```typescript
-// Automatische Fehlerbehandlung für WFS
-async function resilientWFSRequest(
-  typeName: string,
-  params: Record<string, string>,
-  maxRetries: number = 2
-): Promise<any> {
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await wfsAuthClient.getFeatures(typeName, params);
-    } catch (error) {
-      logger.warn(`WFS-Request fehlgeschlagen (Versuch ${attempt + 1})`, error);
-      
-      if (attempt === maxRetries) {
-        throw error;
-      }
-      
-      // Exponentielles Backoff
-      await new Promise(resolve => 
-        setTimeout(resolve, Math.pow(2, attempt) * 1000)
-      );
-    }
-  }
-}
-```
-
-## Best Practices
-
-### 1. Event-Design
-
-```typescript
-// ✅ Korrekt - Klare Event-Struktur
-interface WellDesignedEvent {
-  type: "DATA_LOADED" | "ERROR_OCCURRED" | "USER_ACTION";
-  payload: {
-    source: string;
-    timestamp: number;
-    data?: any;
+  detail: any,
+  meta?: {
+    retryCount?: number;
+    throttled?: boolean;
+    success?: boolean;
     error?: string;
-  };
-}
-
-// ❌ Vermeiden - Vage Event-Daten
-// "somethingHappened" mit unstrukturiertem Detail
+    source?: string;
+    windowId?: string;
+    crossWindow?: boolean;
+    timestamp?: number;
+  },
+): void
 ```
 
-### 2. API-Error-Handling
+Die Funktion prüft das globale Objekt `window.__P2D2_EVENT_CONSOLE__`; nur wenn es existiert, wird `logEvent()` aufgerufen. Sie schlägt bei Fehlern still fehl (Debug-Funktionalität). Die EventConsole protokolliert ausschließlich Vorgänge, die diese Funktion erreichen – sie beobachtet keine beliebigen DOM-Events.
 
-```typescript
-// ✅ Korrekt - Umfassende Fehlerbehandlung
-async function loadDataWithFallback() {
-  try {
-    return await wfsAuthClient.getFeatures("p2d2_containers", params);
-  } catch (error) {
-    if (error.status === 401) {
-      // Authentifizierungsfehler
-      await handleAuthError();
-      throw error;
-    } else if (error.status === 404) {
-      // Daten nicht gefunden
-      return { features: [] };
-    } else {
-      // Netzwerkfehler - Fallback-Daten
-      logger.error("API-Fehler", error);
-      return getFallbackData();
-    }
-  }
-}
+## Event-Queue und Retry
+
+Bei nicht bereitem Event-System (`document.readyState === "loading"` oder `window.dispatchEvent` nicht vorhanden) werden Events in eine interne Queue gelegt und mit Retry verarbeitet:
+
+- `MAX_RETRIES = 3`
+- `RETRY_DELAY = 250` ms
+- `QUEUE_PROCESS_INTERVAL = 100` ms
+- `isEventSystemReady()` prüft die Bereitschaft des Event-Systems.
+
+Die Queue wird über `processEventQueue()` abgearbeitet; ein Flag verhindert rekursive Verarbeitung. Fehlgeschlagene Dispatches werden bis zur `MAX_RETRIES`-Grenze erneut eingereiht.
+
+Die folgenden Funktionen sind **intern** und nicht öffentlicher Teil der API: `throttle()`, `isEventSystemReady()`, `processEventQueue()`, `queueEvent()`, `dispatchThrottledEvent()`, `isValidWgs84Coordinate()`, `isValidWgs84Extent()`.
+
+## Persistenz
+
+`events.ts` stellt kleine Helfer für ausgewählte Einstellungen in `localStorage` bereit:
+
+```ts
+const STORAGE_KEYS = {
+  SELECTED_CRS: "p2d2_selected_crs",
+  SELECTED_KOMMUNE: "p2d2_selected_kommune",
+};
 ```
 
-### 3. Logging-Kontext
+| Funktion | Beschreibung |
+|---|---|
+| `getSelectedCRS(): string \| null` | Liest den zuletzt gewählten CRS-Schlüssel. |
+| `setSelectedCRS(crs: string): void` | Schreibt den CRS-Schlüssel. |
+| `getSelectedKommune(): string \| null` | Liest den zuletzt gewählten Kommunen-Schlüssel. |
+| `setSelectedKommune(slug: string): void` | Schreibt den Kommunen-Schlüssel. |
+| `clearSelections(): void` | Entfernt beide Schlüssel. |
 
-```typescript
-// ✅ Korrekt - Kontext-reiches Logging
-logger.info("Karten-Layer geladen", {
-  layerType: "WFS",
-  kommune: selectedKommune.slug,
-  category: selectedCategory,
-  featureCount: features.length,
-  loadTime: performance.now() - startTime
-});
+> Hinweis: Neben `events.ts` verwenden weitere Dateien eigene Persistenzschlüssel (unter anderem `map-state.ts`, `kommunen-click-handler.ts`, `index.astro`). Die Schlüssel sind derzeit nicht einheitlich benannt. Dies wird in der Dokumentation als Ist-Zustand beobachtet, aber nicht behoben.
 
-// ❌ Vermeiden - Unzureichendes Logging
-console.log("Layer loaded"); // Kein Kontext
-```
+## Nicht Teil dieser Datei
 
-## Abhängigkeiten
+`events.ts` enthält **kein** Logger-Modul (`logger.ts`), **keine** WFS-Client-Funktionen, **kein** Request-Caching und **keine** Klartext-Zugangsdaten. Frühere Dokumentfassungen haben solche Inhalte dieser Datei zugeschrieben; sie sind nicht durch den Quellcode belegt und wurden entfernt. Die WFS-Integration ist in [WFS-Layer-Architektur](../../architektur/wfs-layer-architektur) dokumentiert, die Cross-Window-Kommunikation in [Event Handling & Cross-Window Kommunikation](../../architektur/eventhandling).
 
-### Externe Libraries
-- **BroadcastChannel API** - Cross-Tab-Kommunikation (optional)
-- **Fetch API** - HTTP-Requests
+## Änderungshistorie
 
-### Interne Abhängigkeiten
-- `../utils/logger` - Logging-Infrastruktur
-- `../config/map-config` - Standard-Konfigurationen
-- `../types/admin-polygon` - TypeScript-Interfaces
-
-## Sicherheitsaspekte
-
-### Credential-Management
-
-```typescript
-// Sichere Credential-Verwendung
-class SecureWFSAuthClient {
-  private encryptCredentials(credentials: WFSCredentials): string {
-    // Implementierung für sichere Credential-Speicherung
-    return btoa(`${credentials.username}:${credentials.password}`);
-  }
-  
-  private getCredentialsFromEnv(): WFSCredentials {
-    // Credentials aus Environment-Variablen laden
-    return {
-      username: process.env.WFS_USERNAME || '',
-      password: process.env.WFS_PASSWORD || ''
-    };
-  }
-}
-```
-
-### Request-Validation
-
-```typescript
-// Eingabevalidierung für API-Requests
-function validateWFSRequest(params: Record<string, string>): boolean {
-  const allowedParams = ["bbox", "maxFeatures", "CQL_FILTER", "propertyName"];
-  
-  return Object.keys(params).every(key => 
-    allowedParams.includes(key) && 
-    typeof params[key] === 'string' &&
-    params[key].length < 1000 // Längenbeschränkung
-  );
-}
-```
-
-Diese Event-System- und API-Integration-Utilities gewährleisten eine robuste, performante und sichere Kommunikation zwischen allen p2d2-Komponenten und externen Services, mit umfassendem Error-Handling und konsistentem Logging.
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |
