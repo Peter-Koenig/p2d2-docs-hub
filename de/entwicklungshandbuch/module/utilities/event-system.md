@@ -30,7 +30,7 @@ Konstanten:
 ```ts
 const THROTTLE_MS = 200;              // Standard-Throttling in ms
 const MAX_RETRIES = 3;                // Maximale Wiederholungen der Queue
-const RETRY_DELAY = 250;              // Verzögerung zwischen Retries in ms
+const RETRY_DELAY = 250;              // definiert, derzeit im sichtbaren Queue-Pfad nicht verwendet
 const QUEUE_PROCESS_INTERVAL = 100;   // Intervall der Queue-Verarbeitung in ms
 ```
 
@@ -188,7 +188,7 @@ addP2D2EventListener(P2D2EventType.KOMMUNEN_FOCUS, (e) => {
 
 ## addEventListener()
 
-Generischer Listener mit HMR-Schutz. Er erzeugt pro Registrierung einen eindeutigen Handler-Schlüssel und entfernt einen bereits registrierten Handler gleichen Schlüssels, bevor der neue hinzugefügt wird. So werden doppelte Listener bei Hot Module Replacement vermieden.
+addEventListener() kapselt die Registrierung von window-Event-Listenern und legt Handler-Referenzen auf window ab. Die Funktion enthält einen Versuch zur HMR-Absicherung. Wegen der dynamischen Schlüsselbildung mit Date.now() ist aus dem aktuellen Code jedoch keine verlässliche Deduplizierung gleichartiger vorheriger Registrierungen ableitbar.
 
 ```ts
 export function addEventListener(
@@ -226,7 +226,7 @@ Die Funktion prüft das globale Objekt `window.__P2D2_EVENT_CONSOLE__`; nur wenn
 Bei nicht bereitem Event-System (`document.readyState === "loading"` oder `window.dispatchEvent` nicht vorhanden) werden Events in eine interne Queue gelegt und mit Retry verarbeitet:
 
 - `MAX_RETRIES = 3`
-- `RETRY_DELAY = 250` ms
+- `RETRY_DELAY` ist als Konstante definiert (250 ms), wird im aktuell sichtbaren Queue-/Retry-Pfad jedoch nicht verwendet – es wird keine garantierte Retry-Verzögerung dokumentiert.
 - `QUEUE_PROCESS_INTERVAL = 100` ms
 - `isEventSystemReady()` prüft die Bereitschaft des Event-Systems.
 
@@ -264,3 +264,4 @@ const STORAGE_KEYS = {
 | Version | Datum | Änderung |
 |---|---|---|
 | 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |
+| 1.1 | 2026-08-06 | RETRY_DELAY-Nutzung und HMR-Deduplizierung von addEventListener präzisiert (externer Review). |

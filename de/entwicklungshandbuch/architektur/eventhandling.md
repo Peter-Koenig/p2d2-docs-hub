@@ -43,7 +43,7 @@ Zentrale Bausteine:
 Eingebaute Robustheit:
 
 - **Throttling**: Standard-`THROTTLE_MS = 200 ms`; pro Event-Typ wird der letzte Dispatch-Zeitpunkt gespeichert. Aufrufer können `throttleMs: 0` setzen, um Throttling für einen Aufruf zu deaktivieren (z. B. `kommunen-click-handler` und `KategorienGrid` für `KOMMUNEN_FOCUS`/`CATEGORY_SELECTED`).
-- **Queue und Retry**: Ereignisse werden bei nicht bereitem Event-System in eine Warteschlange gelegt und bis zu `MAX_RETRIES = 3` mit `RETRY_DELAY = 250 ms` erneut versucht; die Queue wird im Intervall `QUEUE_PROCESS_INTERVAL = 100 ms` verarbeitet.
+- **Queue und Retry**: Ereignisse werden bei nicht bereitem Event-System in eine Warteschlange gelegt und bis zu `MAX_RETRIES = 3` erneut versucht. `RETRY_DELAY` ist als Konstante (250 ms) definiert, wird im aktuell sichtbaren Queue-/Retry-Pfad jedoch nicht verwendet – es wird daher keine garantierte Retry-Verzögerung dokumentiert. Die Queue-Verarbeitung selbst läuft über `QUEUE_PROCESS_INTERVAL = 100 ms` (`setTimeout`).
 - **EventConsole-Integration**: `dispatchP2D2Event` protokolliert über `logToEventConsole()`.
 
 Event-Typen (Auszug der fachlichen Domänen):
@@ -175,3 +175,4 @@ Eigenschaften:
 | Version | Datum | Änderung |
 |---|---|---|
 | 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |
+| 1.1 | 2026-08-06 | RETRY_DELAY als im Queue-Pfad ungenutzte Konstante präzisiert (externer Review). |

@@ -22,15 +22,17 @@ Die Startseite (`src/pages/index.astro`) nutzt `BaseLayout` und rendert die Komp
 
 ````text
 BaseLayout
-→ Header (über slot "header")
-→ index.astro
+→ Standard-Header aus BaseLayout
+→ Inhalt aus index.astro
    → HeroSection
    → OpenLayersMap
       → MapCanvas
    → KommunenGrid / KategorienGrid (mit Tab-Umschaltung)
    → WerteGrid
-→ Footer
+→ Standard-Footer aus BaseLayout
 ````
+
+Der benannte Slot `header` wird auf der öffentlichen Startseite nicht überschrieben. Editor-Seiten können ihn hingegen mit einem eigenen Editor-Header überschreiben.
 
 `index.astro` übernimmt außerdem folgende Aufgaben:
 
@@ -131,3 +133,4 @@ Die Soll-Spezifikation wird keine bestehenden Eventnamen, Rollen, APIs, Datenmod
 | Version | Datum | Änderung |
 |---|---|---|
 | 1.0 | 2026-08-06 | Dokumentation am aktuellen Quellcode ausgerichtet; frühere, nicht mehr belegbare Aussagen entfernt oder als historisch markiert. |
+| 1.1 | 2026-08-06 | Komponentenreihenfolge der Startseite präzisiert (Standard-Header/Footer aus BaseLayout, slot header ungenutzt; externer Review). |
