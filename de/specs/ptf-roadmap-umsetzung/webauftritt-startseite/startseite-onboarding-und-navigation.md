@@ -22,7 +22,7 @@ quality:
 
 # Startseite, Karten-Onboarding und Navigation
 
-Diese Spezifikation beschreibt die erste operative Maßnahme der PTF-Roadmap 2026–2027 (Arbeitspaket 1: „p2d2 verständlich machen“): Die öffentliche p2d2-Startseite soll verständlicher, einladender und besser bedienbar werden. Sie ist eine Soll-Spezifikation im Entwurfsstadium; alle Angaben sind vorläufig und müssen vor der Implementierung durch eine abgestimmte Entscheidung bestätigt werden.
+Diese Spezifikation beschreibt die erste operative Maßnahme der PTF-Roadmap 2026–2027 (Arbeitspaket 1: „p2d2 verständlich machen“): Die öffentliche p2d2-Startseite soll verständlicher, einladender und besser bedienbar werden. Sie ist eine Soll-Spezifikation im Entwurfsstadium. Ihre verbindlichen Anforderungen dienen als Grundlage für die spätere Implementierung und werden vor dem Merge fachlich reviewt. Der Status `draft` bedeutet nicht, dass die im Dokument festgelegten Anforderungen unverbindlich oder frei interpretierbar sind.
 
 ## 1. Zweck
 
@@ -274,6 +274,17 @@ Außerdem gilt:
 
 `WerteGrid` wird auf der Startseite durch eine neue Beteiligungssektion ersetzt. Die Werte-Collection und die Komponente `WerteGrid.astro` werden nicht gelöscht, weil sie außerhalb der Startseite weiterverwendbar bleiben können.
 
+Für den Ersatz von WerteGrid wird ausschließlich diese neue Komponente angelegt:
+
+p2d2/src/components/ParticipationSection.astro
+
+index.astro:
+- entfernt den Import und die Verwendung von WerteGrid auf der Startseite,
+- importiert ParticipationSection,
+- rendert ParticipationSection an derselben Position nach dem Grid-Container.
+
+WerteGrid.astro und src/content/werte/* werden nicht geändert oder gelöscht.
+
 Verbindlicher Inhalt der neuen Sektion:
 
 ```text
@@ -334,6 +345,14 @@ Zusätzlich gilt:
   - OSM → /osm
 - Die geschützten Arbeitsbereiche sind keine Ziele der öffentlichen Menüpunkte „Für ÖV“ und „Für OSM“.
 
+### Ankerziel „Entdecken“
+
+Der äußere Abschnitt der Karten-Sektion in OpenLayersMap.astro erhält bei der späteren Implementierung die eindeutige DOM-ID `entdecken`.
+
+Der Header-Link „Entdecken“ verweist auf `/#entdecken`.
+
+Die ID `map` bleibt ausschließlich der technische OpenLayers-Target-Container in MapCanvas.astro und wird nicht als Navigationsanker umgewidmet.
+
 ### Über-p2d2-Dropdown
 
 Zielstruktur:
@@ -355,11 +374,12 @@ Die inhaltliche Bereinigung, Umbenennung oder Zusammenlegung der weiteren Über-
 
 - Die CIVITAS/CORE-Seite `/ueber/civitas-core` bleibt unverändert erreichbar.
 - Sie wird aus dem Header-Dropdown entfernt.
-- Im Footer wird ein technischer Link ergänzt:
+- In `Footer.astro` wird die bestehende Überschrift „Ressourcen“ in „Technisches & Ressourcen“ umbenannt.
+- Unterhalb der Repository-Links wird ein zusätzlicher interner Link ergänzt:
 
 ```text
-Technisches & Ressourcen
-→ CIVITAS/CORE: technische Einordnung
+CIVITAS/CORE: technische Einordnung
+→ /ueber/civitas-core
 ```
 
 - Dokumentationslinks nach doc.data-dna.eu/de/ und /en/ bleiben erhalten.
@@ -429,3 +449,9 @@ Folgende Spezifikationen sind abhängig, werden aber mit dieser Datei nicht ange
 - Öffentliche Zielseite „Für OSM“
 - detaillierte Implementierungsspezifikation für Karten-Onboarding
 - detaillierte Content- und Migrationsspezifikation für öffentliche Seiten
+
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.1 | 2026-08-06 | Präzisierung: Entwurfsstatus verbindlich formuliert, Ankerziel „Entdecken“ (DOM-ID `entdecken`) definiert, Beteiligungssektion als `ParticipationSection.astro` benannt, Footer-Änderung dateigenau festgelegt (Überschrift „Technisches & Ressourcen“, Link unterhalb der Repository-Links). |
