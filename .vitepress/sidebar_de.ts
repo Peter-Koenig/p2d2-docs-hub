@@ -677,6 +677,16 @@ export const sidebar_de = {
             items: [
                 { text: "Übersicht", link: "/de/specs/" },
                 {
+                    text: "PTF-Roadmap-Umsetzung",
+                    collapsed: false,
+                    items: [
+                        {
+                            text: "Startseite, Karten-Onboarding und Navigation",
+                            link: "/de/specs/ptf-roadmap-umsetzung/webauftritt-startseite/startseite-onboarding-und-navigation",
+                        },
+                    ],
+                },
+                {
                     text: "Serveraufbau V1",
                     collapsed: false,
                     items: [
