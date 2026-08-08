@@ -198,7 +198,7 @@ Die vorhandenen Links „Kommune“ und „Kategorie“ dürfen funktional erhal
 Verbindliche Definition:
 
 - Kein seitenweites Modal.
-- Kein <dialog>.
+- Kein `<dialog>`.
 - Kein Fokus-Fang für die ganze Seite.
 - Das Onboarding liegt ausschließlich innerhalb des Kartencontainers.
 - Es dimmt nur die Karte.
