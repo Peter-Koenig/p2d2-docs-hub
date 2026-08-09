@@ -45,7 +45,7 @@ p2d2 darf dabei nicht als Datenportal beschrieben werden. Es ist ein Prozess- un
 - Hero-Claim
 - Kartenüberschrift und Karten-Onboarding
 - Kommunen-/Kategorien-Grids auf der Startseite
-- Werte-Reihe bleibt erhalten; Umwidmung als nächste Roadmap-Aufgabe (siehe Abschnitt 9)
+- Werte-Reihe: Umwidmung als nächste Roadmap-Aufgabe (siehe Abschnitt 9)
 - Header-Navigation der öffentlichen Website
 - Footer-Link zur technischen CIVITAS/CORE-Seite
 - Vorbereitung der öffentlichen Zielrouten `/fuer-oev` und `/fuer-osm`
@@ -120,7 +120,7 @@ p2d2/src/components/Footer.astro
 p2d2/src/styles/global.css
 ```
 
-Eine neue Präsentationskomponente (z. B. `ParticipationSection.astro`) ist in dieser Spezifikation nicht vorgesehen; eine spätere Umwidmung der Werte-Reihe wird separat spezifiziert (siehe Abschnitt 9).
+Eine neue Präsentationskomponente für die Werte-Reihe ist in dieser Spezifikation nicht vorgesehen; die Umwidmung ist als nächste Roadmap-Aufgabe vorgesehen und wird separat spezifiziert (siehe Abschnitt 9).
 
 Nicht ändern:
 
@@ -147,7 +147,7 @@ BaseLayout
 → HeroSection
 → Karten-Sektion mit erklärender Überschrift und lokalem Onboarding
 → Kommunen-/Themen-Auswahl
-→ WerteGrid (bleibt erhalten; Umwidmung als nächste Roadmap-Aufgabe, siehe Abschnitt 9)
+→ Werte-Reihe (Umwidmung als nächste Roadmap-Aufgabe, siehe Abschnitt 9)
 → Standard-Footer
 ```
 
@@ -259,13 +259,13 @@ Außerdem gilt:
 - Das doppelte DOM-ID-Vorkommen `kategorien-grid` ist bei der späteren Umsetzung zu bereinigen: Die ID bleibt am äußeren Tab-Container in index.astro; KategorienGrid.astro darf diese ID nicht zusätzlich ausgeben.
 - Eine Erweiterung für mehr als zwölf Kategorien oder Kommunen ist nicht Bestandteil dieser Spezifikation.
 
-## 9. Werte-Reihe: Umwidmung statt Ersatz (nächste Roadmap-Aufgabe)
+## 9. Werte-Reihe: Umwidmung als nächste Roadmap-Aufgabe
 
-Status: **nicht Teil dieser Spezifikation** – als eigene Roadmap-Aufgabe in Vorbereitung.
+Status: **nächste Roadmap-Aufgabe, noch nicht umgesetzt** – nicht Teil der ersten Code-Implementierung dieser Spezifikation.
 
-Die Werte-Reihe (`WerteGrid`, „Offene Daten“, „Gemeinschaft“, „Transparenz“) bleibt auf der Startseite erhalten. Sie wird **nicht** gelöscht und **nicht** durch eine neu formulierte Beteiligungssektion ersetzt. Stattdessen ist eine inhaltliche Umwidmung vorgesehen; die konkrete Ausgestaltung wird in einer eigenen Spezifikation festgelegt.
+Der aktuelle Zustand der Werte-Reihe (`WerteGrid`, „Offene Daten“, „Gemeinschaft“, „Transparenz“) gilt als überarbeitungswürdig. Sie soll **umgewidmet** und inhaltlich neu ausgerichtet werden, nicht unverändert bleiben. Die bestätigte Richtung ist die neue Überschrift **„Ein Thema. Eine Kommune. Viele Perspektiven.“** mit Beteiligungswegen für Menschen mit Ortswissen, Öffentliche Verwaltung und die OSM-Community.
 
-`WerteGrid.astro`, `src/content/werte/*` und die Einbindung in `index.astro` bleiben in dieser Spezifikation unverändert. Eine `ParticipationSection.astro` wird nicht eingeführt.
+Da die Aufgabe zum Zeitpunkt dieser Spezifikation noch nicht erreicht ist, bleiben `WerteGrid.astro`, `src/content/werte/*` und die Einbindung in `index.astro` im Rahmen dieser Spezifikation unverändert. Die konkrete Umwidmung (Komponente, Inhalte, Verlinkung auf `/mitmachen`, `/fuer-oev`, `/fuer-osm`) wird in einer eigenen Folge-Spezifikation verbindlich festgelegt (siehe Abschnitt 14).
 
 ## 10. Header-Navigation
 
@@ -394,7 +394,7 @@ Mindestens diese Abnahmekriterien:
 11. Der Hero-Claim bleibt unverändert („Erfassen wir den öffentlichen Datenraum …“).
 12. Zwischen Hero und Karten-Sektion steht nur die bestehende Überschrift („All die Objekte, die uns umgeben - es ist unser aller Raum!“); die Einführung steht gekürzt im Onboarding-Overlay.
 13. Die Auswahl-Sektion erhält keine neue Abschnittsüberschrift; die Tab-Begriffe bleiben unverändert „Kommunen“/„Kategorien“.
-14. Die Werte-Reihe (WerteGrid) bleibt auf der Startseite erhalten; eine `ParticipationSection` wird nicht eingeführt.
+14. Die Werte-Reihe wird durch diese Spezifikation nicht verändert; ihre Umwidmung bleibt als nächste Roadmap-Aufgabe vorgesehen.
 
 ## 14. Abhängige Folge-Spezifikationen
 
@@ -414,3 +414,4 @@ Folgende Spezifikationen sind abhängig, werden aber mit dieser Datei nicht ange
 | 1.0 | 2026-08-06 | Erstanlage: Soll-Spezifikation für Startseite, Karten-Onboarding und Navigation. |
 | 1.1 | 2026-08-06 | Präzisierung: Entwurfsstatus verbindlich formuliert, Ankerziel „Entdecken“ (DOM-ID `entdecken`) definiert, Beteiligungssektion als `ParticipationSection.astro` benannt, Footer-Änderung dateigenau festgelegt (Überschrift „Technisches & Ressourcen“, Link unterhalb der Repository-Links). |
 | 1.2 | 2026-08-09 | Anpassung an umgesetzten Stand: Hero-Claim bleibt der bisherige (neuer Claim verworfen); Karten-Sektion nur mit bestehender Überschrift, Einführung gekürzt in das verbreiterte Onboarding-Overlay übernommen; keine neuen Abschnittsüberschriften in der Auswahl-Sektion; Werte-Reihe wird umgewidmet statt ersetzt (`ParticipationSection` entfällt, eigene Folge-Spezifikation). |
+| 1.3 | 2026-08-09 | Klarstellung Werte-Reihe: Umwidmung ist die nächste Roadmap-Aufgabe und noch nicht umgesetzt; der Status quo gilt als überarbeitungswürdig; bestätigte Richtung „Ein Thema. Eine Kommune. Viele Perspektiven.“; Formulierungen „bleibt erhalten“ und „ParticipationSection entfällt“ korrigiert. |
