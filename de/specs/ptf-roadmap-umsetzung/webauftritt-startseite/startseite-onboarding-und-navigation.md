@@ -312,11 +312,14 @@ Zielstruktur:
 ```text
 Über p2d2
 - Hintergrund
+- Ziel
 - Status
 - Umsetzung
 - Zukunft
 - Tests
 ```
+
+„Ziel“ bleibt im Dropdown, sobald der zugehörige Seiteninhalt überarbeitet und mit dem Entwicklungsstrategie-Handbuch abgeglichen ist.
 
 `CIVITAS/CORE` wird aus diesem öffentlichen Dropdown entfernt.
 
@@ -415,3 +418,4 @@ Folgende Spezifikationen sind abhängig, werden aber mit dieser Datei nicht ange
 | 1.1 | 2026-08-06 | Präzisierung: Entwurfsstatus verbindlich formuliert, Ankerziel „Entdecken“ (DOM-ID `entdecken`) definiert, Beteiligungssektion als `ParticipationSection.astro` benannt, Footer-Änderung dateigenau festgelegt (Überschrift „Technisches & Ressourcen“, Link unterhalb der Repository-Links). |
 | 1.2 | 2026-08-09 | Anpassung an umgesetzten Stand: Hero-Claim bleibt der bisherige (neuer Claim verworfen); Karten-Sektion nur mit bestehender Überschrift, Einführung gekürzt in das verbreiterte Onboarding-Overlay übernommen; keine neuen Abschnittsüberschriften in der Auswahl-Sektion; Werte-Reihe wird umgewidmet statt ersetzt (`ParticipationSection` entfällt, eigene Folge-Spezifikation). |
 | 1.3 | 2026-08-09 | Klarstellung Werte-Reihe: Umwidmung ist die nächste Roadmap-Aufgabe und noch nicht umgesetzt; der Status quo gilt als überarbeitungswürdig; bestätigte Richtung „Ein Thema. Eine Kommune. Viele Perspektiven.“; Formulierungen „bleibt erhalten“ und „ParticipationSection entfällt“ korrigiert. |
+| 1.4 | 2026-08-09 | Zielstruktur korrigiert: „Ziel“ bleibt im Über-p2d2-Dropdown, nachdem der Seiteninhalt überarbeitet wurde. |
