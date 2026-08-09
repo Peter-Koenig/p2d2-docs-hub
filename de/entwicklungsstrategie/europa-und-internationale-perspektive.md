@@ -2,7 +2,7 @@
 title: Europa und internationale Perspektive
 description: Europa als mittelfristiger Fokus, globale Perspektive langfristig und partnerorientiert
 status: in Prüfung
-lastUpdated: 2026-08-05
+lastUpdated: 2026-08-09
 quality:
   completeness: 70
   accuracy: 85
@@ -22,6 +22,28 @@ Europa steht im Mittelpunkt der weiteren Arbeit. Konkret heißt das:
 - **INSPIRE als Referenzrahmen**: Die fachliche Datenarbeit orientiert sich an INSPIRE. Im aktuellen Pilot „Digitalisierung von Grabfluren“ wird eine INSPIRE-Referenz – beispielsweise über `de:inspireid` – fachlich korrekt und mit der OSM-Community abgestimmt verwendet.
 - **Europäische Zusammenarbeit als Perspektive**: Eine europäische Zusammenarbeit ist als langfristige Verstetigungsperspektive denkbar. Sie wird erst auf Basis der V1-Erprobung und konkreter Partnerinteressen konkretisiert.
 - **Mehrsprachigkeit**: Die Dokumentation wird in mehreren Sprachen geführt. Eine Übersetzung der Strategie-Inhalte ist nicht Teil dieses Handbuchs; sie wird separat organisiert.
+
+### Grenzüberschreitende Vergleichbarkeit als Nutzenmechanismus
+
+**Status:** in Prüfung
+
+OGC-konforme Dienste (etwa WMS oder WFS) werden von einzelnen Körperschaften
+bereitgestellt und enden fachlich wie technisch oft an Verwaltungs- oder
+Staatsgrenzen. INSPIRE gibt als europäischer Rahmen einen gemeinsamen Standard
+vor, sorgt aber nicht automatisch dafür, dass Unstimmigkeiten an Grenzen
+sichtbar werden: Benachbarte Stellen können unterschiedliche Dienste, Formate
+oder Aktualisierungsstände nutzen, ohne dass Abweichungen auffallen.
+
+Werden Datenbestände mehrerer Körperschaften auf einer gemeinsamen, offenen
+Plattform wie OpenStreetMap zusammengeführt, werden solche fachlichen Brüche
+an Grenzen sichtbar. Das schafft einen Anreiz zur Klärung: Wenn beide Seiten
+denselben Datenbestand betrachten und eine Diskontinuität übereinstimmend als
+klärungsbedürftig einordnen, entsteht eine nachvollziehbare Grundlage, die
+jeweils zuständige Verwaltung mit der Behebung zu beauftragen.
+
+Dieser Mechanismus ist eine Perspektive, kein zugesagtes Ergebnis. Er setzt
+voraus, dass mehrere Körperschaften unabhängig voneinander eine
+Synchronisation mit OpenStreetMap vornehmen.
 
 ## Globale Perspektive – langfristig und partnerorientiert
 
