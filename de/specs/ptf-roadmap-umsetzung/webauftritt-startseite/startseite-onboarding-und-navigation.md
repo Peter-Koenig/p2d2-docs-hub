@@ -2,7 +2,7 @@
 title: Startseite, Karten-Onboarding und Navigation
 description: Soll-Spezifikation für eine verständlichere öffentliche p2d2-Startseite, lokales Karten-Onboarding und zielgruppenorientierte Navigation
 status: draft
-lastUpdated: 2026-08-06
+lastUpdated: 2026-08-09
 lang: de
 category: spec
 specid: ptf-roadmap-webauftritt-startseite
@@ -45,7 +45,7 @@ p2d2 darf dabei nicht als Datenportal beschrieben werden. Es ist ein Prozess- un
 - Hero-Claim
 - Kartenüberschrift und Karten-Onboarding
 - Kommunen-/Kategorien-Grids auf der Startseite
-- Ersatz des WerteGrid auf der Startseite
+- Werte-Reihe bleibt erhalten; Umwidmung als nächste Roadmap-Aufgabe (siehe Abschnitt 9)
 - Header-Navigation der öffentlichen Website
 - Footer-Link zur technischen CIVITAS/CORE-Seite
 - Vorbereitung der öffentlichen Zielrouten `/fuer-oev` und `/fuer-osm`
@@ -120,7 +120,7 @@ p2d2/src/components/Footer.astro
 p2d2/src/styles/global.css
 ```
 
-Zusätzlich darf später ausschließlich für den Ersatz der bisherigen Startseiten-SLOP-Reihe eine neue, klar benannte Präsentationskomponente unter `p2d2/src/components/` angelegt werden.
+Eine neue Präsentationskomponente (z. B. `ParticipationSection.astro`) ist in dieser Spezifikation nicht vorgesehen; eine spätere Umwidmung der Werte-Reihe wird separat spezifiziert (siehe Abschnitt 9).
 
 Nicht ändern:
 
@@ -147,7 +147,7 @@ BaseLayout
 → HeroSection
 → Karten-Sektion mit erklärender Überschrift und lokalem Onboarding
 → Kommunen-/Themen-Auswahl
-→ Beteiligungssektion „Ein Thema. Eine Kommune. Viele Perspektiven.“
+→ WerteGrid (bleibt erhalten; Umwidmung als nächste Roadmap-Aufgabe, siehe Abschnitt 9)
 → Standard-Footer
 ```
 
@@ -155,18 +155,14 @@ Die DNA-Video-Animation bleibt erhalten. Die Hauptkarte bleibt der zentrale räu
 
 ## 6. Hero
 
-Verbindlicher Hero-Claim:
+Der bisherige Hero-Claim bleibt verbindlich erhalten und wird nicht geändert:
 
 ```html
-# Gemeinsam den öffentlichen Raum sichtbar machen</br>
-<span style="color:#41C7B4;">Mit Wissen aus der Öffentlichen Verwaltung, OpenStreetMap und vor Ort.</span>
+# Erfassen wir den öffentlichen Datenraum</br>
+<span style="color:#41C7B4;">der für uns Freiheit und Souveränität bedeutet</span>
 ```
 
-Die spätere Implementierung ersetzt dafür ausschließlich den Inhalt von:
-
-```text
-p2d2/src/content/hero.md
-```
+`p2d2/src/content/hero.md` bleibt inhaltlich unverändert. Der in einer früheren Entwurfsfassung vorgeschlagene Claim „Gemeinsam den öffentlichen Raum sichtbar machen …“ ist verworfen und wird nicht umgesetzt.
 
 Die Videoquellen, Größen, Animation, Bildmotive und grundlegende Hero-Struktur sind nicht Bestandteil dieser Änderung.
 
@@ -174,24 +170,14 @@ Die Videoquellen, Größen, Animation, Bildmotive und grundlegende Hero-Struktur
 
 ### Kartenüberschrift und Einführung
 
-Die Karten-Sektion erhält eine verständliche Einleitung mit diesem Inhalt:
+Zwischen Hero und Karten-Sektion steht nur noch die bestehende Überschrift. Eine längere Einleitung mit Absatz und Schritten wird nicht auf der Seite ausgegeben:
 
 ```text
-Überschrift:
-Entdecke den öffentlichen Raum
-
-Text:
-p2d2 verbindet Daten aus der Öffentlichen Verwaltung mit Wissen von Menschen
-vor Ort und OpenStreetMap. Wähle eine Kommune oder ein Thema und entdecke,
-welche Orte bereits sichtbar sind.
-
-Schritte:
-1. Kommune oder Thema auswählen
-2. Orte auf der Karte entdecken
-3. Wissen beitragen und Daten gemeinsam weiterentwickeln
+Überschrift (bestehend, unverändert):
+All die Objekte, die uns umgeben - es ist unser aller Raum!
 ```
 
-Die vorhandenen Links „Kommune“ und „Kategorie“ dürfen funktional erhalten bleiben, müssen aber in diese verständliche Einführung integriert werden.
+Die inhaltliche Erklärung wurde semantisch gekürzt in das lokale Karten-Onboarding übernommen (siehe unten). Die zuvor vorgesehenen Links „Kommune“/„Kategorie“ entfallen auf der Seite; die Tab-Umschaltung auf der Karte bleibt der funktionale Einstieg in die Auswahl.
 
 ### Lokales Karten-Onboarding
 
@@ -209,6 +195,19 @@ Verbindliche Definition:
 - Nach Freigabe bleibt ein kleiner Hilfe-Einstieg innerhalb der Karte erreichbar.
 - Der Hilfe-Einstieg öffnet die Einführung erneut.
 - Das Overlay darf keine Auswahl, keine Kartenposition und keine Layer verändern.
+- Das Overlay ist bewusst breit angelegt (aktuell `max-w-4xl`), damit die gekürzte Einführung lesbar bleibt.
+
+Verbindlicher Inhalt des Onboarding-Overlays (gekürzte, semantische Übernahme der Einführung):
+
+```text
+p2d2 verbindet Daten aus öffentlichen Verwaltungen mit unserem Wissen in der OpenStreetMap - bidirektional!
+
+1. Kommune auswählen
+2. Kategorie auswählen
+3. Objekte anklicken
+
+[Button: Karte erkunden]
+```
 
 ### Zusammenhang mit FeaturePopupHandler
 
@@ -242,24 +241,14 @@ Bis dahin:
 
 ## 8. Kommunen- und Themenauswahl
 
-Definition:
+Die Auswahl-Sektion erhält keine neue Abschnittsüberschrift und keine neue Einleitung. Die bestehende Tab-Umschaltung bleibt erhalten; die sichtbaren Begriffe bleiben unverändert:
 
 ```text
-Abschnittsüberschrift:
-Finde dein Thema oder deinen Ort
-
-Einleitung:
-Jede Öffentliche Verwaltung beginnt mit dem Thema, das vor Ort wichtig ist.
-Wähle einen Ort, um seinen öffentlichen Raum zu entdecken – oder ein Thema,
-das dich interessiert.
+Kommunen
+Kategorien
 ```
 
-Die bestehende Tab-Umschaltung bleibt erhalten. Sichtbare Begriffe:
-
-```text
-Kommunen entdecken
-Themen entdecken
-```
+Eine sprachliche Überarbeitung der Tab-Begriffe (z. B. „Themen entdecken“) ist nicht Bestandteil dieser Spezifikation.
 
 Außerdem gilt:
 
@@ -270,50 +259,13 @@ Außerdem gilt:
 - Das doppelte DOM-ID-Vorkommen `kategorien-grid` ist bei der späteren Umsetzung zu bereinigen: Die ID bleibt am äußeren Tab-Container in index.astro; KategorienGrid.astro darf diese ID nicht zusätzlich ausgeben.
 - Eine Erweiterung für mehr als zwölf Kategorien oder Kommunen ist nicht Bestandteil dieser Spezifikation.
 
-## 9. Ersatz der Werte-Reihe
+## 9. Werte-Reihe: Umwidmung statt Ersatz (nächste Roadmap-Aufgabe)
 
-`WerteGrid` wird auf der Startseite durch eine neue Beteiligungssektion ersetzt. Die Werte-Collection und die Komponente `WerteGrid.astro` werden nicht gelöscht, weil sie außerhalb der Startseite weiterverwendbar bleiben können.
+Status: **nicht Teil dieser Spezifikation** – als eigene Roadmap-Aufgabe in Vorbereitung.
 
-Für den Ersatz von WerteGrid wird ausschließlich diese neue Komponente angelegt:
+Die Werte-Reihe (`WerteGrid`, „Offene Daten“, „Gemeinschaft“, „Transparenz“) bleibt auf der Startseite erhalten. Sie wird **nicht** gelöscht und **nicht** durch eine neu formulierte Beteiligungssektion ersetzt. Stattdessen ist eine inhaltliche Umwidmung vorgesehen; die konkrete Ausgestaltung wird in einer eigenen Spezifikation festgelegt.
 
-p2d2/src/components/ParticipationSection.astro
-
-index.astro:
-- entfernt den Import und die Verwendung von WerteGrid auf der Startseite,
-- importiert ParticipationSection,
-- rendert ParticipationSection an derselben Position nach dem Grid-Container.
-
-WerteGrid.astro und src/content/werte/* werden nicht geändert oder gelöscht.
-
-Verbindlicher Inhalt der neuen Sektion:
-
-```text
-Überschrift:
-Ein Thema. Eine Kommune. Viele Perspektiven.
-
-Einleitung:
-p2d2 beginnt dort, wo ein Thema vor Ort wichtig ist. Eine Öffentliche Verwaltung
-kann passende Daten schrittweise öffnen. Menschen mit Ortswissen, lokale Gruppen
-und die OpenStreetMap-Community können helfen, sie zu verstehen, zu prüfen und
-weiterzuentwickeln.
-
-Karte 1:
-Ich kenne Orte und Geschichten
-Lokales Wissen sichtbar machen
-Ziel: /mitmachen
-
-Karte 2:
-Ich arbeite mit öffentlichen Daten
-Ein Fachverfahren als gemeinsames Thema öffnen
-Ziel: /fuer-oev
-
-Karte 3:
-Ich mappe mit OpenStreetMap
-Daten prüfen, ergänzen und gemeinsam weiterentwickeln
-Ziel: /fuer-osm
-```
-
-Die neue Sektion darf keine Aussagen über bereits verfügbare Beteiligungsfunktionen enthalten, die nicht durch den aktuellen Code oder separate öffentliche Zielseiten gedeckt sind.
+`WerteGrid.astro`, `src/content/werte/*` und die Einbindung in `index.astro` bleiben in dieser Spezifikation unverändert. Eine `ParticipationSection.astro` wird nicht eingeführt.
 
 ## 10. Header-Navigation
 
@@ -439,6 +391,10 @@ Mindestens diese Abnahmekriterien:
 9. CIVITAS/CORE ist nicht mehr im Header-Dropdown, aber im Footer direkt erreichbar.
 
 10. Die neue Onboarding-Persistenz schreibt bis zur Privacy-/Consent-Spezifikation keinen neuen localStorage-Key.
+11. Der Hero-Claim bleibt unverändert („Erfassen wir den öffentlichen Datenraum …“).
+12. Zwischen Hero und Karten-Sektion steht nur die bestehende Überschrift („All die Objekte, die uns umgeben - es ist unser aller Raum!“); die Einführung steht gekürzt im Onboarding-Overlay.
+13. Die Auswahl-Sektion erhält keine neue Abschnittsüberschrift; die Tab-Begriffe bleiben unverändert „Kommunen“/„Kategorien“.
+14. Die Werte-Reihe (WerteGrid) bleibt auf der Startseite erhalten; eine `ParticipationSection` wird nicht eingeführt.
 
 ## 14. Abhängige Folge-Spezifikationen
 
@@ -447,6 +403,7 @@ Folgende Spezifikationen sind abhängig, werden aber mit dieser Datei nicht ange
 - Privacy-/Consent- und Storage-Spezifikation
 - Öffentliche Zielseite „Für ÖV“
 - Öffentliche Zielseite „Für OSM“
+- Spezifikation zur Umwidmung der Werte-Reihe (nächste Roadmap-Aufgabe, siehe Abschnitt 9)
 - detaillierte Implementierungsspezifikation für Karten-Onboarding
 - detaillierte Content- und Migrationsspezifikation für öffentliche Seiten
 
@@ -456,3 +413,4 @@ Folgende Spezifikationen sind abhängig, werden aber mit dieser Datei nicht ange
 |---|---|---|
 | 1.0 | 2026-08-06 | Erstanlage: Soll-Spezifikation für Startseite, Karten-Onboarding und Navigation. |
 | 1.1 | 2026-08-06 | Präzisierung: Entwurfsstatus verbindlich formuliert, Ankerziel „Entdecken“ (DOM-ID `entdecken`) definiert, Beteiligungssektion als `ParticipationSection.astro` benannt, Footer-Änderung dateigenau festgelegt (Überschrift „Technisches & Ressourcen“, Link unterhalb der Repository-Links). |
+| 1.2 | 2026-08-09 | Anpassung an umgesetzten Stand: Hero-Claim bleibt der bisherige (neuer Claim verworfen); Karten-Sektion nur mit bestehender Überschrift, Einführung gekürzt in das verbreiterte Onboarding-Overlay übernommen; keine neuen Abschnittsüberschriften in der Auswahl-Sektion; Werte-Reihe wird umgewidmet statt ersetzt (`ParticipationSection` entfällt, eigene Folge-Spezifikation). |
