@@ -2,7 +2,7 @@
 title: Entscheidungen und offene Fragen
 description: ADR-artige Liste offener Strategieentscheidungen und bewusst vertagter Fragen
 status: offene Entscheidung
-lastUpdated: 2026-08-05
+lastUpdated: 2026-08-09
 quality:
   completeness: 75
   accuracy: 85
@@ -64,6 +64,20 @@ Sie ist **kein Ersatz** für technische Spezifikationen. Offene Architektur- und
 - **Frage:** Wann und mit welchen Partnern kann eine internationale Ausrichtung beginnen? Welche Voraussetzungen (lokale Partner, Datenhoheit, eigene Prioritäten, tragfähiger Betrieb) müssen erfüllt sein?
 - **Nächster Schritt:** Beobachtung und Gespräche; Konkretisierung erst nach der V1-Erprobung. Siehe [Europa und internationale Perspektive](./europa-und-internationale-perspektive).
 
+### Adressatenkreis oberhalb der kommunalen Ebene
+
+- **Status:** in Prüfung
+- **Kontext:** Das Leitbild beschreibt den digitalen Zwilling von unten als
+  strukturell auf jede Ebene öffentlicher Fachverantwortung anwendbar, nicht
+  nur auf Kommunen. Eine Anwendung auf Landes- oder Bundesebene ist derzeit
+  nicht konkret terminiert.
+- **Zu klärende Punkte:** Welche fachlichen, rechtlichen und organisatorischen
+  Voraussetzungen gelten auf Landes- und Bundesebene zusätzlich zu den bereits
+  für Kommunen beschriebenen (Fachverantwortung, CC0-Freigabefähigkeit,
+  lokales Interesse)?
+- **Nächster Schritt:** Konkretisierung erst auf Basis tatsächlicher Gespräche
+  oder Vorhaben auf dieser Ebene. Siehe [Leitbild und Prinzipien](./leitbild-und-prinzipien).
+
 ### Themen nach Grabfluren
 
 - **Status:** offene Entscheidung
@@ -107,3 +121,4 @@ Die Komponenten sind trotz der nicht durchführbaren E2E-Tests funktionstüchtig
 | 1.3 | 2026-08-05 | Technische Entscheidungen CIVITAS/CORE V1 anhand der Installationsskripte als geklärt dokumentiert (k3s Single-Node, cert-manager/Let's Encrypt, local-path-Storage); offener Punkt E2E-Tests ergänzt (fehlendes Tool zur automatischen Datenbank-Erstellung) |
 | 1.4 | 2026-08-05 | Komponenten-Bewertung QuantumLeap und FROST ergänzt (derzeit nicht betrieben; Bewertung erst bei fachlichem Bedarf); E2E-Test-Absatz präzisiert (fehlschlagende Tests betreffen teils nicht betriebene Komponenten) |
 | 1.5 | 2026-08-05 | Klarstellung und Bereinigung E2E-Tests, fehlendes QuantumLeap |
+| 1.6 | 2026-08-09 | Adressatenkreis oberhalb der kommunalen Ebene als offene Entscheidung ergänzt (in Prüfung): Das Modell des digitalen Zwillings von unten ist strukturell nicht auf Kommunen beschränkt; Konkretisierung erst auf Basis tatsächlicher Gespräche oder Vorhaben auf Landes- oder Bundesebene |

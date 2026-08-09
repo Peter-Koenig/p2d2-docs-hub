@@ -2,7 +2,7 @@
 title: Leitbild und Prinzipien
 description: Digitaler Zwilling von unten, Data-DNA, Datenhoheit, Open Source, OpenStreetMap und lokale Themen statt zentralem Datenkatalog
 status: active
-lastUpdated: 2026-08-05
+lastUpdated: 2026-08-09
 quality:
   completeness: 80
   accuracy: 85
@@ -45,6 +45,22 @@ Der Einstieg erfolgt über Geodaten, weil diese durch Visualisierbarkeit und Wie
 
 Der Einstieg in p2d2 ist ein konkretes Thema vor Ort, nicht ein vorgegebener Katalog von Datenkategorien. Was bearbeitet wird, bestimmt sich aus dem Zusammenkommen von kommunaler Fachverantwortung, freigabefähigen Daten und lokalem Interesse – und aus dem Dialog zwischen Kommune und Bürgerschaft darüber, welche Daten geteilt werden sollen und welche die Menschen gerne in ihre Obhut übernehmen. Grabfluren bieten sich als Einstieg an, sind aber nicht zwingend vorgeschrieben. Diese Reihenfolge ist Grundlage der aktuellen Roadmap: Zuerst wird p2d2 verständlich gemacht, dann werden Kommunen und Multiplikatoren angesprochen, danach wird ein erstes Thema als Pilot konkretisiert.
 
+### Adressatenkreis: nicht auf Kommunen beschränkt
+
+**Status:** in Prüfung
+
+p2d2 beginnt bei Kommunen, weil dort Fachverfahren, freigabefähige Daten und
+lokales Interesse besonders unmittelbar zusammenkommen. Das Modell ist damit
+aber nicht auf die kommunale Ebene begrenzt: Überall dort, wo eine öffentliche
+Stelle – auch auf Landes- oder Bundesebene – fachliche Verantwortung für ein
+Geodaten-Fachverfahren trägt und dieses schrittweise mit der Öffentlichkeit
+synchronisieren möchte, ist das Prinzip des digitalen Zwillings von unten
+grundsätzlich anwendbar.
+
+Eine über die kommunale Ebene hinausgehende Anwendung ist derzeit nicht
+Bestandteil eines zugesagten Arbeitspakets. Sie wird als strukturelle
+Eigenschaft der Architektur benannt, nicht als terminierte Lieferung.
+
 ### Datenhoheit
 
 Kommunen und Organisationen behalten die Kontrolle über ihre Daten und über die Daten der Menschen, die sich beteiligen. Das Ziel ist, Abhängigkeiten von einzelnen Anbietern und zentrale Kontrollpunkte zu vermeiden. Gleiches gilt für die technische Integration: p2d2 bleibt fachlich eigenständig und soll nicht unkontrolliert von den APIs oder Prozessen einer Plattform abhängig werden.
@@ -86,3 +102,4 @@ Ein digitaler Zwilling von unten trägt nur, wenn beides zusammenkommt:
 | 1.2 | 2026-08-05 | Formel des digitalen Zwillings präzisiert: Ein einzelnes kommunales Fachverfahren ist ein belastbarer Baustein, nicht der vollständige digitale Zwilling; Darstellung als hervorgehobene Admonition-Box |
 | 1.3 | 2026-08-05 | Formel-Darstellung finalisiert: nummerierte Liste, neuer Admonition-Titel „Ein digitaler Zwilling entsteht, wenn möglichst oft vier Dinge zusammenkommen“; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |
 | 1.4 | 2026-08-05 | Veraltete Lizenzhinweise als nicht mehr relevant markiert (durchgestrichen); Grabflur-Einstieg als naheliegend, aber nicht zwingend präzisiert; Themenfindung im Dialog zwischen Kommune und Bürgerschaft ergänzt |
+| 1.5 | 2026-08-09 | Adressatenkreis präzisiert: Das Modell des digitalen Zwillings von unten ist strukturell nicht auf die kommunale Ebene beschränkt; eine Anwendung auf Landes- oder Bundesebene ist in Prüfung und keine terminierte Lieferung |
