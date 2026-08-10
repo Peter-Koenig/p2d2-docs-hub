@@ -684,6 +684,10 @@ export const sidebar_de = {
                             text: "Startseite, Karten-Onboarding und Navigation",
                             link: "/de/specs/ptf-roadmap-umsetzung/webauftritt-startseite/startseite-onboarding-und-navigation",
                         },
+                        {
+                            text: "Umwidmung der Werte-Reihe",
+                            link: "/de/specs/ptf-roadmap-umsetzung/webauftritt-startseite/werte-reihe-umwidmung",
+                        },
                     ],
                 },
                 {
