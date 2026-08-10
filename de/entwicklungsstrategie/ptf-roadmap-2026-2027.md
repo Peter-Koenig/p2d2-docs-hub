@@ -161,7 +161,7 @@ Technische Ziele:
 - Gateway-/Ingress-Routing für p2d2-Dienste.
 - Wiederholbare Installation, Verifikation, Upgrade- und Rückbaupfade.
 
-Ziel ist, für Kommunen attraktiv zu sein, die bereits CIVITAS/CORE V1 einsetzen und voraussichtlich im Laufe des Jahres 2027 migrieren.
+Ziel ist, für Kommunen attraktiv zu sein, die bereits CIVITAS/CORE V1 einsetzen und voraussichtlich im Laufe des Jahres 2027 zu V2 migrieren.
 
 ### Schritt 4.3: Qualitätssicherungsprozess und OSM-Export fertigstellen
 
@@ -233,3 +233,4 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 | 1.3 | 2026-08-05 | Formel-Darstellung in der Leitidee finalisiert: nummerierte Liste und neuer Admonition-Titel; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |
 | 1.4 | 2026-08-05 | IAM-Sachstand ergänzt (Standalone: Zitadel mit „Account anlegen“ und OIDC, z. B. OpenStreetMap; AddOn: Umstellung auf Keycloak/OIDC); Grabflur-Pilot als naheliegend, aber nicht zwingend präzisiert; Themenwahl im Dialog zwischen Kommune und Bürgerschaft |
 | 1.5 | 2026-08-09 | Arbeitspaket 4 in vier Schritte gegliedert (Installationsscript, CIVITAS/CORE-V1-Integration, QS-Prozess/OSM-Export, Feedback-Zyklus); Perspektive V2 um Prozessmanagement-Zusammenführung präzisiert. |
+| 1.6 | 2026-08-09 | Satz in Schritt 4.2 präzisiert: Kommunen, die CIVITAS/CORE V1 einsetzen, migrieren voraussichtlich im Laufe des Jahres 2027 zu V2. |
