@@ -2,7 +2,7 @@
 title: PTF-Roadmap 2026–2027
 description: Aktuelle Roadmap von p2d2 – Website, Kommunen-Ansprache, Grabflur-Pilot, CIVITAS/CORE V1 und Evidenz für die Prototype-Fund-Second-Stage
 status: active
-lastUpdated: 2026-08-05
+lastUpdated: 2026-08-09
 quality:
   completeness: 70
   accuracy: 80
@@ -134,15 +134,23 @@ Die konkrete technische und fachliche Ausgestaltung wird erst nach Abstimmung mi
 
 **Status:** geplant; beginnt nach der ersten kommunikativen und fachlichen Validierung
 
-p2d2 soll weiterhin eigenständig betreibbar bleiben. Parallel wird geprüft und erprobt, wie p2d2 als AddOn in CIVITAS/CORE V1 integriert werden kann.
+p2d2 soll weiterhin eigenständig betreibbar bleiben. Parallel wird geprüft und erprobt, wie p2d2 als AddOn in CIVITAS/CORE V1 integriert werden kann. Dieses Arbeitspaket läuft nicht strikt nach Arbeitspaket 2 und 3, sondern parallel dazu: Die Ansprache von Kommunen und Multiplikatoren sowie der Grabflur-Pilot sind operative Tätigkeiten (Anschreiben, Gespräche, Veranstaltungen), während dieses Arbeitspaket die technische Integrationsfähigkeit vorbereitet.
 
-### Ausgangspunkt
+Der Weg gliedert sich in vier Schritte:
 
-Die derzeitige V1-Installation muss von einer S3-orientierten Auslieferungsvariante auf die vollständig konfigurierbare V1-Variante umgestellt werden. Dadurch entsteht die technische Voraussetzung, eigene Dienste, Routen, Rollen und Geodatenkomponenten kontrolliert einzubinden.
+### Schritt 4.1: Installationsscript auf volle Konfigurationsfreiheit umstellen
+
+**Status:** geplant
+
+Die derzeitige V1-Installation (`civitas_einrichtung/install_civitas_core_V1.sh`) nutzt eine S3-orientierte Auslieferungsvariante. Diese wird auf die vollständig konfigurierbare V1-Variante umgestellt. Erst dadurch entsteht die technische Voraussetzung, eigene Dienste, Routen, Rollen und Geodatenkomponenten kontrolliert einzubinden.
+
+### Schritt 4.2: p2d2 in CIVITAS/CORE V1 integrieren
+
+**Status:** geplant
 
 p2d2-Standalone nutzt für den Login **Zitadel** („Account anlegen“ und OIDC, beispielsweise mit OpenStreetMap). Für die V1-AddOn-Variante wird die Identitäts- und Rollenverwaltung von Zitadel auf **Keycloak/OIDC** umgestellt.
 
-### Technische Ziele
+Technische Ziele:
 
 - Reproduzierbare vollständige CIVITAS/CORE-V1-Installation.
 - p2d2-Frontend als eigener Deployment-/Helm-Baustein.
@@ -152,6 +160,20 @@ p2d2-Standalone nutzt für den Login **Zitadel** („Account anlegen“ und OIDC
 - OIDC-/Keycloak-Integration mit klarer Abbildung der p2d2-Rollen und Metadaten.
 - Gateway-/Ingress-Routing für p2d2-Dienste.
 - Wiederholbare Installation, Verifikation, Upgrade- und Rückbaupfade.
+
+Ziel ist, für Kommunen attraktiv zu sein, die bereits CIVITAS/CORE V1 einsetzen und voraussichtlich im Laufe des Jahres 2027 migrieren.
+
+### Schritt 4.3: Qualitätssicherungsprozess und OSM-Export fertigstellen
+
+**Status:** in Arbeit (technisch weit fortgeschritten, noch nicht final)
+
+Der Weg von der Bearbeitung über die interne Qualitätssicherung bis zum tatsächlichen Export nach OpenStreetMap ist technisch weit vorbereitet: Zustands-Workflow für jede editierbare Einheit, Authentifizierung und Rollen (editor, qs1_reviewer, qs2_reviewer, export_admin), WFS-T-Anbindung zum Speichern sowie differenzielle GeoJSON-Zwischenstände zur Absicherung bei Verbindungsabbrüchen. Final implementiert ist dieser Weg bis zum OSM-Export noch nicht. Die Fertigstellung ist Voraussetzung dafür, Kommunen nicht nur für die Datenerfassung, sondern auch für eine verlässliche Begleitung des gesamten Wegs bis zum OSM-Export gewinnen zu können.
+
+### Schritt 4.4: Feedback-Zyklus mit Kommunen vorbereiten
+
+**Status:** in Prüfung
+
+Der eigentliche Feedback-Zyklus – laufende Rückmeldungen aus OSM-Community und Verwaltung in einen dauerhaften Pflegeprozess – soll gemeinsam mit einer Pilotkommune entwickelt werden, sobald eine solche gewonnen ist (siehe Arbeitspaket 3). Architektonisch muss bereits vor einer Pilotkommune vorbereitet sein, worauf ein solcher Zyklus aufsetzen kann; ein eigenständiger, fertiger Feedback-Mechanismus existiert noch nicht.
 
 ### Architekturprinzip
 
@@ -186,7 +208,7 @@ Die Roadmap wird bei jedem wesentlichen Schritt aktualisiert. Sie ist zugleich K
 
 **Status:** noch nicht entschieden
 
-Erst auf Basis von Erfahrungen mit Nutzerkommunen, dem V1-AddOn und der kommunalen Betriebsrealität wird entschieden, wie p2d2 an CIVITAS/CORE V2 anschließen soll. Mögliche Themen sind Prozessmanagement, Modell- und Datenmanagement, Identitäten, Rollen und AddOn-Lifecycle.
+Erst auf Basis von Erfahrungen mit Nutzerkommunen, dem V1-AddOn und der kommunalen Betriebsrealität wird entschieden, wie p2d2 an CIVITAS/CORE V2 anschließen soll. CIVITAS/CORE V2 bringt voraussichtlich erweiterte Prozessmanagement-Fähigkeiten mit; für p2d2 stellt sich dann die Frage, wie die eigenen Workflow-Prozesse (Session-Lifecycle, mehrstufige Qualitätssicherung) mit dem Prozessmanagement von V2 zusammengeführt werden, statt dauerhaft parallel dazu zu bestehen. Mögliche Themen sind Prozessmanagement, Modell- und Datenmanagement, Identitäten, Rollen und AddOn-Lifecycle.
 
 Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governance, ein Anwenderverein, professionelle Unterstützungsangebote und eine europäische Zusammenarbeit. Diese Perspektive ist kein kurzfristiges Lieferziel dieser Roadmap.
 
@@ -210,3 +232,4 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 | 1.2 | 2026-08-05 | Leitidee präzisiert: Ein kommunales Fachverfahren ist ein belastbarer Baustein für den digitalen Zwilling von unten; der digitale Zwilling entsteht schrittweise, wenn viele Fachverfahren ihre Daten verantwortet und dauerhaft mit OpenStreetMap abgleichen. Formel als hervorgehobene Admonition-Box formatiert |
 | 1.3 | 2026-08-05 | Formel-Darstellung in der Leitidee finalisiert: nummerierte Liste und neuer Admonition-Titel; Abschlussabsatz auf die gekürzte Fassung ohne 1:1-Zielbild angeglichen |
 | 1.4 | 2026-08-05 | IAM-Sachstand ergänzt (Standalone: Zitadel mit „Account anlegen“ und OIDC, z. B. OpenStreetMap; AddOn: Umstellung auf Keycloak/OIDC); Grabflur-Pilot als naheliegend, aber nicht zwingend präzisiert; Themenwahl im Dialog zwischen Kommune und Bürgerschaft |
+| 1.5 | 2026-08-09 | Arbeitspaket 4 in vier Schritte gegliedert (Installationsscript, CIVITAS/CORE-V1-Integration, QS-Prozess/OSM-Export, Feedback-Zyklus); Perspektive V2 um Prozessmanagement-Zusammenführung präzisiert. |
