@@ -1,5 +1,5 @@
 ---
-title: p2d2 als CIVITAS/CORE-V1-AddOn – Zielbild und Abgrenzung
+title: "p2d2 als CIVITAS/CORE-V1-AddOn – Zielbild und Abgrenzung"
 description: Standalone-Prinzip, eigene Deployment-Bausteine, konfigurative Erweiterungen, Schutz bestehender CIVITAS-Ressourcen und offene Architekturentscheidungen des p2d2-V1-AddOns
 quality:
   completeness: 40

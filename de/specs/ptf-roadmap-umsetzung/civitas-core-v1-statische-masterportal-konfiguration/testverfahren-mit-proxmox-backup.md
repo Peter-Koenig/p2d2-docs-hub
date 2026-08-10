@@ -1,5 +1,5 @@
 ---
-title: CIVITAS/CORE V1: Statische Masterportal-Konfiguration – Testverfahren mit Proxmox-Backup
+title: "CIVITAS/CORE V1: Statische Masterportal-Konfiguration – Testverfahren mit Proxmox-Backup"
 description: Restaurierbares Proxmox-Backup als Test-Baseline für die Migration zur statischen Masterportal-Konfiguration – Testablauf, Rolle und Grenzen des Backups
 quality:
   completeness: 40

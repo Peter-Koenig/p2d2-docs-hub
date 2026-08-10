@@ -1,5 +1,5 @@
 ---
-title: p2d2 als CIVITAS/CORE-V1-AddOn – Voraussetzungen und Kompatibilität
+title: "p2d2 als CIVITAS/CORE-V1-AddOn – Voraussetzungen und Kompatibilität"
 description: Kategorien des späteren AddOn-Preflights für eine kompatible CIVITAS/CORE-V1-Plattform – Voraussetzungen, Kompatibilitätsfälle und Abgrenzung
 quality:
   completeness: 40

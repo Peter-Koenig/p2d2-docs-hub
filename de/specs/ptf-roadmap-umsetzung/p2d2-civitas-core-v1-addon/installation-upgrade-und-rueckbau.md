@@ -1,5 +1,5 @@
 ---
-title: p2d2 als CIVITAS/CORE-V1-AddOn – Installation, Upgrade und Rückbau
+title: "p2d2 als CIVITAS/CORE-V1-AddOn – Installation, Upgrade und Rückbau"
 description: Ziel-Lifecycle des p2d2-V1-AddOns – Preflight, Installation, Verifikation, Upgrade und Rückbau – sowie Abgrenzung zu Basisplattform und nachgelagerter Spezifikation
 quality:
   completeness: 40

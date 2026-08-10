@@ -1,5 +1,5 @@
 ---
-title: CIVITAS/CORE V1: Statische Masterportal-Konfiguration – S3-zu-statisch-Migration
+title: "CIVITAS/CORE V1: Statische Masterportal-Konfiguration – S3-zu-statisch-Migration"
 description: Migrationsvorhaben von der RustFS-/S3-Ablage zur statischen, versionierten und imagebasierten Masterportal-Konfiguration – Ausgangs- und Zielzustand, Migrationsprinzipien, konzeptionelle Abnahme
 quality:
   completeness: 40

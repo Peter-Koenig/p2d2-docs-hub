@@ -1,5 +1,5 @@
 ---
-title: p2d2 als CIVITAS/CORE-V1-AddOn
+title: "p2d2 als CIVITAS/CORE-V1-AddOn"
 description: Soll-Spezifikation für p2d2 als optionales AddOn auf einer kompatiblen CIVITAS/CORE-V1-Plattform – Zielbild, Voraussetzungen, Lifecycle und Abgrenzung
 quality:
   completeness: 40

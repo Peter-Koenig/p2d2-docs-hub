@@ -1,5 +1,5 @@
 ---
-title: CIVITAS/CORE V1: Statische Masterportal-Konfiguration
+title: "CIVITAS/CORE V1: Statische Masterportal-Konfiguration"
 description: Soll-Spezifikation für die statische, versionierte und imagebasierte Auslieferung der Masterportal-Konfiguration auf CIVITAS/CORE V1
 quality:
   completeness: 40
@@ -27,7 +27,7 @@ Die bisher funktionierende, aus einem Proxmox-Backup restaurierbare CIVITAS/CORE
 
 ## Einordnung in die PTF-Roadmap
 
-Das Vorhaben ist Teil der technischen Vorbereitung der [PTF-Roadmap 2026–2027](../../entwicklungsstrategie/ptf-roadmap-2026-2027). Es schafft die konfigurative Grundlage für die spätere Integration eigener Dienste im Rahmen des CIVITAS/CORE-V1-Ausbaus und geht dem p2d2-AddOn voraus.
+Das Vorhaben ist Teil der technischen Vorbereitung der [PTF-Roadmap 2026–2027](../../../entwicklungsstrategie/ptf-roadmap-2026-2027). Es schafft die konfigurative Grundlage für die spätere Integration eigener Dienste im Rahmen des CIVITAS/CORE-V1-Ausbaus und geht dem p2d2-AddOn voraus.
 
 ## Abgrenzung zum p2d2-AddOn
 

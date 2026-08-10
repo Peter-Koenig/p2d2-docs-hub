@@ -1,5 +1,5 @@
 ---
-title: CIVITAS/CORE V1: Statische Masterportal-Konfiguration – Zielbild und Abgrenzung
+title: "CIVITAS/CORE V1: Statische Masterportal-Konfiguration – Zielbild und Abgrenzung"
 description: Ausgangslage der S3-/RustFS-Ablage, Zielbild der statischen Masterportal-Konfiguration, Architekturprinzipien, Nichtziele und offene Entscheidungen
 quality:
   completeness: 40
