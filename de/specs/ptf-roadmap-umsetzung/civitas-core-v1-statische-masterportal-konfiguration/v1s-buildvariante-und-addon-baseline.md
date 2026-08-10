@@ -11,14 +11,14 @@ quality:
 
 # CIVITAS/CORE V1s: Buildvariante und AddOn-Baseline
 
-Diese Spezifikation ergänzt das Vorhaben [Statische Masterportal-Konfiguration](./). Sie führt eine klar getrennte Buildvariante **CIVITAS/CORE V1s** ein und definiert die Kriterien für eine restaurierbare AddOn-Test-Baseline auf Basis eines Proxmox-Backups.
+Diese Spezifikation ergänzt das Vorhaben [Statische Masterportal-Konfiguration](./). Sie definiert das Zielbild einer klar getrennten Buildvariante **CIVITAS/CORE V1s** und legt die Kriterien für eine restaurierbare AddOn-Test-Baseline auf Basis eines Proxmox-Backups fest.
 
 ## 1. Zweck
 
 Drei Ziele stehen im Vordergrund:
 
 - **Schutz der funktionierenden V1-Referenz:** Die bestehende CIVITAS/CORE-V1-Variante mit S3-/RustFS-basierter Masterportal-Konfiguration funktioniert und bleibt zunächst unverändert erhalten. Sie darf nicht durch unfertige Änderungen an der statischen Konfigurationsvariante instabil werden.
-- **Kontrollierte Entwicklung der V1s-Variante:** Die neue Variante mit statischer, versionierter und imagebasierter Masterportal-Konfiguration wird als klar getrennte Buildvariante entwickelt und abgenommen.
+- **Kontrollierte Entwicklung der V1s-Variante:** Die neue Variante mit statischer und versionierter Masterportal-Konfiguration wird als klar getrennte Buildvariante entwickelt und abgenommen. Der konkrete Auslieferungsmechanismus wird gesondert entschieden.
 - **Vorbereitung einer schnell restaurierbaren AddOn-Test-Baseline:** Ein definierter Proxmox-Backup-Breakpoint soll spätere p2d2-AddOn-Experimente ermöglichen, ohne bei jedem Test den vollständigen CIVITAS/CORE-Build erneut durchlaufen zu müssen.
 
 ## 2. Varianten und Abgrenzung
@@ -26,7 +26,7 @@ Drei Ziele stehen im Vordergrund:
 | Variante | Bedeutung |
 |---|---|
 | **V1** | Bestehende, funktionierende Referenzvariante mit bisheriger S3-/RustFS-basierter Masterportal-Konfiguration. |
-| **V1s** | CIVITAS/CORE V1 mit statischer, versionierter und imagebasierter Masterportal-Konfiguration. |
+| **V1s** | CIVITAS/CORE V1 mit statischer und versionierter Masterportal-Konfiguration. Der konkrete Auslieferungsmechanismus wird gesondert entschieden. |
 | **V2** | Eigenständiges, späteres Vorhaben. V2 ist nicht von V1s abgeleitet und verwendet voraussichtlich eine andere Architektur (Helm-Charts statt Ansible/`cc_cli`). |
 
 V1s ist **keine CIVITAS/CORE-Hauptversion** und **keine V2-Vorwegnahme**. Der Buchstabe `s` steht ausschließlich für die statische Masterportal-Konfiguration.
