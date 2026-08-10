@@ -2,7 +2,7 @@
 title: PTF-Roadmap 2026–2027
 description: Aktuelle Roadmap von p2d2 – Website, Kommunen-Ansprache, Grabflur-Pilot, CIVITAS/CORE V1 und Evidenz für die Prototype-Fund-Second-Stage
 status: active
-lastUpdated: 2026-08-09
+lastUpdated: 2026-08-10
 quality:
   completeness: 70
   accuracy: 80
@@ -53,7 +53,7 @@ Antrag für die Prototype-Fund-Second-Stage
 
 ## Arbeitspaket 1: p2d2 verständlich machen
 
-**Status:** aktiv
+**Status:** abgeschlossen
 
 Die öffentliche Website soll erklären, warum p2d2 sinnvoll ist und wie Menschen sowie Kommunen mit einem eigenen Thema beginnen können. Die Karte und die bestehenden Auswahlmöglichkeiten bleiben das Zentrum der Seite.
 
@@ -86,7 +86,9 @@ Eine Person soll nach kurzem Besuch der Startseite beantworten können:
 
 ## Arbeitspaket 2: Kommunen und Multiplikatoren gewinnen
 
-**Status:** geplant, beginnt nach dem ersten Website-Release
+**Status:** in Arbeit
+
+Die Website-Überarbeitung (Arbeitspaket 1) ist abgeschlossen; die Ansprache von Kommunen und Multiplikatoren hat begonnen.
 
 Die überarbeitete Website wird als verständliche Grundlage für Gespräche mit Kommunen und Multiplikatoren genutzt. Ziel ist nicht die sofortige flächendeckende Einführung, sondern die Validierung eines ersten lokalen Themas und eines tragfähigen Beteiligungsprozesses.
 
@@ -132,7 +134,7 @@ Die konkrete technische und fachliche Ausgestaltung wird erst nach Abstimmung mi
 
 ## Arbeitspaket 4: CIVITAS/CORE V1 als Erweiterungsplattform
 
-**Status:** geplant; beginnt nach der ersten kommunikativen und fachlichen Validierung
+**Status:** in Arbeit (Schritt 4.3 aktiv; Schritte 4.1, 4.2 und 4.4 beginnen erst nach der ersten kommunikativen und fachlichen Validierung)
 
 p2d2 soll weiterhin eigenständig betreibbar bleiben. Parallel wird geprüft und erprobt, wie p2d2 als AddOn in CIVITAS/CORE V1 integriert werden kann. Dieses Arbeitspaket läuft nicht strikt nach Arbeitspaket 2 und 3, sondern parallel dazu: Die Ansprache von Kommunen und Multiplikatoren sowie der Grabflur-Pilot sind operative Tätigkeiten (Anschreiben, Gespräche, Veranstaltungen), während dieses Arbeitspaket die technische Integrationsfähigkeit vorbereitet.
 
@@ -234,3 +236,4 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 | 1.4 | 2026-08-05 | IAM-Sachstand ergänzt (Standalone: Zitadel mit „Account anlegen“ und OIDC, z. B. OpenStreetMap; AddOn: Umstellung auf Keycloak/OIDC); Grabflur-Pilot als naheliegend, aber nicht zwingend präzisiert; Themenwahl im Dialog zwischen Kommune und Bürgerschaft |
 | 1.5 | 2026-08-09 | Arbeitspaket 4 in vier Schritte gegliedert (Installationsscript, CIVITAS/CORE-V1-Integration, QS-Prozess/OSM-Export, Feedback-Zyklus); Perspektive V2 um Prozessmanagement-Zusammenführung präzisiert. |
 | 1.6 | 2026-08-09 | Satz in Schritt 4.2 präzisiert: Kommunen, die CIVITAS/CORE V1 einsetzen, migrieren voraussichtlich im Laufe des Jahres 2027 zu V2. |
+| 1.7 | 2026-08-10 | Status aktualisiert: Arbeitspaket 1 abgeschlossen, Arbeitspaket 2 und das Gesamtpaket 4 auf 'in Arbeit' gesetzt (Teilschritt-Status von AP4 unverändert granular). |

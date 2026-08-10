@@ -2,7 +2,7 @@
 title: Entwicklungsstrategie
 description: Übersicht über Leitbild, Roadmap, strategische Schwerpunkte und offene Entscheidungen von p2d2
 status: active
-lastUpdated: 2026-08-09
+lastUpdated: 2026-08-10
 quality:
   completeness: 80
   accuracy: 85
@@ -17,6 +17,8 @@ Das Strategie-Handbuch beschreibt, wohin sich p2d2 entwickelt, warum und in welc
 
 - **aktuell** – geltende Aussagen und laufende Arbeit
 - **in Arbeit** – begonnene, noch nicht abgeschlossene Schritte
+- **abgeschlossen** – ein Arbeitspaket ist vollständig umgesetzt und
+  abgenommen
 - **geplant** – vorgesehene Schritte mit definierter Reihenfolge
 - **in Prüfung** – Optionen, über die noch nicht entschieden ist
 - **offene Entscheidung** – bewusst vertagte Grundsatzfragen
@@ -57,8 +59,9 @@ Der digitale Zwilling entsteht dann schrittweise: Wenn im Laufe der Zeit immer m
 ## Aktueller Stand im Überblick
 
 - **Aktuell:** Leitbild und Prinzipien, PTF-Roadmap 2026–2027
-- **In Arbeit:** Website-Überarbeitung, damit p2d2 verständlich und einladend wird (Roadmap, Arbeitspaket 1)
-- **Geplant:** Ansprache von Kommunen und Multiplikatoren, Grabflur-Pilot, Vorbereitung von CIVITAS/CORE V1 als Erweiterungsplattform
+- **Abgeschlossen:** Website-Überarbeitung, damit p2d2 verständlich und einladend wird (Roadmap, Arbeitspaket 1)
+- **In Arbeit:** Ansprache von Kommunen und Multiplikatoren; Vorbereitung von CIVITAS/CORE V1 als Erweiterungsplattform (Schritt 4.3: Qualitätssicherungsprozess und OSM-Export)
+- **Geplant:** Grabflur-Pilot; CIVITAS/CORE-V1-Teilschritte 4.1, 4.2 und 4.4 (4.4 in Prüfung)
 - **Geklärt:** IAM-Modell – p2d2-Standalone nutzt Zitadel („Account anlegen“ und OIDC, z. B. OpenStreetMap); für das CIVITAS/CORE-AddOn erfolgt die Umstellung auf Keycloak/OIDC
 - **In Prüfung / offene Entscheidung:** V2-Integration, Governance- und Verstetigungsmodelle, internationale Ausrichtung, Lizenzfragen für Daten und Dokumentation, Adressatenkreis oberhalb der kommunalen Ebene (Länder, Bund)
 - **Archiviert:** Frühere Roadmaps, Vision 2030, IAM-Konzept und Skalierungsentwürfe – nachvollziehbar unter [Archiv](./archiv/roadmap-bis-2025)
