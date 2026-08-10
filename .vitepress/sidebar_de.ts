@@ -691,6 +691,50 @@ export const sidebar_de = {
                     ],
                 },
                 {
+                    text: "CIVITAS/CORE V1: Statische Masterportal-Konfiguration",
+                    collapsed: false,
+                    items: [
+                        {
+                            text: "Übersicht",
+                            link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/",
+                        },
+                        {
+                            text: "Zielbild und Abgrenzung",
+                            link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/zielbild-und-abgrenzung",
+                        },
+                        {
+                            text: "S3-zu-statisch-Migration",
+                            link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/s3-zu-statisch-migration",
+                        },
+                        {
+                            text: "Testverfahren mit Proxmox-Backup",
+                            link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/testverfahren-mit-proxmox-backup",
+                        },
+                    ],
+                },
+                {
+                    text: "p2d2 als CIVITAS/CORE-V1-AddOn",
+                    collapsed: false,
+                    items: [
+                        {
+                            text: "Übersicht",
+                            link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/",
+                        },
+                        {
+                            text: "Zielbild und Abgrenzung",
+                            link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/zielbild-und-abgrenzung",
+                        },
+                        {
+                            text: "Voraussetzungen und Kompatibilität",
+                            link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/voraussetzungen-und-kompatibilitaet",
+                        },
+                        {
+                            text: "Installation, Upgrade und Rückbau",
+                            link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/installation-upgrade-und-rueckbau",
+                        },
+                    ],
+                },
+                {
                     text: "Serveraufbau V1",
                     collapsed: false,
                     items: [

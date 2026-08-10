@@ -39,6 +39,8 @@ Während Administrations- und Entwicklungshandbuch den Ist-Zustand beschreiben, 
 
 - [Startseite, Karten-Onboarding und Navigation](./ptf-roadmap-umsetzung/webauftritt-startseite/startseite-onboarding-und-navigation.md) — Soll-Spezifikation für eine verständlichere öffentliche p2d2-Startseite (erste operative Maßnahme der PTF-Roadmap)
 - [Umwidmung der Werte-Reihe](./ptf-roadmap-umsetzung/webauftritt-startseite/werte-reihe-umwidmung.md) — Soll-Spezifikation für die inhaltliche Umwidmung der Werte-Reihe zu einer Beteiligungs-Übersicht
+- [CIVITAS/CORE V1: Statische Masterportal-Konfiguration](./ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/) — Soll-Spezifikation für die statische, versionierte und imagebasierte Auslieferung der Masterportal-Konfiguration
+- [p2d2 als CIVITAS/CORE-V1-AddOn](./ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/) — Soll-Spezifikation für p2d2 als optionales AddOn auf einer kompatiblen CIVITAS/CORE-V1-Plattform
 
 ## Navigationsübersicht
 
