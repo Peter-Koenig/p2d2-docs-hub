@@ -2,7 +2,7 @@
 title: PTF-Roadmap 2026–2027
 description: Aktuelle Roadmap von p2d2 – Website, Kommunen-Ansprache, Grabflur-Pilot, CIVITAS/CORE V1 und Evidenz für die Prototype-Fund-Second-Stage
 status: active
-lastUpdated: 2026-08-10
+lastUpdated: 2026-08-11
 quality:
   completeness: 70
   accuracy: 80
@@ -216,6 +216,9 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 
 ## Weiterführende Dokumente
 
+- [PTF-Roadmap, AP 1: Startseite, Karten-Onboarding und Navigation](../specs/ptf-roadmap-umsetzung/webauftritt-startseite/)
+- [PTF-Roadmap, AP 4: CIVITAS/CORE V1, Statische Masterportal-Konfiguration](../specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/)
+- [PTF-Roadmap, AP 4: p2d2 als CIVITAS/CORE-V1-AddOn](../specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/)
 - [CIVITAS/CORE V1: Serveraufbau](../specs/civitas-core-plugin/serveraufbau-v1/)
 - [CIVITAS/CORE: technische Einordnung](../specs/civitas-core-plugin/)
 - [Leitbild und Prinzipien](./leitbild-und-prinzipien)
@@ -237,3 +240,4 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 | 1.5 | 2026-08-09 | Arbeitspaket 4 in vier Schritte gegliedert (Installationsscript, CIVITAS/CORE-V1-Integration, QS-Prozess/OSM-Export, Feedback-Zyklus); Perspektive V2 um Prozessmanagement-Zusammenführung präzisiert. |
 | 1.6 | 2026-08-09 | Satz in Schritt 4.2 präzisiert: Kommunen, die CIVITAS/CORE V1 einsetzen, migrieren voraussichtlich im Laufe des Jahres 2027 zu V2. |
 | 1.7 | 2026-08-10 | Status aktualisiert: Arbeitspaket 1 abgeschlossen, Arbeitspaket 2 und das Gesamtpaket 4 auf 'in Arbeit' gesetzt (Teilschritt-Status von AP4 unverändert granular). |
+| 1.8 | 2026-08-11 | Verweise auf die Umsetzungs-Spezifikationen ergänzt: Startseite, Karten-Onboarding und Navigation; CIVITAS/CORE V1: Statische Masterportal-Konfiguration; p2d2 als CIVITAS/CORE-V1-AddOn. |
