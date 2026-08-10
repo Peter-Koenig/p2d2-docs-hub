@@ -13,6 +13,8 @@ quality:
 
 Diese Seite beschreibt das **Migrationsvorhaben** von der bestehenden RustFS-/S3-Ablage hin zu einer statischen, versionierten und imagebasierten Masterportal-Konfiguration. Sie dokumentiert ausdrücklich ein geplantes Vorhaben und keine bereits umgesetzte Migration.
 
+Die Migration entwickelt und validiert zunächst die **V1s-Buildvariante** (CIVITAS/CORE V1 mit statischer Masterportal-Konfiguration, siehe [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline)). Die bestehende V1-S3-/RustFS-Referenz bleibt bis zum erfolgreichen V1s-Nachweis unverändert erhalten.
+
 ## Ausgangszustand
 
 Ausgangspunkt ist eine funktionierende CIVITAS/CORE-V1-Referenzinstallation, deren Masterportal-Konfiguration über RustFS/S3 bereitgestellt wird. Betroffen sind die drei fachlichen Konfigurationsdateien:
@@ -26,6 +28,8 @@ Die lokale RustFS-LXC ist in diesem Zustand eine zwingende Voraussetzung für di
 ## Zielzustand
 
 Im Zielzustand liegen dieselben fachlichen Portal-Konfigurationen in versionierten, statisch auslieferbaren Artefakten beziehungsweise Images vor. Die Auslieferung ist damit unabhängig von der lokalen RustFS-/S3-Ablage möglich und reproduzierbar, versioniert und überprüfbar.
+
+Konzeptionelles Migrationsziel ist der erfolgreiche **V1s-Backup-Breakpoint** vor der AddOn-Entwicklung: Nach bestandener V1s-Plattformabnahme wird eine restaurierbare AddOn-Baseline gesichert, auf der spätere p2d2-AddOn-Experimente ohne erneuten vollständigen CIVITAS/CORE-Build aufsetzen können (siehe [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline)).
 
 ## Migrationsprinzipien
 
@@ -55,3 +59,4 @@ Die konkreten technischen Schritte der Migration sind **noch zu spezifizieren**.
 - [Übersicht](./) – Gesamtvorhaben der statischen Masterportal-Konfiguration
 - [Zielbild und Abgrenzung](./zielbild-und-abgrenzung) – Ausgangslage, Zielarchitektur und offene Entscheidungen
 - [Testverfahren mit Proxmox-Backup](./testverfahren-mit-proxmox-backup) – restaurierbare Test-Baseline und Abnahmeprozess
+- [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline) – getrennte Buildvariante und Kriterien für die restaurierbare AddOn-Test-Baseline

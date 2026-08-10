@@ -24,6 +24,7 @@ Der spätere AddOn-Preflight muss mindestens die folgenden Kategorien prüfen:
 - **Kollisionsfreie Namen:** Die Namen für Deployments, Services, URLs, Ingress-Routen, Datenbanken, GeoServer-Workspaces und Keycloak-Clients müssen eindeutig und kollisionsfrei zur bestehenden Plattform wählbar sein.
 - **Geklärte Portal-Backend-Kompatibilität:** Die Kompatibilität des bestehenden `portal-backend` mit der p2d2-Masterportal-Instanz muss geklärt sein.
 - **Dokumentierter Rückbaupfad:** Vor der Installation muss feststehen, wie p2d2-eigene Ressourcen vollständig und nachvollziehbar zurückgebaut werden können.
+- **Definierte AddOn-Test-Baseline:** Für Entwicklungs- und Migrationsläufe muss eine dokumentierte, restaurierbare V1s-AddOn-Baseline vorhanden sein. Für Bestandsplattformen wird ein gleichwertiger gesicherter Ausgangszustand benötigt. Dies setzt nicht voraus, dass externe Bestandsplattformen zwingend mit Proxmox betrieben werden.
 
 ## Kompatibilitätsfälle
 

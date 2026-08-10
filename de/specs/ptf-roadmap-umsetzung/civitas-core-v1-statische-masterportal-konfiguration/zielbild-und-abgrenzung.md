@@ -58,4 +58,5 @@ Die folgenden Punkte sind noch nicht entschieden und werden als offene Fragen ge
 - genaue Image-Build- und Release-Verantwortung,
 - genaue Inventory-Felder,
 - Anzahl und Zuordnung von `portal-backend`-Deployments zu Masterportal-Instanzen,
-- mögliche Koexistenz bestehender S3- und neuer statischer Konfigurationen.
+- mögliche Koexistenz bestehender S3- und neuer statischer Konfigurationen,
+- Konfigurations-Lifecycle einer späteren p2d2-Masterportal-Instanz: Abgrenzung zwischen Build-Time-Artefakten, Deployment-Time-Konfiguration, schnell aktualisierbarer Instanzkonfiguration und sensiblen Werten. Insbesondere müssen `config.js`, `config.json`, `services.json` und `rest-services.json` in diesem Lifecycle fachlich und technisch eingeordnet werden. Die konkrete Bereitstellung dieser Dateien (etwa über Images, ConfigMaps, Volumes oder Object-Storage) ist noch nicht entschieden.

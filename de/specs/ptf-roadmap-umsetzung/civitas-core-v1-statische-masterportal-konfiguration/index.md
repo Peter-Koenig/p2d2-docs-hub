@@ -19,11 +19,14 @@ Das Vorhaben macht die Auslieferung der Masterportal-Konfiguration reproduzierba
 
 Die bisher funktionierende, aus einem Proxmox-Backup restaurierbare CIVITAS/CORE-V1-Installation dient als Test-Baseline für das Migrationsvorhaben.
 
+Die V1s-Buildvariante und die daraus erzeugte AddOn-Baseline ermöglichen den kontrollierten Übergang zur AddOn-Entwicklung (siehe [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline)).
+
 ## Unterseiten
 
 - [Zielbild und Abgrenzung](./zielbild-und-abgrenzung) – Ausgangslage, Zielarchitektur, Prinzipien, Nichtziele und offene Entscheidungen
 - [S3-zu-statisch-Migration](./s3-zu-statisch-migration) – Migrationsvorhaben vom bestehenden RustFS-/S3-Zustand zu statischen Artefakten
 - [Testverfahren mit Proxmox-Backup](./testverfahren-mit-proxmox-backup) – restaurierbare Test-Baseline und wiederholbarer Abnahmeprozess
+- [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline) – getrennte V1s-Buildvariante und Kriterien für die restaurierbare AddOn-Test-Baseline
 
 ## Einordnung in die PTF-Roadmap
 

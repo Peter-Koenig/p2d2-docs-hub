@@ -35,6 +35,12 @@ Bestehende CIVITAS-Masterportal-Instanzen, GeoServer-Workspaces, Daten, Rollen, 
 
 CIVITAS/CORE V2 ist ausdrücklich **nicht Gegenstand dieses Dokuments**. V2 ist architektonisch eigenständig, verwendet voraussichtlich Helm-Charts statt der V1-/Ansible-/`cc_cli`-Struktur und wird erst nach V1-Erfahrungen und einer eigenen Architekturentscheidung behandelt. Es wird keine gemeinsame technische Implementierungsbasis zwischen V1 und V2 vorweggenommen.
 
+## Beziehung zur V1s-AddOn-Baseline
+
+Das AddOn soll zunächst auf einer abgenommenen, restaurierbaren [V1s-AddOn-Baseline](../civitas-core-v1-statische-masterportal-konfiguration/v1s-buildvariante-und-addon-baseline) entwickelt und getestet werden. Nach einem Restore dieser Baseline soll kein vollständiger CIVITAS/CORE-Build erforderlich sein; es werden nur AddOn-Artefakte und AddOn-Konfigurationen erneut ausgerollt.
+
+Die konkrete Konfigurationsauslieferung der p2d2-Masterportal-Instanz bleibt eine offene Architekturentscheidung (siehe [Zielbild und Abgrenzung](../civitas-core-v1-statische-masterportal-konfiguration/zielbild-und-abgrenzung)).
+
 ## Offene Architekturentscheidungen
 
 Die folgenden Punkte sind noch nicht entschieden und werden als offene Architekturentscheidungen geführt:
@@ -52,3 +58,4 @@ Diese Entscheidungen werden erst auf Basis der tatsächlichen V1-Basisplattform 
 - [Übersicht](./) – Gesamtvorhaben des p2d2-V1-AddOns
 - [Voraussetzungen und Kompatibilität](./voraussetzungen-und-kompatibilitaet) – Kategorien des späteren AddOn-Preflights
 - [Installation, Upgrade und Rückbau](./installation-upgrade-und-rueckbau) – Ziel-Lifecycle und Abnahmekriterien
+- [V1s-Buildvariante und AddOn-Baseline](../civitas-core-v1-statische-masterportal-konfiguration/v1s-buildvariante-und-addon-baseline) – getrennte V1s-Buildvariante und restaurierbare AddOn-Test-Baseline
