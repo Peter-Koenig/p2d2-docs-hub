@@ -68,7 +68,11 @@ erfunden.
 
 1. Soft-Fork von `geoportal-components` anlegen (lokaler Klon, eigener
    Branch, kein Push ins Original-Repo).
-2. `portal-config/default/` in `portal-config/<instance_name>/` umbenennen.
+2. `portal-config/default/` in `portal-config/<instance_name>/` umbenennen
+   (bei statischem Betrieb Pflicht und case-sensitiv: das Backend nutzt
+   das URL-Pfadsegment `/{instance}/…` als Instanzordner; verifiziert im
+   laufenden Betrieb: `PORTAL_INSTANCE_NAME=Standard` bei `input/default/`
+   im S3-Betrieb).
 3. Fachliche Konfigurationsdateien (`config.json`, `services.json`,
    `rest-services.json`) in diesem Verzeichnis ablegen.
 4. Submodule `portal-backend` initialisieren
@@ -80,17 +84,94 @@ erfunden.
    (kein externer Image-Registry-Betrieb notwendig bei Single-Node-k3s).
 7. Inventory anpassen: `s3_backend.enable: false`, `image_repository`/
    `image_tag` des `portal_backend`-Eintrags auf das neue lokale Image
-   setzen.
-8. Umgebungsvariablen `PORTAL_BACKEND` (Service-URL des Backend-Pods) und
-   `PORTAL_INSTANCE_NAME` (Wert aus Schritt 2) für das Frontend setzen.
+   setzen (verifizierter Ausgangszustand: Produktion läuft mit
+   `S3_ENABLED=true` gegen RustFS/S3 — genau die Ablage, die die Migration
+   überflüssig macht).
+8. Umgebungsvariablen für das Frontend setzen: `PORTAL_BACKEND` (verifiziert:
+   Ingress-URL `https://geoportal.<domain>/portalBackend`, nicht Pod-DNS),
+   `PORTAL_INSTANCE_NAME` (Wert aus Schritt 2, case-sensitiv) sowie
+   `MAPSERVER_URL`, `GEOPORTAL_URL`, `PROXY_3D_URL`, `GEOSERVER_URL`,
+   `OIDC_*` und `PORTAL_BASE_URL` (vollständige Zuordnung siehe Abschnitt
+   „Verifizierte Fakten aus dem laufenden Betrieb").
 
 **Offene Punkte vor Umsetzung:**
 
 - Exakte Schreibweise/Konvention des `instance_name` (Groß-/Kleinschreibung)
-  muss mit dem Portal-Backend-Routing übereinstimmen — noch nicht am
-  Quellcode des Submodules `portal-backend` verifiziert.
-- Service-Name/-URL des `portal_backend`-Pods im Zielnamespace erst nach
-  einem `cc_cli exec`-Lauf bekannt.
+  muss mit dem Portal-Backend-Routing übereinstimmen — **beantwortet durch
+  Verifikation am laufenden Betrieb**: case-sensitiv, Pflicht bei Option A,
+  Laufwert `Standard`; optionale Restverifikation am Quellcode des Submoduls
+  `portal-backend` (siehe „Verifizierte Fakten aus dem laufenden Betrieb").
+- Service-Name/-URL des `portal_backend`-Pods im Zielnamespace — **beantwortet
+  für den Testfall**: `PORTAL_BACKEND` ist die Ingress-URL
+  `https://geoportal.<domain>/portalBackend`; der konkrete Pod-Service-Name
+  im Zielnamespace ist erst beim V1s-Testlauf (`cc_cli exec`) zu bestätigen.
+- Der `-internet`-Suffix ist durch die Backend-Endpunkt-Konvention geklärt
+  und damit kein separater offener Punkt mehr.
+
+## Verifizierte Fakten aus dem laufenden Betrieb
+
+Die folgenden Fakten wurden am 2026-08-11 aus der laufenden
+CIVITAS/CORE-V1-Referenzinstallation (`udp.data-dna.eu`, Namespace
+`cc-prd-geodata-stack`) per `kubectl` extrahiert. Sie ersetzen die zuvor
+offenen Annahmen zu `instance_name`, Backend-Endpunkten und Env-Zuordnung.
+
+**Laufende Instanz = Ausgangszustand (S3):**
+
+- Deployment `standard-masterportal` + `portal-backend` im Namespace
+  `cc-prd-geodata-stack`; `service-portal` im Namespace `cc-prd-access-stack`.
+- Portal-Backend läuft mit `S3_ENABLED=true`,
+  `S3_ENDPOINT=http://192.168.12.140:9000` (RustFS/MinIO),
+  `S3_BUCKET_NAME=portal-config`, `S3_FORCE_PATH_STYLE=true`.
+- Das Image enthält `input/config_old.json` und `input/default/` — nur als
+  Fallback für den S3-deaktivierten Betrieb.
+
+**`-internet`-Suffix ist Backend-Endpunkt-Konvention (kein Namens-Mismatch):**
+
+- Env-Variablen des Backends: `SERVICE_INTERNET_INPUT_FILE=services`,
+  `REST_SERVICES_INTERNET_INPUT_FILE=rest-services`, `CONFIG_INPUT_FILE=config`.
+- Das Backend liest `input/<instance>/services.json` und serviert es als
+  `services-internet.json` (analog `rest-services-internet.json`). Darauf
+  zeigt der nginx-Proxy des Frontends (`/resources/services-internet.json` →
+  `${PORTAL_BACKEND}/${PORTAL_INSTANCE_NAME}/services-internet.json`).
+
+**`instance_name`-Mechanik:**
+
+- Das Frontend ruft `${PORTAL_BACKEND}/${PORTAL_INSTANCE_NAME}/…` auf; das
+  Backend verwendet das URL-Pfadsegment als Instanznamen.
+- Im S3-Betrieb liegt der Instanzordner im Bucket; im statischen Betrieb
+  (Option A) muss er als `input/<instance_name>/` im Image liegen. Daher ist
+  die Umbenennung `portal-config/default/` → `portal-config/<instance_name>/`
+  Pflicht und case-sensitiv.
+- Verifizierter Laufwert: `PORTAL_INSTANCE_NAME=Standard`.
+
+**Env-Zuordnung Frontend 1:1 verifiziert:**
+
+- `PROXY_3D_URL=https://geoportal.udp.data-dna.eu/proxy_3d_content`
+- `PORTAL_BACKEND=https://geoportal.udp.data-dna.eu/portalBackend`
+- `OIDC_AUTH`/`OIDC_TOKEN` unter `https://idm.udp.data-dna.eu/realms/cc-prd/…`
+- `OIDC_CLIENT=geostack_public`, `OIDC_SCOPE=profile email openid`
+- `OIDC_REDIRECT=https://geoportal.udp.data-dna.eu/masterportal/`
+- `PORTAL_BASE_URL=https://geoportal.udp.data-dna.eu/`
+- Frontend-Image: unverändertes Upstream-Image `geoportal:v1.7.0`
+  (Platzhalter-Ersetzung zur Laufzeit durch `cmd.sh`).
+
+**Backend-Env verifiziert:**
+
+- `PORT=8101`, `LOG_LEVEL=DEBUG`, `TEST_MODE=FALSE`, `PUBLIC_ROLE=ds_open_data`
+- `KEYCLOAK_HOST=https://idm.udp.data-dna.eu`, `KEYCLOAK_REALM=cc-prd`,
+  `KEYCLOAK_CLIENT_ID=geostack`, `KEYCLOAK_PUBLIC_KEY=<Realm-Public-Key>`
+- `INPUT_FILE_PATH=input`, `OUTPUT_FILE_PATH=output`,
+  `INPUT_FILES_EXTENSION=.json`, `OUTPUT_FILES_EXTENSION=.json`
+
+**Upstream-Quelle des `portal-backend`:**
+
+- Die `package.json` im laufenden Pod verweist auf
+  `gitlab.com/urban-dataspace-platform/use_cases/geodata/portal-backend`
+  (v2.0.0, TypeScript, Start über `build/portal_backend.js`).
+- Diese Quelle weicht ab von der URL im `.gitmodules` des
+  `geoportal-components`-Repos (`civitas-connect/…/portal-backend.git`) und
+  von der in `civitas-docs` genannten Quelle (`berlintxl/futr-hub/…`) — für
+  den Soft-Fork ist die `urban-dataspace-platform`-Quelle maßgeblich.
 
 ## Verwandte Seiten
 
