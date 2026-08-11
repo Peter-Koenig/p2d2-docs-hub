@@ -1,0 +1,49 @@
+# p2d2-docs robots.txt
+#
+# Diese Datei erlaubt allen Webcrawlern und KI-/LLM-Bots
+# das vollständige Indexieren der Dokumentation.
+#
+# This file allows all web crawlers and AI/LLM bots
+# to fully index the documentation.
+
+# Alle Crawler (Standard)
+User-agent: *
+Allow: /
+
+# --- KI-/LLM-Crawler explizit freigeben ---
+# Explicitly allow common AI/LLM crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# Sitemap (sobald eine generiert wird, hier eintragen)
+# Sitemap: https://doc.data-dna.eu/sitemap.xml
