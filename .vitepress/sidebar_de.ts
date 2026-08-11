@@ -803,6 +803,24 @@ export const sidebar_de = {
                     ],
                 },
                 {
+                    text: "Serveraufbau V1s",
+                    collapsed: false,
+                    items: [
+                        {
+                            text: "Übersicht",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v1s/",
+                        },
+                        {
+                            text: "Portal-Backend-Image-Build",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v1s/portal-backend-image-build",
+                        },
+                        {
+                            text: "Inventory-Delta",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v1s/inventory-delta",
+                        },
+                    ],
+                },
+                {
                     text: "Serveraufbau V2",
                     collapsed: false,
                     items: [

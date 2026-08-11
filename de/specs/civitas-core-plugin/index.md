@@ -30,6 +30,8 @@ Die Spezifikation ist in drei übergeordnete Bereiche gegliedert:
 
 Der vorliegende Bereich [Serveraufbau](./serveraufbau-v1/) ist die Grundlage für alle nachfolgenden Spezifikationen. Ohne eine entschiedene Serverarchitektur können Plattform- und Fachintegration nicht spezifiziert werden.
 
+Daneben spezifiziert der Bereich [Serveraufbau V1s](./serveraufbau-v1s/) die Buildvariante CIVITAS/CORE V1 mit statischer Masterportal-Konfiguration. Er leitet sich aus dem V1-Serveraufbau ab und beschreibt ausschließlich die Abweichungen.
+
 ## Status
 
 Die Spezifikation befindet sich im Entwurfsstadium. Alle Angaben sind vorläufig und müssen vor der Implementierung durch eine abgestimmte Entscheidung ersetzt werden.
