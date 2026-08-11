@@ -111,5 +111,5 @@ Allow: /
 User-agent: iaskspider
 Allow: /
 
-# Sitemap (sobald eine generiert wird, hier eintragen)
-# Sitemap: https://doc.data-dna.eu/sitemap.xml
+# Sitemap
+Sitemap: https://doc.data-dna.eu/sitemap.xml
