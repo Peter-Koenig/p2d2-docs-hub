@@ -46,6 +46,58 @@ Der Build erfolgt über eine Skriptfunktion `build_geoportal_backend_image()`, d
 
 **Zeitaufwand-Hinweis**: Im LAN steht ein apt-cacher mit 2,5 GBit/s-Anbindung zur Verfügung. Die temporäre Docker-Installation und -Deinstallation ist daher zeitlich unkritisch.
 
+## Einordnung in die Phasenfolge
+
+Die Funktion `install_civitas()` in `modules_V1/06_civitas.sh` ruft die Phasen-Schritte in fester Reihenfolge auf. Der Image-Build wird als **neuer Schritt 2.0b** zwischen `clone_civitas_repo()` (Schritt 2.0) und `apply_overlay()` (Schritt 2.1) eingefügt:
+
+| Schritt | Funktion | Position / Status |
+|---|---|---|
+| 2.0 | `clone_civitas_repo()` | bestehend — CIVITAS/CORE-Monorepo nach `${CC_V1_REPO_PATH}` klonen |
+| **2.0b** | **`build_geoportal_backend_image()`** | **neu — Soft-Fork-Klon, Image-Build und containerd-Import** |
+| 2.1 | `apply_overlay()` | bestehend — Overlays aus `overlay_V1/` in das geklonte Repo einspielen |
+| 2.1b | `patch_masterportal_release_name()` | bestehend |
+| 2.1c | `install_cc_cli()` | bestehend |
+| 2.2 | `render_inventory()` | bestehend — erzeugt das Inventory, das das lokale V1s-Image referenziert |
+
+Begründung: `build_geoportal_backend_image()` läuft vor `render_inventory()`, sodass das gerenderte Inventory das lokal gebaute Image (`image_repository`/`image_tag`) direkt aufnehmen kann. Die Einordnung als 2.0b hält alle Repository-Vorbereitungsschritte vor der Overlay- und Deployment-Phase zusammen.
+
+## Modul-Zuordnung
+
+| Datei | Typ | Inhalt |
+|---|---|---|
+| `modules_V1s/06c_image_build.sh` | neu | `build_geoportal_backend_image()` — Soft-Fork-Klon in der VM, Instanzverzeichnis-Umbenennung, Submodule-Init, temporäre Docker-Installation, Image-Build, `k3s ctr images import`, Docker-Deinstallation |
+| `modules_V1/02_lib.sh` | bestehend (Abhängigkeit) | `log()`, `log_ok()`, `log_warn()`, `log_error()`, `is_installed()`, `assert_success()` |
+| `modules_V1/01_config.sh` | bestehend (Abhängigkeit) | stellt die neuen V1s-Konfigurationsvariablen bereit (siehe „Konfigurationsvariablen") |
+
+Funktionssignatur:
+
+```bash
+# modules_V1s/06c_image_build.sh
+build_geoportal_backend_image() {
+    # Schritte siehe Abschnitt „Build-Ablauf"
+}
+```
+
+Abhängigkeiten explizit:
+
+- `01_config.sh` muss vor `06c_image_build.sh` gesourct sein (neue Variablen `V1S_FORK_URL`, `V1S_FORK_PATH`, `V1S_INSTANCE_NAME`, `V1S_IMAGE_TAG`).
+- `02_lib.sh` muss vor `06c_image_build.sh` gesourct sein (`log_*`, `is_installed`, `assert_success`).
+- Aufruf an Position 2.0b in `install_civitas()` (`modules_V1/06_civitas.sh`).
+
+## Konfigurationsvariablen
+
+Die Variablen werden im Konfigurationsmodul `modules_V1/01_config.sh` externalisiert. Secrets und zur Laufzeit gesetzte Flags werden nie in Git versioniert.
+
+| Variable | Beschreibung | Beispielwert |
+|---|---|---|
+| `V1S_FORK_URL` | Repository-URL des Soft-Fork-Klons | `https://gitlab.com/<org>/geoportal-components.git` |
+| `V1S_FORK_PATH` | Lokaler Pfad des Soft-Fork-Klons in der VM | `/opt/geoportal-components-v1s` |
+| `V1S_FORK_BRANCH` | Branch des Soft-Fork-Klons | `main` |
+| `V1S_INSTANCE_NAME` | Instanzname-Konstante (case-sensitiv), muss exakt mit `PORTAL_INSTANCE_NAME` übereinstimmen | `Standard` |
+| `V1S_IMAGE_TAG` | Lokaler Image-Tag des gebauten `geoportal_backend`-Images | `v1s-2026-08-11` |
+| `V1S_IMAGE_REF` | Vollständige Image-Referenz für Build und Import | `geoportal_backend:${V1S_IMAGE_TAG}` |
+| `V1S_DOCKER_INSTALLED_BY_SCRIPT` | Laufzeit-Flag: Docker wurde vom Skript installiert (`true`/`false`) — steuert die Deinstallation | wird zur Laufzeit gesetzt |
+
 ## Backend-Env-Variablen
 
 Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte entsprechen der verifizierten Referenzinstallation; Platzhalter sind je Zielsystem zu ersetzen.
@@ -77,3 +129,37 @@ Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte en
 
 - **KEYCLOAK_CLIENT_SECRET rotieren**: Der Wert des Client-Secrets war im Rahmen der Entwicklung kurzzeitig im Klartext sichtbar (siehe Commit-Historie beziehungsweise Chat-Protokoll). Vor dem ersten V1s-Testlauf muss das Secret in der IDM rotiert und die neue Konfiguration eingespielt werden.
 - **Sicherheitsbewusste Doku**: Secrets werden bewusst nicht in dieser Spezifikation geführt, sondern ausschließlich zur Laufzeit über die Zielsystem-Konfiguration bereitgestellt.
+
+## Abnahmekriterien
+
+Die Abnahme prüft das gebaute und importierte Image sowie die Auslieferung der statischen Konfiguration. Das Fehlerverhalten ist analog zur V1-Spezifikation festgelegt (Abbruch / Warnung / Auto-Korrektur).
+
+| Prüfpunkt | Erwarteter Zustand | Befehl / Methode | Fehlerverhalten |
+|---|---|---|---|
+| Lokales Docker-Image | Image mit V1s-Tag vorhanden | `docker images \| grep geoportal_backend` | Abbruch (Build fehlgeschlagen) |
+| containerd-Import | Image im k3s-containerd-Store vorhanden | `k3s ctr images list \| grep geoportal_backend` | Abbruch (Import fehlgeschlagen) |
+| Portal-Backend-Pod | Pod READY 1/1, STATUS Running | `kubectl get pods -n <namespace> -l app=portal-backend` | Warnung + erneute Prüfung in Phase 3 (analog V1) |
+| Config-Endpunkt | HTTP 200, JSON-Response der Instanz | `curl -fsS "https://geoportal.<domain>/portalBackend/Standard/config.json"` | Abbruch (Instanz nicht erreichbar oder falsche Konfiguration) |
+| Docker-Idempotenz | Selbst installiertes Docker wird entfernt; vorgefundenes Docker bleibt | internes Flag `V1S_DOCKER_INSTALLED_BY_SCRIPT` | Auto-Korrektur (Idempotenz) |
+
+```bash
+# Lokales Image vorhanden
+docker images | grep geoportal_backend
+# Erwartung: Eintrag mit V1s-Tag (z. B. geoportal_backend:v1s-2026-08-11)
+
+# Image im containerd-Store des k3s-Clusters
+k3s ctr images list | grep geoportal_backend
+# Erwartung: Eintrag mit V1s-Tag
+
+# Portal-Backend-Pod läuft
+kubectl get pods -n <namespace> -l app=portal-backend
+# Erwartung: READY 1/1, STATUS Running
+
+# Statische Konfiguration wird ausgeliefert
+curl -fsS "https://geoportal.<domain>/portalBackend/Standard/config.json"
+# Erwartung: HTTP 200, JSON-Response der Instanz "Standard"
+```
+
+## Ausführungsrahmen
+
+Der Build und die Abnahme laufen im Rahmen des [Testverfahrens mit Proxmox-Backup](../../ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/testverfahren-mit-proxmox-backup.md): isolierte Testinstanz, Backup vor jeder Änderung, wiederholbarer Abnahmeprozess.
