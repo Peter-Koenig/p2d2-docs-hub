@@ -45,5 +45,71 @@ Allow: /
 User-agent: cohere-ai
 Allow: /
 
+# --- Chinesische Anbieter / Chinese providers ---
+# Explizite Freigabe für Crawler chinesischer Anbieter.
+# Relevant für ein afrikanisches Publikum: ByteDance/TikTok, Huawei, Baidu usw.
+#
+# Explicitly allow crawlers from Chinese providers.
+# Relevant for an African audience: ByteDance/TikTok, Huawei, Baidu, etc.
+# Hinweis: Bytespider (ByteDance) ist oben bereits freigegeben.
+
+# ByteDance / TikTok / Toutiao / Doubao
+User-agent: TikTokSpider
+Allow: /
+
+User-agent: ToutiaoSpider
+Allow: /
+
+User-agent: imageSpider
+Allow: /
+
+# Baidu
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Baiduspider-render
+Allow: /
+
+# Huawei (Petal Search, Aspiegel, Pangu)
+User-agent: PetalBot
+Allow: /
+
+User-agent: AspiegelBot
+Allow: /
+
+User-agent: PanguBot
+Allow: /
+
+# Alibaba (Shenma/Yisou Mobile-Suche)
+User-agent: YisouSpider
+Allow: /
+
+# Tencent (Sogou-Suchmaschine)
+User-agent: Sogou web spider
+Allow: /
+
+User-agent: Sosospider
+Allow: /
+
+# Qihoo 360
+User-agent: 360Spider
+Allow: /
+
+# DeepSeek
+User-agent: DeepSeekBot
+Allow: /
+
+# Zhipu AI (ChatGLM)
+User-agent: ChatGLM-Spider
+Allow: /
+
+# NetEase (Youdao)
+User-agent: YoudaoBot
+Allow: /
+
+# Sina (iAsk)
+User-agent: iaskspider
+Allow: /
+
 # Sitemap (sobald eine generiert wird, hier eintragen)
 # Sitemap: https://doc.data-dna.eu/sitemap.xml
