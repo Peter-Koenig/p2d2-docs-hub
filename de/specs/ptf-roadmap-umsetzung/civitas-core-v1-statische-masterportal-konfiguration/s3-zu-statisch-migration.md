@@ -2,8 +2,8 @@
 title: "CIVITAS/CORE V1: Statische Masterportal-Konfiguration – S3-zu-statisch-Migration"
 description: Migrationsvorhaben von der RustFS-/S3-Ablage zur statischen, versionierten und imagebasierten Masterportal-Konfiguration – Ausgangs- und Zielzustand, Migrationsprinzipien, konzeptionelle Abnahme
 quality:
-  completeness: 40
-  accuracy: 40
+  completeness: 55
+  accuracy: 55
   reviewed: false
   reviewer:
   reviewDate:
@@ -52,7 +52,45 @@ Eine Migration gilt konzeptionell erst dann als erfolgreich, wenn folgende Punkt
 
 ## Technische Schritte
 
-Die konkreten technischen Schritte der Migration sind **noch zu spezifizieren**. Diese Spezifikation legt ausschließlich Ausgangs-, Zielzustand, Migrationsprinzipien und konzeptionelle Abnahmekriterien fest. Artefakt-Struktur, Image-Build, konkrete Befehle und Bereitstellungsdetails werden in einer nachgelagerten Spezifikation bestimmt.
+Grundmechanismus: Nutzung des von Civitas Connect selbst vorgesehenen
+"Soft-Fork"-Verfahrens für `geoportal-components` (siehe README des
+öffentlichen Upstream-Repos). Kein eigener Build-Mechanismus wird neu
+erfunden.
+
+**Betroffene Komponenten:**
+
+| Komponente | Änderung |
+|---|---|
+| `geoportal` (Masterportal-Frontend) | keine — Original-Image unverändert nutzbar, da `nginx/default.conf` die Config-Endpunkte laufzeit-parametrisiert über `PORTAL_BACKEND`/`PORTAL_INSTANCE_NAME` proxied |
+| `geoportal_backend` (Portal-Backend) | Eigenes Image aus Soft-Fork; `Dockerfile_geoportal_backend` kopiert `portal-config/<instance>/` bereits zur Build-Zeit ins Image |
+
+**Migrationsschritte:**
+
+1. Soft-Fork von `geoportal-components` anlegen (lokaler Klon, eigener
+   Branch, kein Push ins Original-Repo).
+2. `portal-config/default/` in `portal-config/<instance_name>/` umbenennen.
+3. Fachliche Konfigurationsdateien (`config.json`, `services.json`,
+   `rest-services.json`) in diesem Verzeichnis ablegen.
+4. Submodule `portal-backend` initialisieren
+   (`git submodule update --init --recursive`).
+5. Image bauen: `docker build -f Dockerfile_geoportal_backend .`
+   (Build-Kontext = Repo-Root, wie in der Upstream-`.gitlab-ci.yml`
+   definiert).
+6. Image lokal in den containerd-Store des Ziel-Clusters importieren
+   (kein externer Image-Registry-Betrieb notwendig bei Single-Node-k3s).
+7. Inventory anpassen: `s3_backend.enable: false`, `image_repository`/
+   `image_tag` des `portal_backend`-Eintrags auf das neue lokale Image
+   setzen.
+8. Umgebungsvariablen `PORTAL_BACKEND` (Service-URL des Backend-Pods) und
+   `PORTAL_INSTANCE_NAME` (Wert aus Schritt 2) für das Frontend setzen.
+
+**Offene Punkte vor Umsetzung:**
+
+- Exakte Schreibweise/Konvention des `instance_name` (Groß-/Kleinschreibung)
+  muss mit dem Portal-Backend-Routing übereinstimmen — noch nicht am
+  Quellcode des Submodules `portal-backend` verifiziert.
+- Service-Name/-URL des `portal_backend`-Pods im Zielnamespace erst nach
+  einem `cc_cli exec`-Lauf bekannt.
 
 ## Verwandte Seiten
 

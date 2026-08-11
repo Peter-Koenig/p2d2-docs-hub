@@ -54,9 +54,9 @@ Ausdrücklich nicht Bestandteil dieses Vorhabens:
 
 Die folgenden Punkte sind noch nicht entschieden und werden als offene Fragen geführt:
 
-- kontrollierter Geoportal-Components-Fork beziehungsweise dessen Nachfolgeartefakt,
-- genaue Image-Build- und Release-Verantwortung,
-- genaue Inventory-Felder,
+- kontrollierter Geoportal-Components-Fork beziehungsweise dessen Nachfolgeartefakt (beantwortet: Soft-Fork nach Upstream-README-Verfahren, kein Vollfork mit eigener CI nötig),
+- genaue Image-Build- und Release-Verantwortung (beantwortet für den Testfall: lokaler Build + lokaler containerd-Import, kein Registry-Betrieb bei Single-Node-k3s),
+- genaue Inventory-Felder (beantwortet: `inv_gd.portal_backend.image_repository`/`image_tag`, `s3_backend.enable: false`),
 - Anzahl und Zuordnung von `portal-backend`-Deployments zu Masterportal-Instanzen,
 - mögliche Koexistenz bestehender S3- und neuer statischer Konfigurationen,
 - Konfigurations-Lifecycle einer späteren p2d2-Masterportal-Instanz: Abgrenzung zwischen Build-Time-Artefakten, Deployment-Time-Konfiguration, schnell aktualisierbarer Instanzkonfiguration und sensiblen Werten. Insbesondere müssen `config.js`, `config.json`, `services.json` und `rest-services.json` in diesem Lifecycle fachlich und technisch eingeordnet werden. Die konkrete Bereitstellung dieser Dateien (etwa über Images, ConfigMaps, Volumes oder Object-Storage) ist noch nicht entschieden.
