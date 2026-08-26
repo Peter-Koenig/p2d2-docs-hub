@@ -40,7 +40,14 @@ Die Zielvariante folgt diesen Prinzipien:
 
 ## Klarstellung zu S3
 
-S3 wird durch diese Spezifikation nicht als generelle Technologie ausgeschlossen. Die lokale RustFS-LXC darf jedoch keine zwingende Voraussetzung für die Zielvariante sein. Ob und wo S3-kompatible Dienste weiterhin eingesetzt werden, ist eine separate technische Entscheidung.
+S3 wird durch diese Spezifikation nicht als generelle Technologie ausgeschlossen. Die lokale RustFS-LXC darf jedoch keine zwingende Voraussetzung für die Zielvariante sein. Für V1s ist diese Entscheidung inzwischen getroffen: RustFS/S3 wird nicht mehr verwendet; Grund ist, der p2d2-AddOn-Zielgruppe keine zusätzliche, dauerhaft zu betreibende RustFS-Instanz aufzubürden.
+
+Dabei sind zwei Ziele zu unterscheiden, die im ursprünglichen Text vermischt waren:
+
+- (a) reproduzierbare, versionierte Konfiguration — grundsätzlich auch mit S3 plus Git-Sync lösbar gewesen,
+- (b) die RustFS-LXC als Infrastruktur-Abhängigkeit eliminieren — der maßgebliche Grund für den imagebasierten Weg.
+
+(b) ist der maßgebliche Treiber der V1s-Entscheidung.
 
 ## Nichtziele
 
@@ -58,5 +65,5 @@ Die folgenden Punkte sind noch nicht entschieden und werden als offene Fragen ge
 - genaue Image-Build- und Release-Verantwortung (beantwortet für den Testfall: lokaler Build + lokaler containerd-Import, kein Registry-Betrieb bei Single-Node-k3s),
 - genaue Inventory-Felder (beantwortet: `inv_gd.portal_backend.image_repository`/`image_tag`, `s3_backend.enable: false`),
 - Anzahl und Zuordnung von `portal-backend`-Deployments zu Masterportal-Instanzen,
-- mögliche Koexistenz bestehender S3- und neuer statischer Konfigurationen,
+- mögliche Koexistenz bestehender S3- und neuer statischer Konfigurationen (entschieden: S3/RustFS wird für V1s nicht mehr genutzt, siehe `ai-runs/2026-08-26-civitas-v1s-s3-entfernen`),
 - Konfigurations-Lifecycle einer späteren p2d2-Masterportal-Instanz: Abgrenzung zwischen Build-Time-Artefakten, Deployment-Time-Konfiguration, schnell aktualisierbarer Instanzkonfiguration und sensiblen Werten. Insbesondere müssen `config.js`, `config.json`, `services.json` und `rest-services.json` in diesem Lifecycle fachlich und technisch eingeordnet werden. Die konkrete Bereitstellung dieser Dateien (etwa über Images, ConfigMaps, Volumes oder Object-Storage) ist noch nicht entschieden.

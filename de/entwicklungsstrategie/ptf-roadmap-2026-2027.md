@@ -142,9 +142,11 @@ Der Weg gliedert sich in vier Schritte:
 
 ### Schritt 4.1: Installationsscript auf volle Konfigurationsfreiheit umstellen
 
-**Status:** geplant
+**Status:** in Arbeit
 
 Die derzeitige V1-Installation (`civitas_einrichtung/install_civitas_core_V1.sh`) nutzt eine S3-orientierte Auslieferungsvariante. Diese wird auf die vollständig konfigurierbare V1-Variante umgestellt. Erst dadurch entsteht die technische Voraussetzung, eigene Dienste, Routen, Rollen und Geodatenkomponenten kontrolliert einzubinden.
+
+Die V1s-Buildvariante (statische, imagebasierte Masterportal-Konfiguration, inkl. Entfernung der RustFS/S3-Abhängigkeit) ist implementiert. Der Schritt bleibt „in Arbeit“: Ein Build+Deploy-Testlauf im isolierten Testsystem, V1s-spezifische Abnahme-Checks in den Verify-Modulen und die fachliche Prüfung der Masterportal-Konfigurationsdateien im Soft-Fork-Repo stehen noch aus.
 
 ### Schritt 4.2: p2d2 in CIVITAS/CORE V1 integrieren
 
@@ -205,6 +207,7 @@ Die Roadmap wird bei jedem wesentlichen Schritt aktualisiert. Sie ist zugleich K
 |---|---|---|---|
 | 2026-08-05 | Roadmap | Roadmap auf den aktuellen Fokus „p2d2 verständlich machen → kommunal validieren → CIVITAS/CORE V1 integrieren“ ausgerichtet | Ersetzt die frühere zeit- und funktionsgetriebene Roadmap |
 | 2026-08-05 | Strategie-Handbuch | Neustrukturierung des Strategie-Handbuchs; diese Roadmap wird als PTF-Roadmap 2026–2027 geführt | Ersetzt `roadmap_bis_2025.md` im Archiv; Querverweise und Links auf die VitePress-Struktur angepasst |
+| 2026-08-26 | Arbeitspaket 4.1 | V1s-Buildvariante implementiert (statische/imagebasierte Masterportal-Konfiguration, RustFS/S3 entfernt); Status auf „in Arbeit“ gesetzt | Verweis auf `ai-runs/2026-08-26-civitas-v1s-s3-entfernen` und `ai-runs/2026-08-26-civitas-v1s-doku-aktualisierung` |
 
 ## Perspektive nach der V1-Erprobung
 

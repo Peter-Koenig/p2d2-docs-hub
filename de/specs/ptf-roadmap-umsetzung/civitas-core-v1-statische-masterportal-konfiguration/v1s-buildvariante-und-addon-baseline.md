@@ -31,7 +31,7 @@ Drei Ziele stehen im Vordergrund:
 
 V1s ist **keine CIVITAS/CORE-Hauptversion** und **keine V2-Vorwegnahme**. Der Buchstabe `s` steht ausschließlich für die statische Masterportal-Konfiguration.
 
-Die nachfolgende Verzeichnisstruktur ist als **geplante Struktur** zu verstehen und derzeit **nicht implementiert**:
+Die nachfolgende Verzeichnisstruktur ist **implementiert** (Stand 2026-08-26):
 
 ```text
 civitas_einrichtung/
@@ -45,6 +45,8 @@ civitas_einrichtung/
 ├── templates_V1s/
 └── overlay_V1s/
 ```
+
+Die technischen Details zur V1s-Buildvariante sind in der Detail-Spezifikation [Serveraufbau V1s](../../civitas-core-plugin/serveraufbau-v1s/) dokumentiert (`index.md`, `inventory-delta.md`, `portal-backend-image-build.md`).
 
 ## 3. Entwicklungs- und Übernahmeregel
 

@@ -48,13 +48,13 @@ Der Build erfolgt über eine Skriptfunktion `build_geoportal_backend_image()`, d
 
 ## Einordnung in die Phasenfolge
 
-Die Funktion `install_civitas()` in `modules_V1/06_civitas.sh` ruft die Phasen-Schritte in fester Reihenfolge auf. Der Image-Build wird als **neuer Schritt 2.0b** zwischen `clone_civitas_repo()` (Schritt 2.0) und `apply_overlay()` (Schritt 2.1) eingefügt:
+Die Funktion `install_civitas()` in `modules_V1s/06_civitas.sh` ruft die Phasen-Schritte in fester Reihenfolge auf. Der Image-Build wird als **neuer Schritt 2.0b** zwischen `clone_civitas_repo()` (Schritt 2.0) und `apply_overlay()` (Schritt 2.1) eingefügt:
 
 | Schritt | Funktion | Position / Status |
 |---|---|---|
 | 2.0 | `clone_civitas_repo()` | bestehend — CIVITAS/CORE-Monorepo nach `${CC_V1_REPO_PATH}` klonen |
 | **2.0b** | **`build_geoportal_backend_image()`** | **neu — Soft-Fork-Klon, Image-Build und containerd-Import** |
-| 2.1 | `apply_overlay()` | bestehend — Overlays aus `overlay_V1/` in das geklonte Repo einspielen |
+| 2.1 | `apply_overlay()` | bestehend — Overlays aus `overlay_V1s/` in das geklonte Repo einspielen |
 | 2.1b | `patch_masterportal_release_name()` | bestehend |
 | 2.1c | `install_cc_cli()` | bestehend |
 | 2.2 | `render_inventory()` | bestehend — erzeugt das Inventory, das das lokale V1s-Image referenziert |
@@ -66,8 +66,8 @@ Begründung: `build_geoportal_backend_image()` läuft vor `render_inventory()`, 
 | Datei | Typ | Inhalt |
 |---|---|---|
 | `modules_V1s/06c_image_build.sh` | neu | `build_geoportal_backend_image()` — Soft-Fork-Klon in der VM, Instanzverzeichnis-Umbenennung, Submodule-Init, temporäre Docker-Installation, Image-Build, `k3s ctr images import`, Docker-Deinstallation |
-| `modules_V1/02_lib.sh` | bestehend (Abhängigkeit) | `log()`, `log_ok()`, `log_warn()`, `log_error()`, `is_installed()`, `assert_success()` |
-| `modules_V1/01_config.sh` | bestehend (Abhängigkeit) | stellt die neuen V1s-Konfigurationsvariablen bereit (siehe „Konfigurationsvariablen") |
+| `modules_V1s/02_lib.sh` | bestehend (Abhängigkeit) | `log()`, `log_ok()`, `log_warn()`, `log_error()`, `is_installed()`, `assert_success()` |
+| `modules_V1s/01_config.sh` | bestehend (Abhängigkeit) | stellt die neuen V1s-Konfigurationsvariablen bereit (siehe „Konfigurationsvariablen") |
 
 Funktionssignatur:
 
@@ -82,11 +82,11 @@ Abhängigkeiten explizit:
 
 - `01_config.sh` muss vor `06c_image_build.sh` gesourct sein (neue Variablen `V1S_FORK_URL`, `V1S_FORK_PATH`, `V1S_INSTANCE_NAME`, `V1S_IMAGE_TAG`).
 - `02_lib.sh` muss vor `06c_image_build.sh` gesourct sein (`log_*`, `is_installed`, `assert_success`).
-- Aufruf an Position 2.0b in `install_civitas()` (`modules_V1/06_civitas.sh`).
+- Aufruf an Position 2.0b in `install_civitas()` (`modules_V1s/06_civitas.sh`).
 
 ## Konfigurationsvariablen
 
-Die Variablen werden im Konfigurationsmodul `modules_V1/01_config.sh` externalisiert. Secrets und zur Laufzeit gesetzte Flags werden nie in Git versioniert.
+Die Variablen werden im Konfigurationsmodul `modules_V1s/01_config.sh` externalisiert. Secrets und zur Laufzeit gesetzte Flags werden nie in Git versioniert.
 
 | Variable | Beschreibung | Beispielwert |
 |---|---|---|
