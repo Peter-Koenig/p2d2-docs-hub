@@ -50,11 +50,11 @@ Die technischen Details zur V1s-Buildvariante sind in der Detail-Spezifikation [
 
 ## Bekannte Einschränkung: Monitoring/Prometheus
 
-**Stand:** Monitoring befristet deaktiviert; `cc_cli validate`-Regel durch explizites `inv_access.apis.import: false` erfüllt (2026-08-31).
+**Stand:** Monitoring (Prometheus/Loki/Grafana) aktiviert; `inv_access.apis.import: true` reaktiviert die Apisix-Routen (2026-08-31).
 
 Es sind zwei getrennte Sachverhalte zu unterscheiden:
 
-1. **`cc_cli validate` (Ursache des frühen Abbruchs):** Die Business-Regel „Ensure that Prometheus and Loki are enabled if APIs are enabled and imported“ (`cc_cli/config/semantic_rules.yaml`) verlangt:
+1. **`cc_cli validate` (Business-Regel):** Die Regel „Ensure that Prometheus and Loki are enabled if APIs are enabled and imported“ (`cc_cli/config/semantic_rules.yaml`) verlangt:
 
    ```text
    inv_access.apis.import == false
@@ -62,13 +62,11 @@ Es sind zwei getrennte Sachverhalte zu unterscheiden:
            UND  inv_op_stack.monitoring.loki.enable == true)
    ```
 
-   Solange Monitoring befristet deaktiviert ist (`prometheus.enable`/`loki.enable` auf `false`), muss daher zwingend `inv_access.apis.import: false` gesetzt sein — andernfalls bricht der Lauf bereits bei `cc_cli validate` ab. Deshalb ist in `templates_V1s/inventory.yml.tpl` `inv_access.apis.import: false` explizit gesetzt (konsistent mit `inv_addons.import: false`: die V1s-Buildvariante importiert keine externen APIs).
+   Die V1s-Buildvariante benötigt die Apisix-Routen für die Geodata-Kernkomponenten (u. a. `portalBackend`), daher ist `inv_access.apis.import: true` gesetzt. Die Regel wird damit über den **zweiten ODER-Zweig** erfüllt: `inv_op_stack.monitoring.prometheus.enable` und `inv_op_stack.monitoring.loki.enable` sind beide `true`.
 
-2. **Fehlende Prometheus-Operator-CRDs (separat, nur bei aktivem Monitoring relevant):** Die V1s-Addons (`modules_V1s/05_addons.sh`) installieren keinen Prometheus-Operator. Damit fehlen die `monitoring.coreos.com/v1`-CRDs (`ServiceMonitor`, `PodMonitor`, `PrometheusRule`, …) im Cluster; bei aktivem Monitoring würde das APISIX-Helm-Chart `metrics.serviceMonitor.enabled: true` rendern und beim Deploy an der fehlenden `ServiceMonitor`-CRD scheitern. Das ist unabhängig von der `cc_cli validate`-Regel oben.
+2. **Prometheus-Operator-CRDs:** Bei aktivem Monitoring rendert das APISIX-Helm-Chart `metrics.serviceMonitor.enabled: true`. Die dafür nötigen `monitoring.coreos.com/v1`-CRDs (`ServiceMonitor`, `PodMonitor`, `PrometheusRule`, …) werden nicht von den V1s-Addons (`modules_V1s/05_addons.sh`), sondern vom `kube-prometheus-stack`-Helm-Chart selbst bereitgestellt: Der Task `"Setup Monitoring Stack"` (`tasks/operation/monitoring.yml`) deployt den kompletten Stack inkl. Prometheus-Operator und dessen CRDs über den `k8s-helm.yml`-Mechanismus bei Erstinstall automatisch. Ein separater Vorbereitungsschritt ist nicht nötig.
 
-**Befristete Maßnahme:** In `templates_V1s/inventory.yml.tpl` bleibt `inv_op_stack.monitoring` (Prometheus, Grafana, Alertmanager, Loki, Alloy) vorübergehend deaktiviert, damit die restliche Installation end-to-end verifiziert werden kann.
-
-**Offene Aufgabe:** Prometheus/kube-prometheus-stack für V1s (und ggf. V1) nachrüsten, bevor eine produktive Nutzung mit vollständigem Monitoring erfolgen kann. Erst dann kann `inv_access.apis.import` bei Bedarf wieder auf `true` gesetzt werden, ohne die `cc_cli validate`-Regel zu verletzen.
+**Hinweis zu `grafana.enable`:** Der Task `"Monitoring: [Check] Grafana reachable"` in `tasks/operation/monitoring.yml` ist **nicht** mit `when:` gegated und läuft daher immer, sobald `inv_op_stack.monitoring.enable: true` ist. Deshalb muss `grafana.enable: true` gesetzt sein, solange Monitoring insgesamt aktiv ist — andernfalls entsteht am ungated Health-Check derselbe 404-Effekt wie beim früheren `portalBackend`-Fall.
 
 ## 3. Entwicklungs- und Übernahmeregel
 
