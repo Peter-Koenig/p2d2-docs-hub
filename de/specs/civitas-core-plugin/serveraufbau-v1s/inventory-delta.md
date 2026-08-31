@@ -27,10 +27,14 @@ Diese Seite dokumentiert ausschließlich die Felder, die sich gegenüber dem V1-
 
 ```yaml
 s3_backend:
-  enable: false   # V1: true → V1s: false
+  enable: false                 # V1: true → V1s: false
+  endpoint: "unused"            # Schema-Pflichtfeld, funktional ungenutzt
+  access_key_id: "unused"       # Schema-Pflichtfeld, funktional ungenutzt
+  secret_access_key: "unused"   # Schema-Pflichtfeld, funktional ungenutzt
+  bucket_name: "unused"         # Schema-Pflichtfeld, funktional ungenutzt
 ```
 
-Die S3-/RustFS-Anbindung des Portal-Backends wird für die V1s-Instanz deaktiviert. Die Konfiguration wird statisch aus dem Portal-Backend-Image geliefert. Die zugehörigen S3-Felder (`endpoint`, `access_key_id`, `secret_access_key`, `bucket_name`, `region`, `force_path_style`) entfallen.
+Die S3-/RustFS-Anbindung des Portal-Backends wird für die V1s-Instanz deaktiviert. Die Konfiguration wird statisch aus dem Portal-Backend-Image geliefert. Die Pflichtfelder des `s3_backend`-Objekts (`endpoint`, `access_key_id`, `secret_access_key`, `bucket_name`) bleiben aus Schema-Gründen mit festen Platzhalterwerten (`"unused"`) vorhanden, obwohl sie bei `enable: false` funktional ungenutzt bleiben. Die optionalen Felder `region` und `force_path_style` entfallen.
 
 ### `inv_gd.portal_backend.image_repository` / `image_tag`
 
