@@ -146,7 +146,7 @@ Der Weg gliedert sich in vier Schritte:
 
 Die derzeitige V1-Installation (`civitas_einrichtung/install_civitas_core_V1.sh`) nutzt eine S3-orientierte Auslieferungsvariante. Diese wird auf die vollständig konfigurierbare V1-Variante umgestellt. Erst dadurch entsteht die technische Voraussetzung, eigene Dienste, Routen, Rollen und Geodatenkomponenten kontrolliert einzubinden.
 
-Die V1s-Buildvariante (statische, imagebasierte Masterportal-Konfiguration, inkl. Entfernung der RustFS/S3-Abhängigkeit) ist implementiert. Der Schritt bleibt „in Arbeit“: Am 2026-08-31 lief der vollständige Build+Deploy-Testlauf im isolierten Testsystem erstmals erfolgreich durch (Keycloak, Apisix, Geoserver, Masterportal, Portal-Backend, pgAdmin, Superset, Prometheus/Loki/Grafana, gültige Let's-Encrypt-Zertifikate; Beleg in `ai-runs/2026-08-31-v1s-installationsskript-lauffaehig`). Die E2E-Abnahme-Checks in den Verify-Modulen und die fachliche Prüfung der Masterportal-Konfigurationsdateien im Soft-Fork-Repo stehen noch aus.
+Die V1s-Buildvariante (statische, imagebasierte Masterportal-Konfiguration, inkl. Entfernung der RustFS/S3-Abhängigkeit) ist implementiert. Der Schritt bleibt „in Arbeit“: Am 2026-08-31 lief der vollständige Build+Deploy-Testlauf im isolierten Testsystem erstmals erfolgreich durch (Keycloak, Apisix, Geoserver, Masterportal, Portal-Backend, pgAdmin, Superset, Prometheus/Loki/Grafana, gültige Let's-Encrypt-Zertifikate). Die E2E-Abnahme-Checks in den Verify-Modulen und die fachliche Prüfung der Masterportal-Konfigurationsdateien im Soft-Fork-Repo stehen noch aus.
 
 ### Schritt 4.2: p2d2 in CIVITAS/CORE V1 integrieren
 
@@ -209,7 +209,7 @@ Die Roadmap wird bei jedem wesentlichen Schritt aktualisiert. Sie ist zugleich K
 | 2026-08-05 | Strategie-Handbuch | Neustrukturierung des Strategie-Handbuchs; diese Roadmap wird als PTF-Roadmap 2026–2027 geführt | Ersetzt `roadmap_bis_2025.md` im Archiv; Querverweise und Links auf die VitePress-Struktur angepasst |
 | 2026-08-26 | Arbeitspaket 4.1 | V1s-Buildvariante implementiert (statische/imagebasierte Masterportal-Konfiguration, RustFS/S3 entfernt); Status auf „in Arbeit“ gesetzt | Verweis auf `ai-runs/2026-08-26-civitas-v1s-s3-entfernen` und `ai-runs/2026-08-26-civitas-v1s-doku-aktualisierung` |
 | 2026-08-31 | Arbeitspaket 4.1 | V1s-End-to-End-Testlauf bis Task 124 von >100 (Abbruch bei APISIX-Installation); Monitoring/Prometheus wegen fehlender Prometheus-Operator-CRDs befristet deaktiviert, Nachrüstung als offene Aufgabe dokumentiert | Verweis auf `ai-runs/2026-08-31-v1s-docker-purge-cleanup-bugfix` |
-| 2026-08-31 | Arbeitspaket 4.1 | Vollständiger V1s-Testlauf erstmals erfolgreich (alle Kernkomponenten stabil, Monitoring produktiv aktiviert, gültige Let's-Encrypt-Zertifikate) | Verweis auf `ai-runs/2026-08-31-v1s-installationsskript-lauffaehig` |
+| 2026-08-31 | Arbeitspaket 4.1 | Vollständiger V1s-Testlauf erstmals erfolgreich (alle Kernkomponenten stabil, Monitoring produktiv aktiviert, gültige Let's-Encrypt-Zertifikate) | Erfolgreich auf dem isolierten Testsystem |
 
 ## Perspektive nach der V1-Erprobung
 
