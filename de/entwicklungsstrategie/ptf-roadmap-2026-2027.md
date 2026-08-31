@@ -208,6 +208,7 @@ Die Roadmap wird bei jedem wesentlichen Schritt aktualisiert. Sie ist zugleich K
 | 2026-08-05 | Roadmap | Roadmap auf den aktuellen Fokus „p2d2 verständlich machen → kommunal validieren → CIVITAS/CORE V1 integrieren“ ausgerichtet | Ersetzt die frühere zeit- und funktionsgetriebene Roadmap |
 | 2026-08-05 | Strategie-Handbuch | Neustrukturierung des Strategie-Handbuchs; diese Roadmap wird als PTF-Roadmap 2026–2027 geführt | Ersetzt `roadmap_bis_2025.md` im Archiv; Querverweise und Links auf die VitePress-Struktur angepasst |
 | 2026-08-26 | Arbeitspaket 4.1 | V1s-Buildvariante implementiert (statische/imagebasierte Masterportal-Konfiguration, RustFS/S3 entfernt); Status auf „in Arbeit“ gesetzt | Verweis auf `ai-runs/2026-08-26-civitas-v1s-s3-entfernen` und `ai-runs/2026-08-26-civitas-v1s-doku-aktualisierung` |
+| 2026-08-31 | Arbeitspaket 4.1 | V1s-End-to-End-Testlauf bis Task 124 von >100 (Abbruch bei APISIX-Installation); Monitoring/Prometheus wegen fehlender Prometheus-Operator-CRDs befristet deaktiviert, Nachrüstung als offene Aufgabe dokumentiert | Verweis auf `ai-runs/2026-08-31-v1s-docker-purge-cleanup-bugfix` |
 
 ## Perspektive nach der V1-Erprobung
 

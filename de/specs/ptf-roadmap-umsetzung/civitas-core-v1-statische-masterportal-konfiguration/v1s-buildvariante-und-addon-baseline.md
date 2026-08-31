@@ -48,6 +48,18 @@ civitas_einrichtung/
 
 Die technischen Details zur V1s-Buildvariante sind in der Detail-Spezifikation [Serveraufbau V1s](../../civitas-core-plugin/serveraufbau-v1s/) dokumentiert (`index.md`, `inventory-delta.md`, `portal-backend-image-build.md`).
 
+## Bekannte Einschränkung: Monitoring/Prometheus
+
+**Stand:** befristet deaktiviert (2026-08-31).
+
+Die V1s-Addons (`modules_V1s/05_addons.sh`) installieren keinen Prometheus-Operator. Damit fehlen die `monitoring.coreos.com/v1`-CRDs (`ServiceMonitor`, `PodMonitor`, `PrometheusRule`, …) im Cluster. Bei aktivem Monitoring rendert das APISIX-Helm-Chart daraus `metrics.serviceMonitor.enabled: true`, und der `cc_cli exec`-Lauf scheitert an der fehlenden `ServiceMonitor`-CRD.
+
+**Root Cause:** fehlende Prometheus-Operator-CRDs in `05_addons.sh` (gilt gleichermaßen für die V1-Referenz `modules_V1/05_addons.sh`).
+
+**Befristete Maßnahme:** In `templates_V1s/inventory.yml.tpl` ist `inv_op_stack.monitoring` (Prometheus, Grafana, Alertmanager, Loki, Alloy) vorübergehend deaktiviert, damit die restliche Installation end-to-end verifiziert werden kann. Referenz: `ai-runs/2026-08-31-v1s-docker-purge-cleanup-bugfix`.
+
+**Offene Aufgabe:** Prometheus/kube-prometheus-stack für V1s (und ggf. V1) nachrüsten, bevor eine produktive Nutzung mit vollständigem Monitoring erfolgen kann.
+
 ## 3. Entwicklungs- und Übernahmeregel
 
 - V1s startet als **bewusst abgeleitete, kontrollierte Buildvariante** auf Grundlage der V1-Referenz.
