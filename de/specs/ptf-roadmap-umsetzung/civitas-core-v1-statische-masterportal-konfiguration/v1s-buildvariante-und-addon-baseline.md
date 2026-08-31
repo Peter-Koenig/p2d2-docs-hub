@@ -50,15 +50,25 @@ Die technischen Details zur V1s-Buildvariante sind in der Detail-Spezifikation [
 
 ## Bekannte Einschränkung: Monitoring/Prometheus
 
-**Stand:** befristet deaktiviert (2026-08-31).
+**Stand:** Monitoring befristet deaktiviert; `cc_cli validate`-Regel durch explizites `inv_access.apis.import: false` erfüllt (2026-08-31).
 
-Die V1s-Addons (`modules_V1s/05_addons.sh`) installieren keinen Prometheus-Operator. Damit fehlen die `monitoring.coreos.com/v1`-CRDs (`ServiceMonitor`, `PodMonitor`, `PrometheusRule`, …) im Cluster. Bei aktivem Monitoring rendert das APISIX-Helm-Chart daraus `metrics.serviceMonitor.enabled: true`, und der `cc_cli exec`-Lauf scheitert an der fehlenden `ServiceMonitor`-CRD.
+Es sind zwei getrennte Sachverhalte zu unterscheiden:
 
-**Root Cause:** fehlende Prometheus-Operator-CRDs in `05_addons.sh` (gilt gleichermaßen für die V1-Referenz `modules_V1/05_addons.sh`).
+1. **`cc_cli validate` (Ursache des frühen Abbruchs):** Die Business-Regel „Ensure that Prometheus and Loki are enabled if APIs are enabled and imported“ (`cc_cli/config/semantic_rules.yaml`) verlangt:
 
-**Befristete Maßnahme:** In `templates_V1s/inventory.yml.tpl` ist `inv_op_stack.monitoring` (Prometheus, Grafana, Alertmanager, Loki, Alloy) vorübergehend deaktiviert, damit die restliche Installation end-to-end verifiziert werden kann. Referenz: `ai-runs/2026-08-31-v1s-docker-purge-cleanup-bugfix`.
+   ```text
+   inv_access.apis.import == false
+     ODER (inv_op_stack.monitoring.prometheus.enable == true
+           UND  inv_op_stack.monitoring.loki.enable == true)
+   ```
 
-**Offene Aufgabe:** Prometheus/kube-prometheus-stack für V1s (und ggf. V1) nachrüsten, bevor eine produktive Nutzung mit vollständigem Monitoring erfolgen kann.
+   Solange Monitoring befristet deaktiviert ist (`prometheus.enable`/`loki.enable` auf `false`), muss daher zwingend `inv_access.apis.import: false` gesetzt sein — andernfalls bricht der Lauf bereits bei `cc_cli validate` ab. Deshalb ist in `templates_V1s/inventory.yml.tpl` `inv_access.apis.import: false` explizit gesetzt (konsistent mit `inv_addons.import: false`: die V1s-Buildvariante importiert keine externen APIs).
+
+2. **Fehlende Prometheus-Operator-CRDs (separat, nur bei aktivem Monitoring relevant):** Die V1s-Addons (`modules_V1s/05_addons.sh`) installieren keinen Prometheus-Operator. Damit fehlen die `monitoring.coreos.com/v1`-CRDs (`ServiceMonitor`, `PodMonitor`, `PrometheusRule`, …) im Cluster; bei aktivem Monitoring würde das APISIX-Helm-Chart `metrics.serviceMonitor.enabled: true` rendern und beim Deploy an der fehlenden `ServiceMonitor`-CRD scheitern. Das ist unabhängig von der `cc_cli validate`-Regel oben.
+
+**Befristete Maßnahme:** In `templates_V1s/inventory.yml.tpl` bleibt `inv_op_stack.monitoring` (Prometheus, Grafana, Alertmanager, Loki, Alloy) vorübergehend deaktiviert, damit die restliche Installation end-to-end verifiziert werden kann.
+
+**Offene Aufgabe:** Prometheus/kube-prometheus-stack für V1s (und ggf. V1) nachrüsten, bevor eine produktive Nutzung mit vollständigem Monitoring erfolgen kann. Erst dann kann `inv_access.apis.import` bei Bedarf wieder auf `true` gesetzt werden, ohne die `cc_cli validate`-Regel zu verletzen.
 
 ## 3. Entwicklungs- und Übernahmeregel
 
