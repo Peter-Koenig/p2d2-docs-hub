@@ -104,7 +104,15 @@ Ein Backup darf erst dann als **V1s-AddOn-Baseline** gelten, wenn alle folgenden
 - der zugrunde liegende **Git-Stand und die relevanten Artefakt-Versionen** sind dokumentiert,
 - ein **Restore dieser Baseline wurde mindestens einmal isoliert erfolgreich getestet**.
 
-Stand 2026-08-31: Die ersten fünf Kriterien sind durch den erfolgreichen V1s-Testlauf erfüllt. Das Kriterium zur Dokumentation von Git-Stand und Artefakt-Versionen wird in der laufenden Doku-Aktualisierung nachgezogen. Das Restore-Kriterium bleibt offen.
+Stand 2026-08-31: Die ersten fünf Kriterien sind durch den erfolgreichen V1s-Testlauf erfüllt. Das Kriterium zur Dokumentation von Git-Stand und Artefakt-Versionen wird in der laufenden Doku-Aktualisierung nachgezogen. Das Restore-Kriterium bleibt formal offen.
+
+Am 2026-08-31 kam es beim Server-Shutdown zu einem Fehlstart des V1s-Clusters. Der zuvor manuell angelegte PBS-Snapshot `vm/2010/2026-08-31T20:50:27Z` wurde eingespielt. Danach liefen alle Komponenten ohne manuellen Eingriff wieder vollständig und öffentlich erreichbar. Das ist ein faktischer Restore-Nachweis, kein geplanter isolierter Test im Sinne von Kriterium 7. Kriterium 7 bleibt deshalb formal offen, der faktische Nachweis ist aber dokumentiert.
+
+Belege aus dem faktischen Restore:
+
+- Kriterium 3 und 4: `config.json` und `services-internet.json` wurden nach dem Restore ohne Eingriff mit gültigem Inhalt ausgeliefert.
+- Kriterium 5: `S3_ENABLED=false` bestand zum Zeitpunkt des Restore und danach. Die übrigen `S3_*`-Variablen stehen auf `unused` beziehungsweise Default.
+- Clusterzustand: 28 Pods in 11 Namespaces `Running`, keine `CrashLoopBackOff`, keine `Pending`. Alle 11 Helm-Releases blieben auf REVISION 1 und wurden nach dem Restore nicht neu ausgerollt.
 
 Ein Backup ist erst nach einem verifizierten Restore als AddOn-Baseline zulässig. Das Backup ersetzt **keinen AddOn-Rückbau**: Ein Rückbau p2d2-eigener Ressourcen folgt eigenen, AddOn-spezifischen Regeln.
 
