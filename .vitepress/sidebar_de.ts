@@ -814,6 +814,10 @@ export const sidebar_de = {
                             text: "Inventory-Delta",
                             link: "/de/specs/civitas-core-plugin/serveraufbau-v1s/inventory-delta",
                         },
+                        {
+                            text: "Skriptarchitektur",
+                            link: "/de/specs/civitas-core-plugin/serveraufbau-v1s/skriptarchitektur",
+                        },
                     ],
                 },
                 {
