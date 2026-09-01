@@ -104,6 +104,8 @@ Ein Backup darf erst dann als **V1s-AddOn-Baseline** gelten, wenn alle folgenden
 - der zugrunde liegende **Git-Stand und die relevanten Artefakt-Versionen** sind dokumentiert,
 - ein **Restore dieser Baseline wurde mindestens einmal isoliert erfolgreich getestet**.
 
+Stand 2026-08-31: Die ersten fünf Kriterien sind durch den erfolgreichen V1s-Testlauf erfüllt. Das Kriterium zur Dokumentation von Git-Stand und Artefakt-Versionen wird in der laufenden Doku-Aktualisierung nachgezogen. Das Restore-Kriterium bleibt offen.
+
 Ein Backup ist erst nach einem verifizierten Restore als AddOn-Baseline zulässig. Das Backup ersetzt **keinen AddOn-Rückbau**: Ein Rückbau p2d2-eigener Ressourcen folgt eigenen, AddOn-spezifischen Regeln.
 
 ## 5. Beziehung zum AddOn
@@ -116,10 +118,8 @@ Die konkrete Auslieferung der p2d2-Masterportal-Instanzkonfiguration bleibt eine
 
 ## 6. Offene Punkte
 
-Die folgenden Punkte sind noch zu klären:
+Die V1s-Skriptstruktur und der Artefakt-/Image-Build-Prozess sind implementiert und nicht mehr offen. Die folgenden Punkte sind noch zu klären:
 
-- konkrete V1s-Skriptstruktur,
-- Artefakt-/Image-Build-Prozess,
 - genaue Abnahmetests,
 - Backup-Namens- und Aufbewahrungskonzept,
 - konkrete Preflight- und Restore-Automatisierung,
