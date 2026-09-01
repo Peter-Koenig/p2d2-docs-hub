@@ -2,7 +2,7 @@
 title: Portal-Backend-Image-Build für V1s
 description: Lokaler Build des geoportal_backend-Images mit statisch eingebauter Masterportal-Konfiguration für die CIVITAS/CORE-V1s-Buildvariante
 status: draft
-lastUpdated: 2026-08-11
+lastUpdated: 2026-09-01
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-v1s-image-build
@@ -41,7 +41,7 @@ Der Build erfolgt über eine Skriptfunktion `build_geoportal_backend_image()`, d
 
 1. **Docker temporär installieren**: Docker wird nur installiert, wenn es auf der Ziel-VM noch nicht vorhanden ist. Die Funktion merkt sich, ob sie Docker selbst installiert hat.
 2. **Image bauen**: `docker build -f Dockerfile_geoportal_backend .` (Build-Kontext = Repo-Root).
-3. **In containerd importieren**: `k3s ctr images import` übernimmt das gebaute Image in den containerd-Store des k3s-Clusters. Ein externer Registry-Betrieb ist bei Single-Node-k3s nicht erforderlich.
+3. **In containerd importieren**: `k3s ctr -n k8s.io images import -` übernimmt das gebaute Image in den containerd-Store des k3s-Clusters. Der Namespace `-n k8s.io` ist zwingend: Ohne die Angabe importiert `k3s ctr` in den Containerd-Namespace `default`, während kubelet Images ausschließlich im Namespace `k8s.io` sucht. Das Image wäre sonst für Pods unsichtbar (ImagePullBackOff statt Start). Ein externer Registry-Betrieb ist bei Single-Node-k3s nicht erforderlich.
 4. **Docker ggf. wieder deinstallieren**: Hat die Funktion Docker selbst installiert, entfernt sie es nach dem Import wieder; wurde Docker vorgefunden, bleibt es unangetastet.
 
 **Zeitaufwand-Hinweis**: Im LAN steht ein apt-cacher mit 2,5 GBit/s-Anbindung zur Verfügung. Die temporäre Docker-Installation und -Deinstallation ist daher zeitlich unkritisch.
@@ -61,11 +61,13 @@ Die Funktion `install_civitas()` in `modules_V1s/06_civitas.sh` ruft die Phasen-
 
 Begründung: `build_geoportal_backend_image()` läuft vor `render_inventory()`, sodass das gerenderte Inventory das lokal gebaute Image (`image_repository`/`image_tag`) direkt aufnehmen kann. Die Einordnung als 2.0b hält alle Repository-Vorbereitungsschritte vor der Overlay- und Deployment-Phase zusammen.
 
+Das lokal gebaute Image wird ohne Registry-Präfix referenziert (`geoportal_backend:<tag>`). Schritt 2.1 `apply_overlay()` spielt `overlay_V1s/tasks/geodata/install/portal_backend.yml` ein. Dieses Overlay korrigiert die Image-Referenz des Portal-Backend-Tasks: Der Registry-Präfix samt Slash wird nur eingefügt, wenn eine Registry konfiguriert ist. Ohne diese Korrektur erzeugte der Upstream-Task bei leerer Registry die ungültige Referenz `/geoportal_backend:<tag>` (InvalidImageName).
+
 ## Modul-Zuordnung
 
 | Datei | Typ | Inhalt |
 |---|---|---|
-| `modules_V1s/06c_image_build.sh` | neu | `build_geoportal_backend_image()` — Soft-Fork-Klon in der VM, Instanzverzeichnis-Umbenennung, Submodule-Init, temporäre Docker-Installation, Image-Build, `k3s ctr images import`, Docker-Deinstallation |
+| `modules_V1s/06c_image_build.sh` | neu | `build_geoportal_backend_image()` — Soft-Fork-Klon in der VM, Instanzverzeichnis-Umbenennung, Submodule-Init, temporäre Docker-Installation, Image-Build, `k3s ctr -n k8s.io images import`, Docker-Deinstallation |
 | `modules_V1s/02_lib.sh` | bestehend (Abhängigkeit) | `log()`, `log_ok()`, `log_warn()`, `log_error()`, `is_installed()`, `assert_success()` |
 | `modules_V1s/01_config.sh` | bestehend (Abhängigkeit) | stellt die neuen V1s-Konfigurationsvariablen bereit (siehe „Konfigurationsvariablen") |
 
@@ -111,7 +113,7 @@ Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte en
 | `KEYCLOAK_GRANT_TYPE` | `password` | Grant-Type, unverändert lassen |
 | `KEYCLOAK_REALM` | `<idm_realm>` | IDM-Realm |
 | `KEYCLOAK_CLIENT_ID` | `<client_id>` | IDM-Client (verifiziert: `geostack`) |
-| `KEYCLOAK_CLIENT_SECRET` | `<client_secret>` | **vor dem ersten V1s-Testlauf rotieren** (siehe Hinweise) |
+| `KEYCLOAK_CLIENT_SECRET` | `<client_secret>` | im V1s-Testlauf vom 2026-08-31 erledigt (siehe Hinweise) |
 | `KEYCLOAK_PUBLIC_KEY` | `<realm_public_key>` | Public Key des IDM-Clients für Token-Signatur |
 | `PUBLIC_ROLE` | `ds_open_data` | Rolle für öffentliche Datenspaces |
 | `COOKIE_TOKEN_NAME` | `token` | Cookie-Name für das Token |
@@ -127,7 +129,7 @@ Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte en
 
 ## Hinweise
 
-- **KEYCLOAK_CLIENT_SECRET rotieren**: Der Wert des Client-Secrets war im Rahmen der Entwicklung kurzzeitig im Klartext sichtbar (siehe Commit-Historie beziehungsweise Chat-Protokoll). Vor dem ersten V1s-Testlauf muss das Secret in der IDM rotiert und die neue Konfiguration eingespielt werden.
+- **KEYCLOAK_CLIENT_SECRET rotieren**: Der Wert des Client-Secrets war im Rahmen der Entwicklung kurzzeitig im Klartext sichtbar (siehe Commit-Historie beziehungsweise Chat-Protokoll). Die Rotation war vor dem ersten V1s-Testlauf erforderlich. Der erste vollständige V1s-Testlauf am 2026-08-31 ist erfolgreich durchlaufen; der Hinweis ist damit erledigt.
 - **Sicherheitsbewusste Doku**: Secrets werden bewusst nicht in dieser Spezifikation geführt, sondern ausschließlich zur Laufzeit über die Zielsystem-Konfiguration bereitgestellt.
 
 ## Abnahmekriterien
