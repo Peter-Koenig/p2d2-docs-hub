@@ -177,5 +177,4 @@ offenen Annahmen zu `instance_name`, Backend-Endpunkten und Env-Zuordnung.
 
 - [Übersicht](./) – Gesamtvorhaben der statischen Masterportal-Konfiguration
 - [Zielbild und Abgrenzung](./zielbild-und-abgrenzung) – Ausgangslage, Zielarchitektur und offene Entscheidungen
-- [Testverfahren mit Proxmox-Backup](./testverfahren-mit-proxmox-backup) – restaurierbare Test-Baseline und Abnahmeprozess
 - [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline) – getrennte Buildvariante und Kriterien für die restaurierbare AddOn-Test-Baseline

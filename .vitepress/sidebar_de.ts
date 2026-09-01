@@ -705,10 +705,6 @@ export const sidebar_de = {
                                     link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/s3-zu-statisch-migration",
                                 },
                                 {
-                                    text: "Testverfahren mit Proxmox-Backup",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/testverfahren-mit-proxmox-backup",
-                                },
-                                {
                                     text: "V1s-Buildvariante und AddOn-Baseline",
                                     link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/v1s-buildvariante-und-addon-baseline",
                                 },

@@ -130,5 +130,4 @@ Die folgenden Punkte sind noch zu klären:
 - [Übersicht](./) – Gesamtvorhaben der statischen Masterportal-Konfiguration
 - [Zielbild und Abgrenzung](./zielbild-und-abgrenzung) – Ausgangslage, Zielarchitektur und offene Entscheidungen
 - [S3-zu-statisch-Migration](./s3-zu-statisch-migration) – Migrationsvorhaben, Prinzipien und konzeptionelle Abnahme
-- [Testverfahren mit Proxmox-Backup](./testverfahren-mit-proxmox-backup) – restaurierbare Test-Baseline und Abnahmeprozess
 - [p2d2 als CIVITAS/CORE-V1-AddOn](../p2d2-civitas-core-v1-addon/) – Zielbild, Voraussetzungen und Lifecycle des AddOns

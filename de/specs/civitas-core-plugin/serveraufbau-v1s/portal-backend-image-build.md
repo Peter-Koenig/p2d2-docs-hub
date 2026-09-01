@@ -162,4 +162,4 @@ curl -fsS "https://geoportal.<domain>/portalBackend/Standard/config.json"
 
 ## Ausführungsrahmen
 
-Der Build und die Abnahme laufen im Rahmen des [Testverfahrens mit Proxmox-Backup](../../ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/testverfahren-mit-proxmox-backup.md): isolierte Testinstanz, Backup vor jeder Änderung, wiederholbarer Abnahmeprozess.
+Der Build und die Abnahme laufen auf einer isolierten Testinstanz mit Backup vor jeder Änderung und einem wiederholbaren Abnahmeprozess.
