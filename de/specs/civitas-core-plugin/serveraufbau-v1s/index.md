@@ -42,6 +42,16 @@ Gegenüber dem V1-Serveraufbau ändern sich zwei Aspekte, die in eigenen Unterse
 - [Portal-Backend-Image-Build](./portal-backend-image-build.md) — lokaler Soft-Fork-Build des `geoportal_backend`-Images mit statisch eingebauter Masterportal-Konfiguration
 - [Inventory-Delta](./inventory-delta.md) — die gegenüber dem V1-Inventory geänderten Felder
 
+## Weitere Abweichungen gegenüber V1
+
+Über die beiden oben genannten Aspekte hinaus unterscheidet sich V1s in drei Punkten, die im erfolgreichen Testlauf vom 2026-08-31 sichtbar wurden:
+
+- **Monitoring:** Monitoring ist in beiden Varianten aktiv. In V1s installiert `05_addons.sh` zusätzlich die Prometheus-Operator-CRDs vorab (`install_prometheus_operator_crds()`, Version v0.89.0). Grund: Das Live-Playbook führt das Monitoring-Play nicht zuverlässig vor der APISIX-Installation aus. APISIX rendert `metrics.serviceMonitor.enabled: true` bedingungslos und benötigt daher die `ServiceMonitor`-CRD bereits vor dem APISIX-Helm-Install.
+- **`inv_access.apis.import`:** V1s setzt den Wert explizit auf `true`. Das ist nötig für die Apisix-Routen der Geodata-Kernkomponenten, insbesondere `portalBackend`. Die `cc_cli validate`-Regel „Prometheus und Loki aktivieren, wenn APIs importiert werden“ wird über den zweiten ODER-Zweig erfüllt, weil das Monitoring aktiv ist.
+- **Containerd-Namespace:** Der lokale Image-Import nutzt `k3s ctr -n k8s.io images import -`. Ohne `-n k8s.io` läge das Image im Containerd-Namespace `default` und wäre für kubelet unsichtbar. Der Punkt ist V1s-spezifisch, weil V1 keinen lokalen Image-Build kennt.
+
+Der lokale Image-Build selbst ist in [Portal-Backend-Image-Build](./portal-backend-image-build.md) beschrieben und hier nicht erneut ausgeführt.
+
 ## Explizit nicht Gegenstand
 
 - **Frontend-Image-Rebuild**: Das Masterportal-Frontend bleibt das unveränderte Original-Upstream-Image (`geoportal`). Seine Konfiguration wird weiterhin zur Laufzeit über Umgebungsvariablen parametrisiert; ein Rebuild ist für V1s nicht erforderlich.
