@@ -11,9 +11,9 @@ quality:
 
 # S3-zu-statisch-Migration
 
-Diese Seite beschreibt das **Migrationsvorhaben** von der bestehenden RustFS-/S3-Ablage hin zu einer statischen, versionierten und imagebasierten Masterportal-Konfiguration. Sie dokumentiert ausdrücklich ein geplantes Vorhaben und keine bereits umgesetzte Migration.
+Diese Seite beschreibt die **Migration** von der bestehenden RustFS-/S3-Ablage hin zu einer statischen, versionierten und imagebasierten Masterportal-Konfiguration. Die Migration ist durchgeführt und am 2026-08-31 im isolierten Testsystem verifiziert.
 
-Die Migration entwickelt und validiert zunächst die **V1s-Buildvariante** (CIVITAS/CORE V1 mit statischer Masterportal-Konfiguration, siehe [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline)). Die bestehende V1-S3-/RustFS-Referenz bleibt bis zum erfolgreichen V1s-Nachweis unverändert erhalten.
+Die **V1s-Buildvariante** (CIVITAS/CORE V1 mit statischer Masterportal-Konfiguration, siehe [V1s-Buildvariante und AddOn-Baseline](./v1s-buildvariante-und-addon-baseline)) ist implementiert und im Testlauf verifiziert. Die bestehende V1-S3-/RustFS-Referenz blieb unverändert.
 
 ## Ausgangszustand
 
@@ -43,7 +43,7 @@ Die Migration folgt verbindlich diesen Prinzipien:
 
 ## Konzeptionelle Abnahme
 
-Eine Migration gilt konzeptionell erst dann als erfolgreich, wenn folgende Punkte erfüllt sind:
+Die Migration ist konzeptionell abgenommen. Alle vier Kriterien wurden am 2026-08-31 im isolierten Testsystem verifiziert:
 
 - das Masterportal lädt seine Konfiguration aus dem neuen statischen Artefakt beziehungsweise Image,
 - im `portal-backend` tritt kein `ENOENT` für die erforderlichen Konfigurationsdateien auf,
@@ -94,19 +94,13 @@ erfunden.
    `OIDC_*` und `PORTAL_BASE_URL` (vollständige Zuordnung siehe Abschnitt
    „Verifizierte Fakten aus dem laufenden Betrieb").
 
-**Offene Punkte vor Umsetzung:**
+**Offene Punkte vor Umsetzung (abgeschlossen):**
 
-- Exakte Schreibweise/Konvention des `instance_name` (Groß-/Kleinschreibung)
-  muss mit dem Portal-Backend-Routing übereinstimmen — **beantwortet durch
-  Verifikation am laufenden Betrieb**: case-sensitiv, Pflicht bei Option A,
-  Laufwert `Standard`; optionale Restverifikation am Quellcode des Submoduls
-  `portal-backend` (siehe „Verifizierte Fakten aus dem laufenden Betrieb").
-- Service-Name/-URL des `portal_backend`-Pods im Zielnamespace — **beantwortet
-  für den Testfall**: `PORTAL_BACKEND` ist die Ingress-URL
-  `https://geoportal.<domain>/portalBackend`; der konkrete Pod-Service-Name
-  im Zielnamespace ist erst beim V1s-Testlauf (`cc_cli exec`) zu bestätigen.
-- Der `-internet`-Suffix ist durch die Backend-Endpunkt-Konvention geklärt
-  und damit kein separater offener Punkt mehr.
+Alle früher offenen Punkte sind seit dem V1s-Testlauf (2026-08-31) geklärt:
+
+- `instance_name`: case-sensitiv, Pflicht bei Option A, Laufwert `Standard`.
+- Service-URL des `portal_backend`: `PORTAL_BACKEND` ist die Ingress-URL `https://geoportal.<domain>/portalBackend`.
+- `-internet`-Suffix: durch die Backend-Endpunkt-Konvention geklärt.
 
 ## Verifizierte Fakten aus dem laufenden Betrieb
 
