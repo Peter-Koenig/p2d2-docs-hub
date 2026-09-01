@@ -113,7 +113,7 @@ Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte en
 | `KEYCLOAK_GRANT_TYPE` | `password` | Grant-Type, unverändert lassen |
 | `KEYCLOAK_REALM` | `<idm_realm>` | IDM-Realm |
 | `KEYCLOAK_CLIENT_ID` | `<client_id>` | IDM-Client (verifiziert: `geostack`) |
-| `KEYCLOAK_CLIENT_SECRET` | `<client_secret>` | im V1s-Testlauf vom 2026-08-31 erledigt (siehe Hinweise) |
+| `KEYCLOAK_CLIENT_SECRET` | `<client_secret>` | Client-Secret des IDM-Clients |
 | `KEYCLOAK_PUBLIC_KEY` | `<realm_public_key>` | Public Key des IDM-Clients für Token-Signatur |
 | `PUBLIC_ROLE` | `ds_open_data` | Rolle für öffentliche Datenspaces |
 | `COOKIE_TOKEN_NAME` | `token` | Cookie-Name für das Token |
@@ -129,7 +129,6 @@ Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte en
 
 ## Hinweise
 
-- **KEYCLOAK_CLIENT_SECRET rotieren**: Der Wert des Client-Secrets war im Rahmen der Entwicklung kurzzeitig im Klartext sichtbar (siehe Commit-Historie beziehungsweise Chat-Protokoll). Die Rotation war vor dem ersten V1s-Testlauf erforderlich. Der erste vollständige V1s-Testlauf am 2026-08-31 ist erfolgreich durchlaufen; der Hinweis ist damit erledigt.
 - **Sicherheitsbewusste Doku**: Secrets werden bewusst nicht in dieser Spezifikation geführt, sondern ausschließlich zur Laufzeit über die Zielsystem-Konfiguration bereitgestellt.
 
 ## Abnahmekriterien
