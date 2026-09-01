@@ -127,6 +127,8 @@ Das Portal-Backend wird mit folgenden Umgebungsvariablen betrieben. Die Werte en
 
 **Alle `S3_*`-Variablen entfallen** in der V1s-Buildvariante (`S3_ENABLED`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`, `S3_BUCKET_NAME`, `S3_FORCE_PATH_STYLE`). Die Konfiguration wird statisch aus dem Image geliefert, nicht aus dem Objektspeicher.
 
+Der Wert für `KEYCLOAK_CLIENT_SECRET` wird zur Laufzeit aus Keycloak gelesen. Der Task `geodata/configure/integrated_keycloak.yml` ruft den Secret-Wert über die Keycloak-Admin-API ab (`GET /clients/{id}/client-secret`) und stellt ihn über `IDM_CLIENT_SECRET_GEOSTACK` als `gd_idm_client_secret` bereit. `portal_backend.yml` referenziert `gd_idm_client_secret` als `KEYCLOAK_CLIENT_SECRET`. Der Wert wird nicht generiert und nicht lokal zwischengespeichert. Eine Rotation des Secrets in Keycloak wird bei einem erneuten Deployment automatisch übernommen.
+
 ## Hinweise
 
 - **Sicherheitsbewusste Doku**: Secrets werden bewusst nicht in dieser Spezifikation geführt, sondern ausschließlich zur Laufzeit über die Zielsystem-Konfiguration bereitgestellt.
