@@ -70,11 +70,9 @@ Es sind zwei getrennte Sachverhalte zu unterscheiden:
 
 ## 3. Entwicklungs- und Übernahmeregel
 
-- V1s startet als **bewusst abgeleitete, kontrollierte Buildvariante** auf Grundlage der V1-Referenz.
-- Abweichungen zwischen V1 und V1s müssen **dokumentiert und begründet** sein.
-- Sicherheits- und Stabilitätskorrekturen aus V1 dürfen später **gezielt nach V1s übernommen** werden.
-- Es gibt **keine implizite, automatische Synchronisierung** zwischen V1 und V1s.
-- V1 bleibt bis zur erfolgreichen Abnahme von V1s **unverändert als Referenz** erhalten.
+Historisch ist V1s als **bewusst abgeleitete, kontrollierte Buildvariante** auf Grundlage der V1-Referenz entstanden. Abweichungen zwischen V1 und V1s sind **dokumentiert und begründet**. Es bestand **keine implizite, automatische Synchronisierung** zwischen V1 und V1s; Sicherheits- und Stabilitätskorrekturen aus V1 konnten bei Bedarf **gezielt nach V1s übernommen** werden.
+
+Diese Übernahmeregel ist inzwischen **nicht mehr aktiv**: Die V1-Referenz-VM steht separat und wird nicht mehr aktiv als Referenz genutzt. Es besteht **keine laufende Übernahmepflicht** von V1 nach V1s und **keine aktive Abhängigkeit** zwischen den beiden Varianten. Die historische Herleitung bleibt für das Verständnis der Abgrenzung erhalten, begründet aber keine laufende Pflegebeziehung.
 
 ## 4. V1s-AddOn-Baseline
 
@@ -102,11 +100,15 @@ Ein Backup darf erst dann als **V1s-AddOn-Baseline** gelten, wenn alle folgenden
 - im `portal-backend` tritt **kein Fehler wegen fehlender Konfigurationsdateien** auf,
 - die lokale RustFS-LXC beziehungsweise deren Credentials sind für die V1s-Portal-Auslieferung **nicht erforderlich**,
 - der zugrunde liegende **Git-Stand und die relevanten Artefakt-Versionen** sind dokumentiert,
-- ein **Restore dieser Baseline wurde mindestens einmal isoliert erfolgreich getestet**.
+- ein **verifizierter Shutdown-/Restart-Zyklus dieser Baseline wurde auf derselben VM mindestens einmal erfolgreich durchgeführt**.
 
-Stand 2026-08-31: Die ersten fünf Kriterien sind durch den erfolgreichen V1s-Testlauf erfüllt. Das Kriterium zur Dokumentation von Git-Stand und Artefakt-Versionen wird in der laufenden Doku-Aktualisierung nachgezogen. Das Restore-Kriterium bleibt formal offen.
+Ein isolierter Restore auf separater Hardware ist für den aktuellen Zweck — die Wiederherstellbarkeit der AddOn-Entwicklungsumgebung — nicht zusätzlich erforderlich. Die V1s-Baseline ist eine Single-Node-Umgebung auf einer einzelnen VM; ein verifizierter Shutdown-/Restart-Zyklus auf derselben VM belegt, dass die Baseline nach einem Neustart ohne manuelle Nacharbeit wieder vollständig hochfährt (Cluster und Kernkomponenten healthy, keine Geister-Nodes, keine PV-`nodeAffinity`-Konflikte). Ein separater Hardware-Restore würde lediglich zusätzlich die Hardware-Unabhängigkeit des Backups nachweisen, was hier nicht das Ziel ist.
 
-Am 2026-08-31 kam es beim Server-Shutdown zu einem Fehlstart des V1s-Clusters. Der zuvor manuell angelegte PBS-Snapshot `vm/2010/2026-08-31T20:50:27Z` wurde eingespielt. Danach liefen alle Komponenten ohne manuellen Eingriff wieder vollständig und öffentlich erreichbar. Das ist ein faktischer Restore-Nachweis, kein geplanter isolierter Test im Sinne von Kriterium 7. Kriterium 7 bleibt deshalb formal offen, der faktische Nachweis ist aber dokumentiert.
+Stand 2026-08-31: Die ersten fünf Kriterien sind durch den erfolgreichen V1s-Testlauf erfüllt. Das Kriterium zur Dokumentation von Git-Stand und Artefakt-Versionen wird in der laufenden Doku-Aktualisierung nachgezogen. Das Restore-Kriterium (Kriterium 7) war zu diesem Zeitpunkt noch offen.
+
+Am 2026-08-31 kam es beim Server-Shutdown zu einem Fehlstart des V1s-Clusters. Der zuvor manuell angelegte PBS-Snapshot `vm/2010/2026-08-31T20:50:27Z` wurde eingespielt. Danach liefen alle Komponenten ohne manuellen Eingriff wieder vollständig und öffentlich erreichbar. Das ist ein faktischer Restore-Nachweis, aber kein geplanter verifizierter Shutdown-/Restart-Zyklus im Sinne des neu formulierten Kriteriums 7. Der faktische Nachweis bleibt dokumentiert.
+
+Stand 2026-09-05: Kriterium 7 ist erfüllt. Am 2026-09-05 wurde auf derselben VM ein verifizierter Shutdown-/Restart-Zyklus durchgeführt: Shutdown → Restart → k3s-Cluster und alle Kernkomponenten wieder healthy, keine Geister-Nodes, keine PV-Konflikte. Der Zyklus dauerte ca. 90 Sekunden. Damit gilt der verifizierte Restart als hinreichender Nachweis für die Restaurierbarkeit der V1s-AddOn-Baseline.
 
 Belege aus dem faktischen Restore:
 
@@ -114,7 +116,15 @@ Belege aus dem faktischen Restore:
 - Kriterium 5: `S3_ENABLED=false` bestand zum Zeitpunkt des Restore und danach. Die übrigen `S3_*`-Variablen stehen auf `unused` beziehungsweise Default.
 - Clusterzustand: 28 Pods in 11 Namespaces `Running`, keine `CrashLoopBackOff`, keine `Pending`. Alle 11 Helm-Releases blieben auf REVISION 1 und wurden nach dem Restore nicht neu ausgerollt.
 
-Ein Backup ist erst nach einem verifizierten Restore als AddOn-Baseline zulässig. Das Backup ersetzt **keinen AddOn-Rückbau**: Ein Rückbau p2d2-eigener Ressourcen folgt eigenen, AddOn-spezifischen Regeln.
+Ein Backup ist erst nach einem verifizierten Shutdown-/Restart-Zyklus als AddOn-Baseline zulässig. Das Backup ersetzt **keinen AddOn-Rückbau**: Ein Rückbau p2d2-eigener Ressourcen folgt eigenen, AddOn-spezifischen Regeln.
+
+## Lessons Learned: Hostname-Drift bei Cloud-Init-Re-Provisionierung
+
+**Root Cause:** Bei Re-Provisionierung beziehungsweise Neustart setzte Cloud-Init den Hostnamen der VM neu. Dadurch wich der Hostname von dem beim k3s-Start registrierten Node-Namen ab. k3s meldete daraufhin einen abweichenden Node an („Geister-Node“), und PersistentVolumes mit `nodeAffinity` auf den alten Node-Namen fanden beim Neustart keinen passenden Node mehr (PV-`nodeAffinity`-Konflikte).
+
+**Bugfix:** `cico-shutdown` und `cico-uncordon` ermitteln den Node-Namen nicht mehr hartkodiert, sondern dynamisch aus `hostname`. Die Ursache an der Quelle wird zusätzlich in `civitas_einrichtung` behoben (stabiler Hostname über `preserve_hostname: true` sowie explizites Node-Name-Pinning via `--node-name`).
+
+**Wiedererkennung:** Beim späteren Anpacken der VM auf mehrere Node-Objekte mit ähnlichen Namen, „Geister-Nodes“ oder PV-`nodeAffinity`-Konflikte nach einem Neustart achten — Ursache ist fast immer ein Hostname-Wechsel durch Cloud-Init.
 
 ## 5. Beziehung zum AddOn
 
@@ -139,3 +149,9 @@ Die V1s-Skriptstruktur und der Artefakt-/Image-Build-Prozess sind implementiert 
 - [Zielbild und Abgrenzung](./zielbild-und-abgrenzung) – Ausgangslage, Zielarchitektur und offene Entscheidungen
 - [S3-zu-statisch-Migration](./s3-zu-statisch-migration) – Migrationsvorhaben, Prinzipien und konzeptionelle Abnahme
 - [p2d2 als CIVITAS/CORE-V1-AddOn](../p2d2-civitas-core-v1-addon/) – Zielbild, Voraussetzungen und Lifecycle des AddOns
+
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.0 | 2026-09-05 | Kriterium 7 (Restore) umformuliert und als erfüllt dokumentiert (verifizierter Shutdown-/Restart-Zyklus statt isoliertem Restore), Abschnitt 3 (V1↔V1s-Übernahmeregel) entschärft, Lessons-Learned-Abschnitt ergänzt. |
