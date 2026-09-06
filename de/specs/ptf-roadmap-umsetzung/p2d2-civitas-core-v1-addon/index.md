@@ -20,6 +20,7 @@ p2d2 soll als AddOn eine kompatible CIVITAS/CORE-V1-Plattform ergänzen, ohne di
 ## Unterseiten
 
 - [Zielbild und Abgrenzung](./zielbild-und-abgrenzung) – Standalone-Prinzip, eigene Bausteine, offene Architekturentscheidungen
+- [Repository-Struktur und Aktivierung](./repo-struktur-und-aktivierung) – geplante Git-Repository-Struktur und V1-Aktivierung
 - [Voraussetzungen und Kompatibilität](./voraussetzungen-und-kompatibilitaet) – Kategorien des späteren AddOn-Preflights
 - [Installation, Upgrade und Rückbau](./installation-upgrade-und-rueckbau) – Ziel-Lifecycle und Abnahmekriterien
 

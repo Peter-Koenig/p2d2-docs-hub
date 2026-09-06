@@ -85,6 +85,7 @@ Diese Entscheidungen werden erst auf Basis der tatsächlichen V1-Basisplattform 
 ## Verwandte Seiten
 
 - [Übersicht](./) – Gesamtvorhaben des p2d2-V1-AddOns
+- [Repository-Struktur und Aktivierung](./repo-struktur-und-aktivierung) – geplante Git-Repository-Struktur und V1-Aktivierung
 - [Voraussetzungen und Kompatibilität](./voraussetzungen-und-kompatibilitaet) – Kategorien des späteren AddOn-Preflights
 - [Installation, Upgrade und Rückbau](./installation-upgrade-und-rueckbau) – Ziel-Lifecycle und Abnahmekriterien
 - [V1s-Buildvariante und AddOn-Baseline](../civitas-core-v1-statische-masterportal-konfiguration/v1s-buildvariante-und-addon-baseline) – getrennte V1s-Buildvariante und restaurierbare AddOn-Test-Baseline
