@@ -61,7 +61,7 @@ Die Roadmap beschreibt die Reihenfolge der Umsetzung, ohne Zeitschätzungen und 
 
 | Phase | Inhalt | Erklärung |
 |---|---|---|
-| 0 | Fünf offene Architekturentscheidungen final klären | Voraussetzung für alle weiteren Schritte |
+| 0 | Sechs offene Architekturentscheidungen final klären | Voraussetzung für alle weiteren Schritte |
 | 1 | Eigener `PostgresCluster`-CR für p2d2, Schema-Migration | Isolierte Datenbasis im bestehenden postgres-operator |
 | 2 | Neuer GeoServer-Workspace und Datastore im bestehenden GeoServer | p2d2-Daten getrennt von bestehenden Workspaces |
 | 3 | MapProxy containerisieren, Deployment und Ingress-Route | Eigener MapProxy-Pod mit Image und Route |
@@ -79,6 +79,7 @@ Die folgenden Punkte bleiben offen. Jede Empfehlung ist eine Empfehlung, keine E
 - **Routing:** Hostname- vs. Pfadrouting. Empfehlung: keine. Die bestehende APISIX-Konfiguration muss erst geprüft werden. Der Punkt bleibt offen.
 - **portal-backend-Topologie:** gemeinsame oder getrennte Topologie. Empfehlung: getrennte Topologie mit eigenem portal-backend für die eigene Masterportal-Instanz. Das ist konsistent mit dem dokumentierten Zielbild einer eigenen Masterportal-Instanz.
 - **IAM-/Rollenabbildung:** präzise Abbildung. Empfehlung: neuer Keycloak-Client im bestehenden `cc-prd`-Realm. Rollen und Gruppen analog zu den heute in Zitadel gepflegten p2d2-Rollen (`editor`, `qs1_reviewer`, `qs2_reviewer`, `export_admin`).
+- **MapProxy:** Cache-/Storage-Backend (PersistentVolume über local-path analog zu den bestehenden Storage-Classes vs. Object-Storage vs. kein persistenter Cache bzw. reines Pass-through-Proxying) und Konfigurationsauslieferung (statisch ins Image gebacken analog zum V1s-Masterportal-Muster vs. ConfigMap/Volume-Mount vs. dynamisch). Empfehlung: keine. Beide Aspekte sind noch nicht gegen die V1-Basisplattform geprüft; die Konfigurationsauslieferung ist analog zur offenen Masterportal-Konfigurationsfrage zu behandeln (siehe Abschnitt „Beziehung zur V1s-AddOn-Baseline").
 
 Diese Entscheidungen werden erst auf Basis der tatsächlichen V1-Basisplattform und der Preflight-Ergebnisse getroffen und in einer nachgelagerten Spezifikation festgehalten.
 
@@ -88,3 +89,9 @@ Diese Entscheidungen werden erst auf Basis der tatsächlichen V1-Basisplattform 
 - [Voraussetzungen und Kompatibilität](./voraussetzungen-und-kompatibilitaet) – Kategorien des späteren AddOn-Preflights
 - [Installation, Upgrade und Rückbau](./installation-upgrade-und-rueckbau) – Ziel-Lifecycle und Abnahmekriterien
 - [V1s-Buildvariante und AddOn-Baseline](../civitas-core-v1-statische-masterportal-konfiguration/v1s-buildvariante-und-addon-baseline) – getrennte V1s-Buildvariante und restaurierbare AddOn-Test-Baseline
+
+## Änderungshistorie
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 1.1 | 2026-09-06 | MapProxy als sechste offene Architekturentscheidung ergänzt. |
