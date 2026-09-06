@@ -734,6 +734,10 @@ export const sidebar_de = {
                                     text: "Installation, Upgrade und Rückbau",
                                     link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/installation-upgrade-und-rueckbau",
                                 },
+                                {
+                                    text: "PostgreSQL-Datenbank",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/postgresql-datenbank",
+                                },
                             ],
                         },
                     ],

@@ -23,6 +23,7 @@ p2d2 soll als AddOn eine kompatible CIVITAS/CORE-V1-Plattform ergänzen, ohne di
 - [Repository-Struktur und Aktivierung](./repo-struktur-und-aktivierung) – geplante Git-Repository-Struktur und V1-Aktivierung
 - [Voraussetzungen und Kompatibilität](./voraussetzungen-und-kompatibilitaet) – Kategorien des späteren AddOn-Preflights
 - [Installation, Upgrade und Rückbau](./installation-upgrade-und-rueckbau) – Ziel-Lifecycle und Abnahmekriterien
+- [PostgreSQL-Datenbank](./postgresql-datenbank) – Datenbank-Bereitstellung als additiver preparedDatabases-Eintrag im central-db
 
 ## Verwandte Spezifikationen
 
