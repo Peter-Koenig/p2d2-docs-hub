@@ -723,6 +723,10 @@ export const sidebar_de = {
                                     link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/zielbild-und-abgrenzung",
                                 },
                                 {
+                                    text: "Repository-Struktur und Aktivierung",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/repo-struktur-und-aktivierung",
+                                },
+                                {
                                     text: "Voraussetzungen und Kompatibilität",
                                     link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/voraussetzungen-und-kompatibilitaet",
                                 },
