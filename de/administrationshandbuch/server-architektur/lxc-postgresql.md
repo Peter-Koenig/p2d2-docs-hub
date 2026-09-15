@@ -38,7 +38,7 @@ Auf der LXC `postgresql` laufen zwei unabhängige PostgreSQL-Cluster. Jeder hat 
 | Cluster | PostgreSQL | Port | systemd-Unit | Zweck |
 |---|---|---|---|---|
 | 17/main | 17.11 | 5433 | `postgresql@17-main.service` | Zitadel |
-| 18/main | 18.6 | 5432 | `postgresql@18-main.service` | p2d2 + Altlasten |
+| 18/main | 18.6 | 5432 | `postgresql@18-main.service` | p2d2 |
 
 Beide Cluster teilen sich dieselben grundlegenden Einstellungen: `shared_buffers` 128 MB, `max_connections` 100, `max_wal_size` 1 GB, `min_wal_size` 80 MB, `wal_level` `replica`, `ssl` aktiv mit Snakeoil-Zertifikat (`/etc/ssl/certs/ssl-cert-snakeoil.pem`). Sie unterscheiden sich in den Locale-/Timezone-Werten.
 
@@ -70,11 +70,8 @@ Schemata in `zitadel_prod` (Owner `zitadel_app`): `adminapi`, `auth`, `cache`, `
 - TCP-Loopback: `scram-sha-256`
 - WireGuard-Subnetz `10.10.10.0/24`: `scram-sha-256`
 - Server-LAN `192.168.122.0/24`: `scram-sha-256`
-- `host data-dna P2D2-RO 10.10.10.7/32 trust`: vorhanden, aber wirkungslos, da es in diesem Cluster keine Datenbank `data-dna` gibt
 
-Backup-Artefakt: `/etc/postgresql/17/main/pg_hba.conf.bak20251020` (root-owned, datiert 20.10.2025).
-
-## Cluster 18/main (p2d2 + Altlasten)
+## Cluster 18/main (p2d2)
 
 | Eigenschaft | Wert |
 |---|---|
@@ -90,10 +87,8 @@ Datenbanken:
 | Datenbank | Größe | Collation | Anmerkung |
 |---|---|---|---|
 | `data-dna` | 168 MB | `de_DE.UTF-8` | Produktions-DB für p2d2, PostGIS |
-| `opencloud` | 7806 kB | - | keine p2d2-Relevanz |
-| `zitadel_prod` | 10078 kB | `de_DE.UTF-8` | Altlast (siehe Zitadel-Historie) |
 
-### Rollen (21)
+### Rollen (16)
 
 p2d2-Rollenhierarchie (alle ohne `rolconnlimit`, also unbegrenzt):
 
@@ -104,10 +99,6 @@ p2d2-Rollenhierarchie (alle ohne `rolconnlimit`, also unbegrenzt):
 - `P2D2-RO-Role` (nologin)
 - `P2D2-User-DE1`, `P2D2-User-DE2`, `P2D2-User-DEVELOP`, `P2D2-User-FV`, `P2D2-User-MAIN` (nologin)
 - `P2D2-User-Role` (nologin)
-
-OpenCloud-Rollen: `OC-Admin` (login), `OC-Admin-Role` (nologin).
-
-Zitadel-Altlast-Rollen mit Verbindungslimit: `zitadel_admin` (5), `zitadel_app` (20), `zitadel_ro` (5).
 
 ### p2d2-Schemata in `data-dna`
 
@@ -151,10 +142,6 @@ Tabellengrößen (Zeilen, Stand 2026-09-15):
 
 Die Workflow-/Versionstabellen sind nur in `p2d2_de1` befüllt. Die Schemata `p2d2_de2`, `p2d2_develop`, `p2d2_fv` und `p2d2_main` enthalten identische Stammdaten (`p2d2_graeber`, `p2d2_containers`, `p2d2_grabflure`, `p2d2_kommunen`), aber keine Workflow-Daten.
 
-### Schemata in `zitadel_prod` (Altlast)
-
-Owner `zitadel_admin`, sieben Schemata: `adminapi`, `auth`, `eventstore`, `logstore`, `projections`, `system`, `zitadel`. Im Vergleich zur produktiven Instanz in Cluster 17 fehlen hier `cache` und `queue`.
-
 ### `pg_hba.conf`
 
 - lokaler Socket: `peer`
@@ -173,7 +160,7 @@ In `data-dna` ist die Extension `postgis` in Version 3.6.1 installiert. Die Pake
 
 Zitadel benötigt zwingend PostgreSQL 17. Es gab mehrere Anläufe, darunter der Versuch, Zitadel selbst zu bauen, der nicht funktionierte. Letztlich kam das Hersteller-Image zum Einsatz. Daraufhin wurde die dedizierte PostgreSQL-17-Instanz (Cluster 17/main) separat aufgesetzt.
 
-Die in Cluster 18 verbliebenen Zitadel-Reste (Datenbank `zitadel_prod`, Rollen `zitadel_admin`, `zitadel_app`, `zitadel_ro`) stammen aus einem frühen, abgebrochenen Anlauf und wurden nicht aufgeräumt.
+Die in Cluster 18 verbliebenen Zitadel-Reste (Datenbank `zitadel_prod`, Rollen `zitadel_admin`, `zitadel_app`, `zitadel_ro`) sowie die Datenbank `opencloud` und die Rollen `OC-Admin`/`OC-Admin-Role` stammen aus frühen, abgebrochenen Anläufen. Sie wurden am 2026-09-15 entfernt.
 
 ## Netzwerkzugang
 
