@@ -53,7 +53,6 @@ p2d2 基于多层架构：
   - [服务器架构概览](https://www.google.com/search?q=./server-architektur/) - p2d2 基础设施的总体架构
   - [Proxmox 主机](https://www.google.com/search?q=./server-architektur/proxmox-host) - 虚拟化平台
   - [OPNsense 防火墙](https://www.google.com/search?q=./server-architektur/vm-opnsense) - 防火墙和反向代理
-  - [网络架构](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - 网络分段和防火墙设计
   - [备份策略](https://www.google.com/search?q=./server-architektur/backup-strategie) - 数据备份和灾难恢复
 
 ### 地理数据基础设施
@@ -62,7 +61,6 @@ p2d2 基于多层架构：
   - [GeoServer 容器](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - 用于地理数据服务的 WFS/WMS 服务器
   - [MapProxy 容器](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - 用于高性能地图传输的瓦片缓存和代理
   - [OSM-Tileserver 虚拟机](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - OpenStreetMap 瓦片渲染服务器
-  - [Ory IAM 容器（计划中）](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - 身份和访问管理
 
 ### 软件与部署
 

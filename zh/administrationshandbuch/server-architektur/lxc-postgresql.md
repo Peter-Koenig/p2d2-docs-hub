@@ -247,24 +247,6 @@ iptables -L -n | grep <PORT>
 cat /etc/postgresql/*/main/pg_hba.conf
 ```
 
-## Ory IAM 扩展 (计划中)
-
-对于计划中的 Ory 集成，需要额外的数据库：
-
-```
--- Ory-Kratos 数据库
-CREATE USER ory_kratos WITH PASSWORD '<STRONG_PASSWORD>';
-CREATE DATABASE ory_kratos OWNER ory_kratos;
-GRANT ALL PRIVILEGES ON DATABASE ory_kratos TO ory_kratos;
-
--- Ory-Hydra 数据库
-CREATE USER ory_hydra WITH PASSWORD '<STRONG_PASSWORD>';
-CREATE DATABASE ory_hydra OWNER ory_hydra;
-GRANT ALL PRIVILEGES ON DATABASE ory_hydra TO ory_hydra;
-```
-
-详情: [Ory IAM 集成](https://www.google.com/search?q=./lxc-ory-iam.md)
-
 ## 最佳实践
 
 ✅ **应做**:

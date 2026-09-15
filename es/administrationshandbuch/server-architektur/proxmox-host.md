@@ -83,8 +83,6 @@ Puentes:
 VPN: WireGuard para administración remota segura
 ```
 
-Arquitectura de red detallada: [Documentación de Red](https://www.google.com/search?q=./netzwerk-architektur.md)
-
 ## Configuración de Seguridad
 
 ### Firewall Proxmox

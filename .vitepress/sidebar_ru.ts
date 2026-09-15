@@ -120,16 +120,8 @@ export const sidebar_ru = {
           link: "/ru/administrationshandbuch/server-architektur/vm-osm-tiler",
         },
         {
-          text: "Сетевая архитектура",
-          link: "/ru/administrationshandbuch/server-architektur/netzwerk-architektur",
-        },
-        {
           text: "Стратегия резервного копирования",
           link: "/ru/administrationshandbuch/server-architektur/backup-strategie",
-        },
-        {
-          text: "Ory IAM (Планируется)",
-          link: "/ru/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },

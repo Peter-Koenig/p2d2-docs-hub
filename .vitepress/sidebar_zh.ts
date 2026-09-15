@@ -120,16 +120,8 @@ export const sidebar_zh = {
           link: "/zh/administrationshandbuch/server-architektur/vm-osm-tiler",
         },
         {
-          text: "网络架构",
-          link: "/zh/administrationshandbuch/server-architektur/netzwerk-architektur",
-        },
-        {
           text: "备份策略",
           link: "/zh/administrationshandbuch/server-architektur/backup-strategie",
-        },
-        {
-          text: "Ory IAM (计划中)",
-          link: "/zh/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },

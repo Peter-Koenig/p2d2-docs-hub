@@ -83,8 +83,6 @@ Ponts :
 VPN : WireGuard pour administration à distance sécurisée
 ```
 
-Architecture réseau détaillée : [Documentation Réseau](https://www.google.com/search?q=./netzwerk-architektur.md)
-
 ## Configuration de Sécurité
 
 ### Pare-feu Proxmox

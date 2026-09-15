@@ -83,8 +83,6 @@ QEMU/KVM：版本 9.x
 VPN：WireGuard 用于安全远程管理
 ```
 
-详细网络架构：[网络文档](https://www.google.com/search?q=./netzwerk-architektur.md)
-
 ## 安全配置
 
 ### Proxmox 防火墙

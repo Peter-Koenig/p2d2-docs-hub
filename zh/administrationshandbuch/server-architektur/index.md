@@ -27,7 +27,6 @@ TODO：插入图表
 | **MapProxy** | LXC | 瓦片缓存 + 代理 | 4 GB | 38 GB | [cite_start]Debian 13 | [cite: 1075]
 | **OSM-Tiler** | VM | 瓦片渲染 | 6 GB | 65 GB | [cite_start]Debian 13 | [cite: 1075]
 | **Frontend** | LXC | AstroJS + VitePress | 4 GB | 25 GB | [cite_start]Debian 13 | [cite: 1076]
-| **Ory IAM** *(计划中)* | LXC | 身份管理 | 2 GB | 10 GB | [cite_start]Debian 13 | [cite: 1077]
 
 ## 设计原则
 
@@ -73,7 +72,5 @@ TODO：插入图表
   - [前端容器](https://www.google.com/search?q=./lxc-frontend.md)
   - [OPNSense 防火墙](https://www.google.com/search?q=./vm-opnsense.md)
   - [OSM 瓦片服务器](https://www.google.com/search?q=./vm-osm-tiler.md)
-  - [网络架构](https://www.google.com/search?q=./netzwerk-architektur.md)
-  - [计划中的 Ory IAM 集成](https://www.google.com/search?q=./lxc-ory-iam.md)
 
 > **注意：** 本文是在人工智能辅助下自动翻译的，尚未经过人工审校。

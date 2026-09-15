@@ -27,7 +27,6 @@ TODO: Insertar gráfico
 | **MapProxy** | LXC | Caché de Teselas + Proxy | 4 GB | 38 GB | Debian 13 |
 | **OSM-Tiler** | VM | Renderizado de Teselas | 6 GB | 65 GB | Debian 13 |
 | **Frontend** | LXC | AstroJS + VitePress | 4 GB | 25 GB | Debian 13 |
-| **Ory IAM** *(planeado)* | LXC | Gestión de Identidad | 2 GB | 10 GB | Debian 13 |
 
 ## Principios de Diseño
 
@@ -73,7 +72,5 @@ Detalles: [Estrategia de Backup](https://www.google.com/search?q=./backup-strate
   - [Contenedor Frontend](https://www.google.com/search?q=./lxc-frontend.md)
   - [Firewall OPNSense](https://www.google.com/search?q=./vm-opnsense.md)
   - [Servidor de Teselas OSM](https://www.google.com/search?q=./vm-osm-tiler.md)
-  - [Arquitectura de Red](https://www.google.com/search?q=./netzwerk-architektur.md)
-  - [Integración Ory IAM (planeada)](https://www.google.com/search?q=./lxc-ory-iam.md)
 
 > **Nota:** Este texto fue traducido automáticamente con IA y aún no ha sido revisado por un humano.

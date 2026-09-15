@@ -27,7 +27,6 @@ TODO: Вставить графику
 | **MapProxy** | LXC | Кэш тайлов + Прокси | 4 ГБ | 38 ГБ | [cite_start]Debian 13 | [cite: 1075]
 | **OSM-Tiler** | VM | Рендеринг тайлов | 6 ГБ | 65 ГБ | [cite_start]Debian 13 | [cite: 1075]
 | **Frontend** | LXC | AstroJS + VitePress | 4 ГБ | 25 ГБ | [cite_start]Debian 13 | [cite: 1076]
-| **Ory IAM** *(план)* | LXC | Управление идентификацией | 2 ГБ | 10 ГБ | [cite_start]Debian 13 | [cite: 1077]
 
 ## Принципы Проектирования
 
@@ -73,7 +72,5 @@ TODO: Вставить графику
   - [Контейнер Frontend](https://www.google.com/search?q=./lxc-frontend.md)
   - [Файрвол OPNSense](https://www.google.com/search?q=./vm-opnsense.md)
   - [Сервер Тайлов OSM](https://www.google.com/search?q=./vm-osm-tiler.md)
-  - [Архитектура Сети](https://www.google.com/search?q=./netzwerk-architektur.md)
-  - [Планируемая интеграция Ory IAM](https://www.google.com/search?q=./lxc-ory-iam.md)
 
 > **Примечание:** Этот текст был автоматически переведен с помощью ИИ и еще не проверен человеком.

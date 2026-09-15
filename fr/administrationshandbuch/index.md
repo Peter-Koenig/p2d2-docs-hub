@@ -53,7 +53,6 @@ p2d2 est basé sur une architecture à plusieurs niveaux :
   - [Aperçu de l'Architecture Serveur](https://www.google.com/search?q=./server-architektur/) - Architecture globale de l'infrastructure p2d2
   - [Hôte Proxmox](https://www.google.com/search?q=./server-architektur/proxmox-host) - Plateforme de virtualisation
   - [Firewall OPNSense](https://www.google.com/search?q=./server-architektur/vm-opnsense) - Firewall et Reverse Proxy
-  - [Architecture Réseau](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - Segmentation réseau et conception du firewall
   - [Stratégie de Sauvegarde](https://www.google.com/search?q=./server-architektur/backup-strategie) - Sauvegarde des données et reprise après sinistre
 
 ### Infrastructure de Géodonnées
@@ -62,7 +61,6 @@ p2d2 est basé sur une architecture à plusieurs niveaux :
   - [Conteneur GeoServer](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - Serveur WFS/WMS pour services de géodonnées
   - [Conteneur MapProxy](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - Cache de tuiles et proxy pour une livraison de cartes performante
   - [VM OSM-Tileserver](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - Serveur de rendu de tuiles OpenStreetMap
-  - [Conteneur Ory IAM (Prévu)](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - Gestion des Identités et des Accès
 
 ### Logiciel & Déploiement
 

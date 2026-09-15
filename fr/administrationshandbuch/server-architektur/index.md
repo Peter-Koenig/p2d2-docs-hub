@@ -27,7 +27,6 @@ TODO: Insérer le graphique
 | **MapProxy** | LXC | Cache de tuiles + Proxy | 4 Go | 38 Go | Debian 13 |
 | **OSM-Tiler** | VM | Rendu de tuiles | 6 Go | 65 Go | Debian 13 |
 | **Frontend** | LXC | AstroJS + VitePress | 4 Go | 25 Go | Debian 13 |
-| **Ory IAM** *(prévu)* | LXC | Gestion des identités | 2 Go | 10 Go | Debian 13 |
 
 ## Principes de Conception
 
@@ -73,7 +72,5 @@ Détails : [Stratégie de Sauvegarde](https://www.google.com/search?q=./backup-s
   - [Conteneur Frontend](https://www.google.com/search?q=./lxc-frontend.md)
   - [Firewall OPNSense](https://www.google.com/search?q=./vm-opnsense.md)
   - [Serveur de Tuiles OSM](https://www.google.com/search?q=./vm-osm-tiler.md)
-  - [Architecture Réseau](https://www.google.com/search?q=./netzwerk-architektur.md)
-  - [Intégration Ory IAM (prévue)](https://www.google.com/search?q=./lxc-ory-iam.md)
 
 > **Note :** Ce texte a été traduit automatiquement avec l'aide de l'IA et n'a pas encore été vérifié par un humain.

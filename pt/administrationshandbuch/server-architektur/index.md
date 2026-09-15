@@ -27,7 +27,6 @@ TODO: Inserir gráfico
 | **MapProxy** | LXC | Cache de Tiles + Proxy | 4 GB | 38 GB | [cite_start]Debian 13 | [cite: 1075]
 | **OSM-Tiler** | VM | Renderização de Tiles | 6 GB | 65 GB | [cite_start]Debian 13 | [cite: 1075]
 | **Frontend** | LXC | AstroJS + VitePress | 4 GB | 25 GB | [cite_start]Debian 13 | [cite: 1076]
-| **Ory IAM** *(planejado)* | LXC | Gerenciamento de Identidade | 2 GB | 10 GB | [cite_start]Debian 13 | [cite: 1077]
 
 ## Princípios de Design
 
@@ -73,7 +72,5 @@ TODO: Inserir gráfico
   - [Contêiner Frontend](https://www.google.com/search?q=./lxc-frontend.md)
   - [Firewall OPNSense](https://www.google.com/search?q=./vm-opnsense.md)
   - [Servidor de Tiles OSM](https://www.google.com/search?q=./vm-osm-tiler.md)
-  - [Arquitetura de Rede](https://www.google.com/search?q=./netzwerk-architektur.md)
-  - [Integração Ory IAM (planejada)](https://www.google.com/search?q=./lxc-ory-iam.md)
 
 > **Nota:** Este texto foi traduzido automaticamente com assistência de IA e ainda não foi revisado por um humano.

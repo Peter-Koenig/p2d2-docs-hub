@@ -1,5 +1,5 @@
 ---
-title: OSM Tileserver
+title: OSM Tileserver (inactive)
 description: OpenStreetMap Tile Rendering Server for p2d2 infrastructure
 quality:
   completeness: 85
@@ -9,7 +9,7 @@ quality:
   reviewDate: 2025-11-29
 ---
 
-# VM: OSM Tileserver
+# VM: OSM Tileserver (inactive)
 
 ## VM Information
 

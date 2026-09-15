@@ -233,24 +233,6 @@ iptables -L -n | grep <PORT>
 cat /etc/postgresql/*/main/pg_hba.conf
 ```
 
-## Extension for Ory IAM (planned)
-
-For the planned Ory integration, additional databases are required:
-
-```
--- Ory Kratos Database
-CREATE USER ory_kratos WITH PASSWORD '<STRONG_PASSWORD>';
-CREATE DATABASE ory_kratos OWNER ory_kratos;
-GRANT ALL PRIVILEGES ON DATABASE ory_kratos TO ory_kratos;
-
--- Ory Hydra Database
-CREATE USER ory_hydra WITH PASSWORD '<ANOTHER_STRONG_PASSWORD>';
-CREATE DATABASE ory_hydra OWNER ory_hydra;
-GRANT ALL PRIVILEGES ON DATABASE ory_hydra TO ory_hydra;
-```
-
-Details: [Ory IAM Integration](./lxc-ory-iam.md)
-
 ## Best Practices
 
 ✅ **Do**:

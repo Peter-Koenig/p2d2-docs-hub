@@ -53,7 +53,6 @@ p2d2 is based on a multi-tier architecture:
   - [Server Architecture Overview](./server-architektur/) - Overall architecture of the p2d2 infrastructure
   - [Proxmox Host](./server-architektur/proxmox-host) - Virtualization platform
   - [OPNsense Firewall](./server-architektur/vm-opnsense) - Firewall and Reverse Proxy
-  - [Network Architecture](./server-architektur/netzwerk-architektur) - Network segmentation and firewall design
   - [Backup Strategy](./server-architektur/backup-strategie) - Data backup and disaster recovery
 
 ### Geodata Infrastructure
@@ -61,8 +60,7 @@ p2d2 is based on a multi-tier architecture:
   - [PostgreSQL/PostGIS Container](./server-architektur/lxc-postgresql) - Geospatial database with spatial extensions
   - [GeoServer Container](./server-architektur/lxc-geoserver) - WFS/WMS server for geodata services
   - [MapProxy Container](./server-architektur/lxc-mapproxy) - Tile cache and proxy for performant map delivery
-  - [OSM-Tileserver VM](./server-architektur/vm-osm-tiler) - OpenStreetMap tile rendering server
-  - [Ory IAM Container (Planned)](./server-architektur/lxc-ory-iam) - Identity and Access Management
+  - [OSM Tileserver (inactive)](./server-architektur/vm-osm-tiler) - OpenStreetMap tile rendering server
 
 ### Software & Deployment
 

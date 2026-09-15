@@ -124,16 +124,8 @@ export const sidebar_es = {
           link: "/es/administrationshandbuch/server-architektur/vm-osm-tiler",
         },
         {
-          text: "Arquitectura de Red",
-          link: "/es/administrationshandbuch/server-architektur/netzwerk-architektur",
-        },
-        {
           text: "Estrategia de Backup",
           link: "/es/administrationshandbuch/server-architektur/backup-strategie",
-        },
-        {
-          text: "Ory IAM (Planeado)",
-          link: "/es/administrationshandbuch/server-architektur/lxc-ory-iam",
         },
       ],
     },

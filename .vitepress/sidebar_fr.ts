@@ -124,20 +124,8 @@ export const sidebar_fr = {
           link: "/fr/administrationshandbuch/server-architektur/vm-osm-tiler",
         },
         {
-          text: "Architecture Réseau",
-          link: "/fr/administrationshandbuch/server-architektur/netzwerk-architektur",
-        },
-        {
           text: "Stratégie de Sauvegarde",
           link: "/fr/administrationshandbuch/server-architektur/backup-strategie",
-        },
-        {
-          text: "Ory IAM (Prévu)",
-          link: "/fr/administrationshandbuch/server-architektur/lxc-ory-iam",
-        },
-        {
-          text: "Conteneur de Build Zitadel",
-          link: "/fr/administrationshandbuch/zitadel-buildserver",
         },
       ],
     },

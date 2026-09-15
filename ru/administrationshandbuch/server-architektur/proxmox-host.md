@@ -83,8 +83,6 @@ QEMU/KVM: Версия 9.x
 VPN: WireGuard для безопасного удаленного администрирования
 ```
 
-Подробная архитектура сети: [Документация по сети](https://www.google.com/search?q=./netzwerk-architektur.md)
-
 ## Конфигурация безопасности
 
 ### Файрвол Proxmox

@@ -116,24 +116,12 @@ export const sidebar_en = {
           link: "/en/administrationshandbuch/server-architektur/lxc-frontend",
         },
         {
-          text: "OSM Tileserver",
+          text: "OSM Tileserver (inactive)",
           link: "/en/administrationshandbuch/server-architektur/vm-osm-tiler",
-        },
-        {
-          text: "Network Architecture",
-          link: "/en/administrationshandbuch/server-architektur/netzwerk-architektur",
         },
         {
           text: "Backup Strategy",
           link: "/en/administrationshandbuch/server-architektur/backup-strategie",
-        },
-        {
-          text: "Ory IAM (Planned)",
-          link: "/en/administrationshandbuch/server-architektur/lxc-ory-iam",
-        },
-        {
-          text: "Zitadel Build Container",
-          link: "/en/administrationshandbuch/zitadel-buildserver",
         },
       ],
     },

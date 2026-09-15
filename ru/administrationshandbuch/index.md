@@ -53,7 +53,6 @@ p2d2 основан на многоуровневой архитектуре:
   - [Обзор архитектуры сервера](https://www.google.com/search?q=./server-architektur/) - Общая архитектура инфраструктуры p2d2
   - [Хост Proxmox](https://www.google.com/search?q=./server-architektur/proxmox-host) - Платформа виртуализации
   - [Брандмауэр OPNSense](https://www.google.com/search?q=./server-architektur/vm-opnsense) - Брандмауэр и обратный прокси
-  - [Сетевая архитектура](https://www.google.com/search?q=./server-architektur/netzwerk-architektur) - Сегментация сети и дизайн брандмауэра
   - [Стратегия резервного копирования](https://www.google.com/search?q=./server-architektur/backup-strategie) - Резервное копирование данных и аварийное восстановление
 
 ### Инфраструктура геоданных
@@ -62,7 +61,6 @@ p2d2 основан на многоуровневой архитектуре:
   - [Контейнер GeoServer](https://www.google.com/search?q=./server-architektur/lxc-geoserver) - Сервер WFS/WMS для геосервисов
   - [Контейнер MapProxy](https://www.google.com/search?q=./server-architektur/lxc-mapproxy) - Кэш тайлов и прокси для производительной доставки карт
   - [ВМ OSM-Tileserver](https://www.google.com/search?q=./server-architektur/vm-osm-tiler) - Сервер рендеринга тайлов OpenStreetMap
-  - [Контейнер Ory IAM (Планируется)](https://www.google.com/search?q=./server-architektur/lxc-ory-iam) - Управление идентификацией и доступом
 
 ### ПО и развертывание
 
