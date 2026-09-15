@@ -113,7 +113,6 @@ Remove Vanished: Deaktiviert (HomeOffice behält alte Backups)
 | GeoServer | LXC | Täglich | Snapshot |
 | MapProxy | LXC | Täglich | Snapshot |
 | Frontend (AstroJS) | LXC | Täglich | Snapshot |
-| Ory IAM | LXC | Täglich | Snapshot |
 
 ::: warning Backup-Fenster
 Backups laufen **außerhalb der Hauptnutzungszeiten** (nachts). Konkrete Zeitpunkte sind aus Sicherheitsgründen nicht dokumentiert.
@@ -402,7 +401,7 @@ umount /mnt/backup
 **2. Netzwerk konfigurieren:**
 ```bash
 # /etc/network/interfaces
-# Bridges (vmbr0, vmbr1, vmbr2) gemäß Netzwerk-Architektur
+# Bridges (vmbr0, vmbr1, vmbr2)
 
 # WireGuard wiederherstellen
 # /etc/wireguard/wg-kinglui.conf

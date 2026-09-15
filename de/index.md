@@ -108,9 +108,8 @@ Basierend auf der faktischen Architektur:
 - **PostgreSQL**: 2 GB RAM, 15 GB Disk (Geodatenbank + PostGIS)
 - **GeoServer**: 6 GB RAM, 12 GB Disk (WFS/WMS-Server)
 - **MapProxy**: 4 GB RAM, 38 GB Disk (Tile-Cache + Proxy)
-- **OSM-Tiler**: 6 GB RAM, 65 GB Disk (Tile-Rendering)
+- **OSM Tileserver** (inaktiv): 6 GB RAM, 65 GB Disk (Tile-Rendering)
 - **Frontend**: 4 GB RAM, 25 GB Disk (AstroJS + VitePress)
-- **Ory IAM** (geplant): 2 GB RAM, 10 GB Disk (Identity Management)
 
 **Betriebssystem**: Debian 13 (Container), FreeBSD 14.x (OPNSense)
 

@@ -24,9 +24,8 @@ TODO: Grafik einfügen
 | **PostgreSQL** | LXC | Geodatenbank + PostGIS | 2 GB | 15 GB | Debian 13 |
 | **GeoServer** | LXC | WFS/WMS-Server | 6 GB | 12 GB | Debian 13 |
 | **MapProxy** | LXC | Tile-Cache + Proxy | 4 GB | 38 GB | Debian 13 |
-| **OSM-Tiler** | VM | Tile-Rendering | 6 GB | 65 GB | Debian 13 |
+| **OSM Tileserver** _(inaktiv)_ | VM | Tile-Rendering | 6 GB | 65 GB | Debian 13 |
 | **Frontend** | LXC | AstroJS + VitePress | 4 GB | 25 GB | Debian 13 |
-| **Ory IAM** _(geplant)_ | LXC | Identity Management | 2 GB | 10 GB | Debian 13 |
 
 ## Design-Prinzipien
 
@@ -66,6 +65,4 @@ Details: [Backup-Strategie](./backup-strategie.md)
 - [MapProxy Container](./lxc-mapproxy.md)
 - [Frontend Container](./lxc-frontend.md)
 - [OPNSense Firewall](./vm-opnsense.md)
-- [OSM-Tileserver](./vm-osm-tiler.md)
-- [Netzwerk-Architektur](./netzwerk-architektur.md)
-- [Geplante Ory IAM-Integration](./lxc-ory-iam.md)
+- [OSM Tileserver (inaktiv)](./vm-osm-tiler.md)

@@ -79,8 +79,6 @@ Bridges:
 VPN: WireGuard für sichere Remote-Administration
 ```
 
-Detaillierte Netzwerk-Architektur: [Netzwerk-Dokumentation](./netzwerk-architektur.md)
-
 ## Sicherheits-Konfiguration
 
 ### Proxmox-Firewall
