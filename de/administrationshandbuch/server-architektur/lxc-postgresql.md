@@ -1,6 +1,6 @@
 ---
 title: PostgreSQL/PostGIS Container
-description: Zwei PostgreSQL-Cluster (17: Zitadel, 18: p2d2) auf der LXC postgresql
+description: "Zwei PostgreSQL-Cluster (17: Zitadel, 18: p2d2) auf der LXC postgresql"
 quality:
   completeness: 90
   accuracy: 90
