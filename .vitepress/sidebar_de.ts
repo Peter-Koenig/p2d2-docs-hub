@@ -728,6 +728,20 @@ export const sidebar_de = {
                                 },
                             ],
                         },
+                        {
+                            text: "V1: p2d2-AddOn – Manuelle Installation",
+                            collapsed: true,
+                            items: [
+                                {
+                                    text: "Übersicht",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/",
+                                },
+                                {
+                                    text: "PostgreSQL",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/postgresql",
+                                },
+                            ],
+                        },
                     ],
                 },
                 {
