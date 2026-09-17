@@ -20,8 +20,9 @@ Im Unterschied zur Spezifikation (Soll) dokumentiert dieser Bereich die **manuel
 ## Module
 
 - [PostgreSQL](./postgresql) – additiver `preparedDatabases.p2d2`-Eintrag, Struktur-Aufbau (5 Schemata), Datenimport, Rollenmodell (verifiziert)
+- [GeoServer](./geoserver) – additive Erweiterung der geteilten Plattforminstanz (Workspaces, Datastores, FeatureTypes, Nutzer/Rollen, ACL, GeoTIFF-Mosaic) (verifiziert)
 
-Weitere Module (GeoServer, MapProxy, Frontend, Zitadel/Keycloak-IAM) folgen als eigene Seiten.
+Weitere Module (MapProxy, Frontend, Zitadel/Keycloak-IAM) folgen als eigene Seiten.
 
 ## Verwandte Spezifikationen
 

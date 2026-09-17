@@ -740,6 +740,10 @@ export const sidebar_de = {
                                     text: "PostgreSQL",
                                     link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/postgresql",
                                 },
+                                {
+                                    text: "GeoServer",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/geoserver",
+                                },
                             ],
                         },
                     ],
