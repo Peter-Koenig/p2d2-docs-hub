@@ -744,6 +744,10 @@ export const sidebar_de = {
                                     text: "GeoServer",
                                     link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/geoserver",
                                 },
+                                {
+                                    text: "MapProxy",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/mapproxy",
+                                },
                             ],
                         },
                     ],
