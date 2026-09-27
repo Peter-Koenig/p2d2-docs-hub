@@ -170,10 +170,22 @@ Verifiziertes Endzustand-Grant-Muster (je Schema): `P2D2-Admin-Role` = ALLE Priv
 
 ### 5. pg_hba.conf
 
-Die Verbindung aus dem Pod heraus (`kubectl exec … psql -U postgres`) ist über `patroni.pg_hba` mit `local all all trust` erlaubt (Template `central-db.yaml`,
-Feld `spec.patroni.pg_hba`). **Offene Lücke:** Der vollständige `pg_hba`-Block (insbesondere die Einträge für die App-Rollen `P2D2-*` und den GeoServer-Datastore aus
-`central-db.cc-prd-database-stack.svc.cluster.local`) ist in den genannten Quellen nicht wörtlich dokumentiert — er ist dem `patroni.pg_hba` des Live-CR zu entnehmen und
-hier nachzuziehen.
+Vollständiger `pg_hba`-Block aus dem laufenden Patroni-CR (`kubectl -n cc-prd-database-stack get postgresql central-db -o jsonpath='{.spec.patroni.pg_hba}'`):
+
+```text
+local     all           all                     trust
+hostnossl quantumleap   all       all           md5
+hostssl   all           +zalandos 127.0.0.1/32  pam
+host      all           all       127.0.0.1/32  md5
+hostssl   all           +zalandos ::1/128       pam
+host      all           all       ::1/128       md5
+hostssl   replication   standby   all           md5
+local     replication   standby                 md5
+hostnossl all           all       10.0.0.0/8    md5
+hostnossl all           all       10.0.0.0/8    pam
+hostssl   all           +zalandos all           pam
+hostssl   all           all       all           md5
+```
 
 ### 6. Verifikation (Gegentests, reale Ergebnisse)
 
@@ -203,6 +215,36 @@ kubectl -n cc-prd-database-stack patch postgresql central-db --type merge -p '{"
 
 > **Offene Frage (destruktiv):** Ob der Operator nach dem Entfernen des Eintrags die Datenbank `p2d2` samt Rollen/Secrets tatsächlich löscht, ist aus dem lokalen Code nicht
 > belegbar und gegen die installierte Operator-Version zu verifizieren. Das Löschen ist **destruktiv** — vorher `pg_dump` der Datenbank `p2d2`.
+
+### 8. Abgleich Standalone vs. AddOn (Live-Befund, 2026-09-27)
+
+**Befehle (zur Wiederholbarkeit):**
+
+```bash
+KUBECONFIG=/home/pkoenig/.kube/p2d2-addon-installer.kubeconfig kubectl -n cc-prd-database-stack exec central-db-0 -c postgres -- psql -U postgres -d p2d2 -tAc "SELECT n.nspname, (SELECT count(*) FROM pg_tables t WHERE t.schemaname=n.nspname), (SELECT count(*) FROM pg_views v WHERE v.schemaname=n.nspname), (SELECT count(*) FROM pg_class c WHERE c.relnamespace=n.oid AND c.relkind='S'), (SELECT count(*) FROM pg_type t WHERE t.typnamespace=n.oid AND t.typtype='e'), (SELECT count(*) FROM pg_proc p WHERE p.pronamespace=n.oid), (SELECT count(*) FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid WHERE c.relnamespace=n.oid AND NOT t.tgisinternal) FROM pg_namespace n WHERE n.nspname IN ('p2d2_main','p2d2_develop','p2d2_de1','p2d2_de2','p2d2_fv') ORDER BY n.nspname;"
+```
+
+**Objekt-Inventar je Schema (tatsächlich):**
+
+| Schema | Tabellen | Views | Sequenzen | ENUM-Typen | Funktionen | Trigger |
+|---|---|---|---|---|---|---|
+| p2d2_main | 0 | 0 | 0 | 0 | 0 | 0 |
+| p2d2_develop | 0 | 0 | 0 | 0 | 0 | 0 |
+| p2d2_de1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| p2d2_de2 | 0 | 0 | 0 | 0 | 0 | 0 |
+| p2d2_fv | 0 | 0 | 0 | 0 | 0 | 0 |
+
+Erwartet (manuell verifiziert, Turn 2): 14 Tabellen / 2 Views / 7 Sequenzen / 6 ENUM-Typen / 3 Funktionen / 2 Trigger je Schema.
+
+**Priorisierter Befund (Schweregrad absteigend):**
+
+1. **Alle fünf Schemata sind leer.** Die DDL aus `schema.sql.j2` wurde nach dem Scratch-Reinstall nie angewendet — `addon_00_postgresql.sh` führt sie als `TODO` und legt nur
+   Schema + Rolle an. Die p2d2-App hat damit aktuell **keine** Daten-Tabellen.
+2. **Schema-Owner weicht ab.** Tatsächlich `p2d2_main owner=P2D2-MAIN` usw. (Skript: `CREATE SCHEMA … AUTHORIZATION "P2D2-<STAGE>"`), dokumentiert war `P2D2-Admin-Role`.
+3. **Keine Berechtigungen.** `information_schema.role_table_grants` = 0 Einträge, `pg_default_acl` leer — `GRANT`/`ALTER DEFAULT PRIVILEGES` wurden nie gesetzt (folgerichtig, da keine Objekte).
+4. **Rollen stimmen überein.** 14 App-Rollen (`P2D2-Admin[-Role]`, `P2D2-RO[-Role]`, `P2D2-User-<BRANCH>`/`P2D2-<BRANCH>`) + 6 Zalando-Auto-Rollen (`p2d2_owner[_user]`, `p2d2_reader[_user]`, `p2d2_writer[_user]`), alle `inherit=true` — wie dokumentiert.
+5. **Standalone-Abgleich nicht durchgeführt.** Standalone-DB `192.168.122.110` (Datenbank `data-dna`) ist erreichbar, verlangt aber ein Passwort, das nicht vorliegt — der
+   1:1-Vergleich gegen die Standalone-Referenz ist damit offen.
 
 ## Bekannte Fallstricke
 
