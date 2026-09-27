@@ -668,36 +668,7 @@ export const sidebar_de = {
                     text: "PTF-Roadmap-Umsetzung",
                     collapsed: false,
                     items: [
-                        {
-                            text: "Startseite, Karten-Onboarding und Navigation",
-                            link: "/de/specs/ptf-roadmap-umsetzung/webauftritt-startseite/startseite-onboarding-und-navigation",
-                        },
-                        {
-                            text: "Umwidmung der Werte-Reihe",
-                            link: "/de/specs/ptf-roadmap-umsetzung/webauftritt-startseite/werte-reihe-umwidmung",
-                        },
-                        {
-                            text: "V1: Masterportal-Konfig",
-                            collapsed: false,
-                            items: [
-                                {
-                                    text: "Übersicht",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/",
-                                },
-                                {
-                                    text: "Zielbild und Abgrenzung",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/zielbild-und-abgrenzung",
-                                },
-                                {
-                                    text: "S3-zu-statisch-Migration",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/s3-zu-statisch-migration",
-                                },
-                                {
-                                    text: "V1s-Buildvariante und AddOn-Baseline",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/v1s-buildvariante-und-addon-baseline",
-                                },
-                            ],
-                        },
+
                         {
                             text: "V1: p2d2-AddOn",
                             collapsed: false,
