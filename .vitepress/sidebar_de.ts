@@ -678,46 +678,28 @@ export const sidebar_de = {
                                     link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/",
                                 },
                                 {
-                                    text: "Zielbild und Abgrenzung",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/zielbild-und-abgrenzung",
+                                    text: "01 – PostgreSQL",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/01-postgresql",
                                 },
                                 {
-                                    text: "Repository-Struktur und Aktivierung",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/repo-struktur-und-aktivierung",
+                                    text: "02 – GeoServer",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/02-geoserver",
                                 },
                                 {
-                                    text: "Voraussetzungen und Kompatibilität",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/voraussetzungen-und-kompatibilitaet",
+                                    text: "03 – MapProxy",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/03-mapproxy",
                                 },
                                 {
-                                    text: "Installation, Upgrade und Rückbau",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/installation-upgrade-und-rueckbau",
+                                    text: "04 – IAM (Keycloak)",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/04-iam",
                                 },
                                 {
-                                    text: "PostgreSQL-Datenbank",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/postgresql-datenbank",
-                                },
-                            ],
-                        },
-                        {
-                            text: "V1: p2d2-AddOn – Manuelle Installation",
-                            collapsed: true,
-                            items: [
-                                {
-                                    text: "Übersicht",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/",
+                                    text: "05 – Frontend-Pods",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/05-frontend-pods",
                                 },
                                 {
-                                    text: "PostgreSQL",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/postgresql",
-                                },
-                                {
-                                    text: "GeoServer",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/geoserver",
-                                },
-                                {
-                                    text: "MapProxy",
-                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon-manuelle-installation/mapproxy",
+                                    text: "06 – Standalone/Plugin-Parallelbetrieb",
+                                    link: "/de/specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/06-standalone-plugin-parallelbetrieb",
                                 },
                             ],
                         },
