@@ -43,9 +43,9 @@ ausgelegt, nicht auf Produktionsreife.
 - **Deployment-Werkzeug**: `cc-cli` (CIVITAS/CORE CLI)
 - **Pflichtkomponenten**: cert-manager, nginx-Ingress, RWO Storage Class
   (local-path-provisioner via k3s)
-- **Kein öffentlicher DNS**: Alle Endpunkte (`idm.*`, `portal.*`) sind
-  intern im SOHO-VLAN erreichbar; DNS-Einträge werden manuell in der
-  Hetzner-WebGUI gesetzt, bevor Phase 2 ausgeführt wird
+- **DNS**: Die Endpunkte (`idm.*`, `portal.*`) werden als Wildcard
+  `*.udp.<DOMAIN>` aufgelöst. Die Einträge werden manuell gesetzt, bevor
+  Phase 2 ausgeführt wird.
 - **Ausführungskontext**: Das Skript kann auf dem Proxmox-Host oder in der
   Ziel-VM gestartet werden. Auf dem Proxmox-Host wird Phase -1 ausgeführt
   (VM-Provisionierung), danach wird die weitere Ausführung in der VM
@@ -90,8 +90,8 @@ Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
 |---|---|---|
 | -1.1 | Cloud-Image herunterladen (24h-Cache mit Altersprüfung) | Datei im Cache (`/var/lib/vz/template/qcow/`) vorhanden und < 24h alt |
 | -1.2 | VM mit qm create anlegen (`VM_ID=2010`, 12 vCPU, 40 GiB RAM, Bridge vmbr0, QEMU-GA, serielle Konsole) | `qm status ${VM_ID}` — VM existiert |
-| -1.3 | Disk aus Cloud-Image importieren (300 GiB, ZFS-thin) | `qm config ${VM_ID}` — Disk zugewiesen |
-| -1.4 | Cloud-Init konfigurieren (root, SSH-Key, statische IPv4/IPv6) | `qm config ${VM_ID}` — ciuser, sshkeys, ipconfig0 gesetzt |
+| -1.3 | Storage prüfen (Existenz via `pvesm status`), Disk importieren (Format je nach Typ: lvmthin raw, Verzeichnis qcow2) | `qm config ${VM_ID}` — Disk zugewiesen |
+| -1.4 | Cloud-Init konfigurieren (root, SSH-Key, statische IPv4, IPv6 optional) | `qm config ${VM_ID}` — ciuser, sshkeys, ipconfig0 gesetzt |
 | -1.5 | VM starten | `qm status ${VM_ID}` → running |
 | -1.6 | Warten auf SSH-Erreichbarkeit unter der konfigurierten statischen VM-IP | `ssh root@${VM_IP_STATIC} true` erreichbar |
 | -1.7 | Anleitung für nächste Schritte ausgeben | — |
@@ -181,17 +181,17 @@ erfüllt sind, bevor irreversible Aktionen ausgeführt werden.
 | inotify-Limits (fsnotify) | `fs.inotify.max_user_watches` ≥ 524288, `fs.inotify.max_user_instances` ≥ 1024 | `/etc/sysctl.d/99-inotify.conf` – Kernel-Limits werden automatisch gesetzt falls unterschritten | Abbruch wenn aktiver Wert nach Setzen nicht dem Zielwert entspricht |
 | `curl` vorhanden | Binary verfügbar | `command -v curl` | Abbruch |
 | `python3` / `pip3` vorhanden | Binaries verfügbar | `command -v python3 && command -v pip3` | Abbruch |
-| `wg` (wireguard-tools) | Binary verfügbar | `command -v wg` | Abbruch (wird automatisch installiert) |
+| `wg` (wireguard-tools) | Binary verfügbar (nur bei `WG_ENABLE=true`) | `command -v wg` | Abbruch (wird automatisch installiert) |
 | SMTP erreichbar | TCP-Verbindung zu `$SMTP_HOST:$SMTP_PORT` | `nc -z -w5 $SMTP_HOST $SMTP_PORT` | Abbruch |
 | `k3s / kubectl` | Noch nicht installiert ODER bereits korrekte Version | Versionsvergleich gegen `$K3S_VERSION` | Abbruch bei falscher Version |
 | Pflicht-Env-Vars | Alle mandatory Secrets gesetzt | Prüfung in `01_config.sh` via `${VAR:?}` | Abbruch |
-| PBS-Storage | PBS `$PBS_STORAGE` im Proxmox-Host konfiguriert | `pvesm status \| grep $PBS_STORAGE` (nur auf Proxmox-Host) | **Warnung** (kein Abbruch – Backup auf Host-Ebene prüfen) |
+| PBS-Storage | PBS `$PBS_STORAGE` im Proxmox-Host konfiguriert (leer = Prüfung überspringen) | `pvesm status \| grep $PBS_STORAGE` (nur auf Proxmox-Host) | **Warnung** (kein Abbruch – Backup auf Host-Ebene prüfen) |
 
 > **Hinweis DNS**: Die DNS-Prüfung in Phase 0 gibt eine Warnung aus,
-> bricht aber nicht ab. Hintergrund: Die DNS-Einträge für `idm.<domain>`
-> und `portal.<domain>` können erst nach Vergabe der VM-IP in der
-> Hetzner-WebGUI gesetzt werden. Phase 2 prüft DNS erneut — dort ist
-> Auflösbarkeit eine harte Voraussetzung (Abbruch bei Fehler).
+> bricht aber nicht ab. Die DNS-Einträge für `idm.<domain>` und
+> `portal.<domain>` können erst nach Vergabe der VM-IP gesetzt werden.
+> Phase 2 prüft DNS erneut. Dort ist Auflösbarkeit eine harte Voraussetzung
+> (Abbruch bei Fehler).
 
 ### Abnahmekriterium Phase 0
 
@@ -447,7 +447,7 @@ erfolgt aus dem in Phase 2.0 geklonten Repository-Verzeichnis
 | 2.1a | Playbook-URLs patchen: `patch_playbook_urls()` fügt `follow_redirects: yes` in betroffenen Playbook-Dateien ein (behebt 404-Fehler bei POST zur Keycloak-Admin-API) | Keine (sed-Patch wird bei jedem Lauf neu angewandt; Duplikate werden von YAML ignoriert) |
 | 2.2 | Inventory `cc_cli_inventory.yml` aus Template erzeugen + http-Sicherheitscheck: Abbruch wenn `hostname: "http://` im gerenderten Inventory | Datei vorhanden, Platzhalter geprüft, kein `http://` im hostname |
 | 2.3 | `cc_cli validate` ausführen | Exit-Code 0 |
-| 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec) | `systemctl is-active wg-quick@wg0` |
+| 2.4b | WireGuard konfigurieren und Tunnel aktivieren (vor cc_cli exec, nur bei `WG_ENABLE=true`) | `systemctl is-active wg-quick@wg0` |
 | 2.4c | **cc_cli exec** (single run, alle Komponenten). Ansible-Log unter `logs/ansible_run_latest.log` | Exit-Code 0 (404 wird toleriert) |
 | 2.4a | GeoData-Ingress bereinigen: `cleanup_geodata_ingress()` entfernt doppelten Ingress-Eintrag (`geostack` vs. `geostack-geostack`) | Überspringt die Bereinigung, wenn kein doppelter Ingress existiert |
 | 2.4d | Logfile-Prüfung + Warten auf Pods | `test -f logs/ansible_run_latest.log`; `kubectl wait pods --all -n cc-prd-access-stack` |
@@ -1104,7 +1104,7 @@ verify_phase2()   → Iteriert über K8S_NAMESPACES, prüft pro Namespace:
                      Existenz, Pods, Ingress-Ressourcen, TLS-Zertifikate,
                      IssuerRef-Konsistenz (kein Bootstrap-Issuer)
                    → Domain-Level-Checks: Keycloak, Portal (HTTPS mit --cacert)
-                   → Infrastruktur: WireGuard-Tunnel, OPNsense-Konnektivität
+                   → Infrastruktur: WireGuard-Tunnel, OPNsense-Konnektivität (nur bei WG_ENABLE=true)
 report_result()   → Gibt Zusammenfassung aus (OK / FAILED + Fehlercount)
 exit_with_code()  → Exit 0 bei Erfolg, Exit 1 bei ≥ 1 Fehler
 ```

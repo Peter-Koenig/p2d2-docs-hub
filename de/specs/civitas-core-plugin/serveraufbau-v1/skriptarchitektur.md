@@ -318,10 +318,9 @@ WG_CONF_PATH="/etc/wireguard/${WG_INTERFACE}.conf"
 
 ## Pflicht-Umgebungsvariablen (Env-Vars)
 
-Alle nachfolgenden Variablen müssen vor dem Skriptaufruf als
-Umgebungsvariablen gesetzt sein. Sie werden in `01_config.sh` mit
-`${VAR:?Fehlermeldung}` geprüft. Das Skript bricht beim Laden von
-`01_config.sh` sofort ab, wenn eine Variable fehlt oder leer ist.
+Pflichtvariablen müssen vor dem Skriptaufruf gesetzt sein. `01_config.sh`
+prüft sie mit `${VAR:?Fehlermeldung}` und bricht beim Laden ab, wenn eine
+fehlt. Die `WG_*`-Variablen sind nur bei `WG_ENABLE=true` Pflicht.
 
 | Variable | Pflicht | Default | Beschreibung |
 |---|---|---|---|
@@ -336,9 +335,10 @@ Umgebungsvariablen gesetzt sein. Sie werden in `01_config.sh` mit
 | `LE_CERT` | nein | `false` | `true` = Staging + Production-Zertifikate, `false` = nur Staging |
 | `APISIX_DASHBOARD` | nein | `false` | `true` = APISIX-Dashboard aktivieren |
 | `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
-| `WG_VM_PRIVATE_KEY` | **ja** | — | WireGuard PrivateKey |
-| `WG_OPN_PUBLIC_KEY` | **ja** | — | WireGuard PublicKey von OPNsense |
-| `WG_OPN_ENDPOINT` | **ja** | — | OPNsense-WireGuard-Endpoint |
+| `WG_ENABLE` | nein | `true` | `false` deaktiviert WireGuard |
+| `WG_VM_PRIVATE_KEY` | bei `WG_ENABLE=true` | - | WireGuard PrivateKey |
+| `WG_OPN_PUBLIC_KEY` | bei `WG_ENABLE=true` | - | WireGuard PublicKey von OPNsense |
+| `WG_OPN_ENDPOINT` | bei `WG_ENABLE=true` | - | OPNsense-WireGuard-Endpoint |
 | `WG_PRESHARED_KEY` | nein | leer | WireGuard PreSharedKey (optional) |
 
 > **Hinweis zu `WG_PRESHARED_KEY`**: Diese Variable ist optional und wird mit
@@ -1598,13 +1598,16 @@ Das Skript prüft in Phase 0, ob der PBS-Storage verfügbar ist.
 | `ADMIN_EMAIL` | nein | `admin@${DOMAIN_NAME}` | Keycloak-Master-Admin |
 | `ADMIN_PASS` | **ja** | — | Keycloak-Master-Passwort |
 | `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
-| `WG_VM_PRIVATE_KEY` | **ja** | — | WireGuard PrivateKey |
-| `WG_OPN_PUBLIC_KEY` | **ja** | — | WireGuard PublicKey |
-| `WG_OPN_ENDPOINT` | **ja** | — | OPNsense-WireGuard-Endpoint |
+| `WG_ENABLE` | nein | `true` | `false` deaktiviert WireGuard |
+| `WG_VM_PRIVATE_KEY` | bei `WG_ENABLE=true` | - | WireGuard PrivateKey |
+| `WG_OPN_PUBLIC_KEY` | bei `WG_ENABLE=true` | - | WireGuard PublicKey |
+| `WG_OPN_ENDPOINT` | bei `WG_ENABLE=true` | - | OPNsense-WireGuard-Endpoint |
 | `WG_PRESHARED_KEY` | nein | leer | WireGuard PreSharedKey (optional) |
 
-Alle anderen Parameter (Versionen, Domain, Namespaces) sind in
-`01_config.sh` fest konfiguriert und werden nicht aus der Umgebung gelesen.
+Versionen, Domain, Namespaces und Netzwerkparameter sind in `01_config.sh`
+konfiguriert. Host- und VM-Werte (`VM_*`, `PROXMOX_STORAGE`, `PBS_STORAGE`,
+`CLOUD_IMAGE_URL`) sind seit dem Lauf „netzmodus-wireguard-optional" per `.env`
+überschreibbar. Details in `umgebungsvariablen-env-datei.md`.
 
 ***
 

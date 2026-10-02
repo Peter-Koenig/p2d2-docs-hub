@@ -49,6 +49,19 @@ Die CIVITAS/CORE-VM ist über einen WireGuard-Tunnel mit OPNsense verbunden.
 Der Tunnel bleibt unabhängig vom verwendeten Reverse-Proxy (Caddy oder HAProxy)
 bestehen — beide Dienste nutzen dieselbe WireGuard-Strecke zur VM.
 
+### Betriebsarten
+
+Die WireGuard-Strecke ist eine von zwei Betriebsarten. `WG_ENABLE` steuert die
+Auswahl.
+
+| Modus | `WG_ENABLE` | Erreichbarkeit |
+|---|---|---|
+| WireGuard + HAProxy (SOHO) | `true` | OPNsense leitet TLS per HAProxy TCP-Passthrough über den Tunnel |
+| Direktbetrieb / NAT (z. B. Hetzner) | `false` | Der Host leitet TCP 80/443 per DNAT (inkl. Hairpin-NAT) an die VM |
+
+Im NAT-Modus entfällt der Tunnel. TLS wird direkt am nginx-Ingress der VM
+terminiert.
+
 ## Namensauflösung
 
 Die Plugin-VM erhält einen internen DNS-Eintrag im Format:
@@ -62,7 +75,8 @@ Die Auflösung erfolgt über den internen DNS-Server (OPNsense oder separater Un
 ### Erforderliche Subdomains
 
 Die CIVITAS/CORE-Plattform erzeugt eine Reihe von Ingress-Ressourcen, die
-über Subdomains erreichbar sein müssen. Je nach aktivierten Komponenten
+über Subdomains erreichbar sein müssen. Die Einträge liegen unter dem
+Wildcard `*.udp.<DOMAIN>`. Je nach aktivierten Komponenten
 (Inventory: `enable: true/false`) sind folgende Einträge nötig:
 
 | Subdomain | Komponente | Status |

@@ -227,14 +227,14 @@ Bis die Integration von `prefill_env.py` in `generate_test_env()` umgesetzt
 ist, werden die Variablen manuell in `.env.local` gesetzt:
 
 ```bash
-export DOMAIN="udp.data-dna.eu"
+export DOMAIN_NAME="data-dna.eu"   # -> DOMAIN="udp.data-dna.eu" (abgeleitet)
 export TEST_ID="udp"
 export BASE_DOMAIN="data-dna.eu"
 ```
 
 | Status | Beschreibung |
 |---|---|
-| ✅ | `.env.local` enthält `DOMAIN`, `TEST_ID`, `BASE_DOMAIN` |
+| ✅ | `.env.local` enthält `TEST_ID` und `BASE_DOMAIN`; `DOMAIN` wird aus `DOMAIN_NAME` abgeleitet |
 | ✅ | Entspricht dem Split, den `prefill_env.py --local` später automatisch vornimmt |
 | ❌ | Noch nicht in `generate_test_env()` automatisiert |
 | ⚠️ | Muss bei Domain-Änderung manuell konsistent gehalten werden |

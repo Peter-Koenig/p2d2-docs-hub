@@ -98,6 +98,15 @@ Laufzeitanforderungen der CIVITAS/CORE-Komponenten laut Deployment-Doku:
 | Gastbetriebssystem | offen (→ Folgespezifikation Kubernetes-Laufzeit) | Debian 12 oder Ubuntu 24.04 empfohlen |
 | Netzwerk | internes VLAN im SOHO-Cluster | kein öffentlicher Zugang |
 
+Die VM-Parameter (CPU, RAM, Disk, Bridge, Storage) sind per `.env`
+überschreibbar (`VM_CORES`, `VM_BRIDGE`, `PROXMOX_STORAGE`, …).
+`PROXMOX_STORAGE` unterstützt neben ZFS auch lvmthin und Verzeichnis-Storage.
+Details in `umgebungsvariablen-env-datei.md`.
+
+`VM_CORES` zählt vCPUs (Threads), nicht physische Kerne. Auf einem Host mit
+SMT (6 Kerne / 12 Threads) wird im Hetzner-Profil `VM_CORES=10` gesetzt, um
+zwei Threads für den Host zu belassen.
+
 ## Risiken und Einschränkungen
 
 - **Kein Swap:** Kubernetes empfiehlt zwar deaktivierten Swap, der

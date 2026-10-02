@@ -22,7 +22,7 @@ Dieses Dokument definiert das Zielbild für den Serveraufbau des CIVITAS/CORE-Pl
 
 ## Zielbild
 
-Das CIVITAS/CORE-Plugin wird in einer dedizierten virtuellen Maschine (VM) auf dem bestehenden Proxmox-Host betrieben. Die VM stellt eine Kubernetes-Laufzeitumgebung bereit, auf der CIVITAS/CORE als containerisierte Anwendung läuft. Die Anbindung an p2d2 erfolgt über die bestehende Netzwerkinfrastruktur (OPNsense, interne VLANs).
+Das CIVITAS/CORE-Plugin wird in einer dedizierten virtuellen Maschine (VM) auf dem bestehenden Proxmox-Host betrieben. Die VM stellt eine Kubernetes-Laufzeitumgebung bereit, auf der CIVITAS/CORE als containerisierte Anwendung läuft. Die Anbindung an p2d2 erfolgt über die konfigurierte Netzwerkstrecke (WireGuard/HAProxy oder Direktbetrieb per NAT), siehe netzwerk-dns-tls.md.
 
 Die VM wird aus dem vorhandenen Ressourcenpool des Proxmox-Hosts bedient. Eine Erweiterung der Host-Hardware ist nicht vorgesehen, solange die bestehenden Reserven ausreichen.
 
