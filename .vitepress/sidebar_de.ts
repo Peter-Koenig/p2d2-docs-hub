@@ -801,6 +801,10 @@ export const sidebar_de = {
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/skriptarchitektur",
                                 },
                                 {
+                                    text: "Umgebungsvariablen und .env-Datei",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/umgebungsvariablen-env-datei",
+                                },
+                                {
                                     text: "cc-cli-Inventar",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/cc-cli-inventar",
                                 },

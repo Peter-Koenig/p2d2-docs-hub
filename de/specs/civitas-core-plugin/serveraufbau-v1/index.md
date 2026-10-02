@@ -30,6 +30,7 @@ Dieser Bereich spezifiziert den Serveraufbau, der für den Betrieb des CIVITAS/C
 - [IDM-Provisionierung und Login](./idm-provisionierung-und-login.md) — Benutzer- und Rollen-Provisionierung, Login-Prozesse
 - [E2E-Testumgebung](./e2e-testumgebung.md) — Playwright/Chromium-E2E-Tests, Test-.env-Generierung, uv-Installation
 - [Skriptarchitektur](./skriptarchitektur.md) — Modulaufbau, Konventionen und Idempotenz-Strategie
+- [Umgebungsvariablen und .env-Datei](./umgebungsvariablen-env-datei.md) — Konfigurations- und Secrets-Datei des Installationsskripts
 - [cc-cli-Inventar](./cc-cli-inventar.md) — Ansible-Inventory für CIVITAS/CORE-Deployment
 - [Portal Backend Objektspeicher (RustFS)](./portal-backend-objektspeicher.md) — S3-Backend-Anbindung für portal-backend
 - [RustFS-Objektspeicher-Installation](./rustfs-objektspeicher-installation.md) — Installation und Betrieb der RustFS-LXC
