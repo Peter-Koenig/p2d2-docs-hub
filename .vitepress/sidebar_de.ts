@@ -805,6 +805,10 @@ export const sidebar_de = {
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/umgebungsvariablen-env-datei",
                                 },
                                 {
+                                    text: "SSH-Zugang zur VM",
+                                    link: "/de/specs/civitas-core-plugin/serveraufbau-v1/ssh-zugang-zur-vm",
+                                },
+                                {
                                     text: "cc-cli-Inventar",
                                     link: "/de/specs/civitas-core-plugin/serveraufbau-v1/cc-cli-inventar",
                                 },

@@ -2,7 +2,7 @@
 title: Umgebungsvariablen und .env-Datei
 description: Referenz der Konfigurations- und Secrets-Datei des CIVITAS/CORE-Installationsskripts.
 status: draft
-lastUpdated: 2026-10-01
+lastUpdated: 2026-10-03
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-umgebungsvariablen
@@ -10,8 +10,8 @@ parent: civitas-core-plugin-serveraufbau-index
 dependencies:
   - civitas-core-plugin-serveraufbau-skriptarchitektur
 quality:
-  completeness: 70
-  accuracy: 75
+  completeness: 80
+  accuracy: 80
   reviewed: false
   reviewer:
   reviewDate:
@@ -20,7 +20,8 @@ quality:
 # Umgebungsvariablen und `.env`-Datei
 
 Referenz der Konfigurations- und Secrets-Datei des Installationsskripts
-(`install_civitas_core_V1.sh`, `install_civitas_core_V1s.sh`).
+(`install_civitas_core_V1.sh`, `install_civitas_core_V1s.sh`). Die versionierten
+Vorlagen sind `.env.example` (V1) und `.env-v1s.local.example` (V1s).
 
 ## Dateiname und Ablageort
 
@@ -32,12 +33,6 @@ wird sie manuell gesourct oder die Werte sind als Umgebungsvariablen gesetzt.
 |---|---|---|---|
 | V1 | `.env.local` | Skript-Verzeichnis (`${SCRIPT_DIR}`) | `/root/civitas-install/.env.local` |
 | V1s | `.env-v1s.local` (Fallback `.env.local`) | Skript-Verzeichnis (`${SCRIPT_DIR}`) | `/root/civitas-install/.env.local` |
-
-Der frühere Kopfkommentar der Vorlagen („Kopieren nach `.env.local` … alle mit
-`?` markierten Variablen …") ist falsch. Es gibt keine `?`-Markierung. Die
-V1s-Datei heißt `.env-v1s.local`, nicht `.env.local`. Die Kennzeichnung erfolgt
-über `[Pflicht]`-Kommentare in der Vorlage und die `${VAR:?…}`-Prüfungen in
-`01_config.sh`.
 
 ## Laden
 
@@ -53,6 +48,21 @@ cd ${VM_REMOTE_INSTALL_DIR}
 if [[ -f .env.local ]]; then set -a; source .env.local; set +a; fi
 ./install_civitas_core_V1s.sh
 ```
+
+Zwei Punkte sind zu beachten:
+
+- Der Installer kopiert nur die Datei aus `${SCRIPT_DIR}` in die VM. Eine Datei
+  außerhalb von `${SCRIPT_DIR}` wird nicht mitkopiert; dann ist ein Symlink oder
+  eine Kopie nötig.
+- Nur die Werte, die in der Datei stehen, werden mitkopiert. Variablen, die nur
+  in der Host-Shell exportiert sind, erreichen die VM nicht.
+
+## Struktur der Vorlage
+
+In den Vorlagen stehen aktiv (nicht auskommentiert) nur Pflichtvariablen,
+Secrets und der WireGuard-Block mit `CHANGEME`-Platzhaltern. Alle Variablen mit
+einem Default in `01_config.sh` sind auskommentiert (`# export NAME="Default"`),
+damit die Defaults nur einmal, in `01_config.sh`, leben.
 
 ## Netzwerkmodus: `WG_ENABLE`
 
@@ -82,10 +92,16 @@ Bei `WG_ENABLE=false` prüft `03_preflight.sh` das Werkzeug `wg` nicht,
 | `LE_REQUESTS_BLOCKED` | nein | `false` | `true` = keine neuen Zertifikatsanforderungen |
 | `APISIX_DASHBOARD` | nein | `false` | APISIX-Dashboard aktivieren |
 | `RUN_TESTS` | nein | `false` | E2E-Tests nach Installation |
-| `CERT_BACKUP_FILE` | nein | `le-certs-backup.yaml` | Pfad zum LE-Zertifikats-Backup |
+| `CERT_BACKUP_FILE` | nein | `le-certs-backup.yaml` | Dateiname (relativ) oder Pfad in der VM |
+| `LOG_FILE` | nein | leer | optionaler Pfad für File-Logging |
 
-`NO_NEW_LE_CERT` wurde aus der Vorlage entfernt, es wird von keinem Modul
-gelesen. Der Safety-Schalter heißt `LE_REQUESTS_BLOCKED`.
+`CERT_BACKUP_FILE` bestimmt den Dateinamen, den `01_config.sh` in der VM
+verwendet. Der Installer kopiert aber nur die feste Datei
+`${SCRIPT_DIR}/le-certs-backup.yaml` in die VM. Ein abweichender Dateiname wird
+nicht mitkopiert.
+
+`NO_NEW_LE_CERT` existiert nicht; der Safety-Schalter heißt
+`LE_REQUESTS_BLOCKED`.
 
 ### Domain
 
@@ -103,11 +119,15 @@ gelesen. Der Safety-Schalter heißt `LE_REQUESTS_BLOCKED`.
 | `TEST_ID` | nein | - | E2E-Test-Identifier (erstes Domain-Label, z. B. `udp`) |
 | `BASE_DOMAIN` | nein | - | E2E-Test-Basis-Domain (Rest der Domain) |
 
+`TEST_ID` und `BASE_DOMAIN` werden vom Installer nicht gelesen. Eine Verwendung
+durch das E2E-Testrepo ist nicht belegt. `TEST_ID.BASE_DOMAIN` entspricht
+`DOMAIN`.
+
 ### VM-Zugang, SMTP, Admin
 
 | Variable | Pflicht | Default | Wirkung |
 |---|---|---|---|
-| `ROOT_PASSWORD` | ja | - | root-Passwort der Ziel-VM |
+| `ROOT_PASSWORD` | ja | - | wird nur auf Vorhandensein geprüft, nicht weiterverwendet |
 | `SMTP_HOST` | ja | - | SMTP-Server |
 | `SMTP_PORT` | nein | `587` | SMTP-Port |
 | `SMTP_USER` | ja | - | SMTP-Benutzer |
@@ -125,11 +145,34 @@ gelesen. Der Safety-Schalter heißt `LE_REQUESTS_BLOCKED`.
 | `WG_OPN_PUBLIC_KEY` | bei `WG_ENABLE=true` | - | WireGuard-Public-Key der OPNsense |
 | `WG_OPN_ENDPOINT` | bei `WG_ENABLE=true` | - | öffentliche IP:Port der OPNsense |
 | `WG_PRESHARED_KEY` | nein | leer | WireGuard-Pre-Shared-Key |
+| `WG_LISTEN_PORT` | nein | `51820` | WireGuard-Listen-Port |
+
+### SSH-Zugang zur VM
+
+| Variable | Pflicht | Default | Wirkung |
+|---|---|---|---|
+| `VM_SSH_PUBKEY` | nein | leer | öffentliche Schlüssel für direkten Login, eine Zeile pro Key |
+| `VM_REMOVE_INSTALL_KEY` | nein | `false` | `true` = Installations-Key am Ende aus der VM entfernen |
+| `INSTALL_KEY_DIR` | nein | `${HOME}/.local/share/civitas-install/<VM_ID>` | Ablage des Installations-Key-Paars |
+
+Details zum Ablauf, zur Validierung und zur Altbestand-Migration in
+[ssh-zugang-zur-vm.md](./ssh-zugang-zur-vm.md).
+
+### Cluster / Kubernetes
+
+| Variable | Pflicht | Default | Wirkung |
+|---|---|---|---|
+| `K3S_NODE_NAME` | nein | `hostname` | k3s-Node-Name |
+| `CC_ENVIRONMENT` | nein | `cc-prd` | Ansible-Environment-Name (Muster `{CC_ENVIRONMENT}-{stack}`) |
+| `K8S_CONTEXT` | nein | `default` | kubectl-Kontext |
+| `STORAGECLASS_RWO` | nein | `local-path` | StorageClass ReadWriteOnce |
+| `STORAGECLASS_RWX` | nein | `local-path` | StorageClass ReadWriteMany |
+| `STORAGECLASS_LOC` | nein | `local-path` | StorageClass lokal |
+| `INGRESS_CLASS` | nein | `nginx` | Ingress-Klasse |
+| `CERT_MANAGER_ISSUER` | nein | `selfsigned-issuer` | cert-manager-Issuer |
+| `CREDENTIALS_OUTPUT_PATH` | nein | `/root/civitas-install/credentials.env` | Zielpfad der Dienst-Passwörter |
 
 ### Host / VM (Proxmox)
-
-Alle Werte sind optional und per `.env` überschreibbar. Die Defaults entsprechen
-der bisherigen SOHO-Umgebung.
 
 | Variable | Default | Wirkung |
 |---|---|---|
@@ -139,20 +182,59 @@ der bisherigen SOHO-Umgebung.
 | `VM_CORES` | `12` | vCPUs |
 | `VM_DISK_GB` | `300` | Disk-Größe in GiB |
 | `VM_BRIDGE` | `vmbr0` | Bridge-Netzwerk |
-| `PROXMOX_STORAGE` | `local-zfs-civitas` | Proxmox-Storage |
+| `PROXMOX_STORAGE` | `local-zfs-civitas` | Proxmox-Storage für die VM-Disk; unterstützt: `zfspool`, `lvmthin` |
 | `VM_IP_STATIC` | `192.168.12.139` | IPv4-Adresse der VM |
 | `VM_IP_PREFIX` | `24` | IPv4-Präfixlänge |
 | `VM_GW` | `192.168.12.1` | IPv4-Gateway |
-| `VM_IP6_STATIC` | `fd01:1:1:1::139` | IPv6-Adresse der VM, leer = IPv6 deaktivieren |
+| `VM_IP6_STATIC` | `fd01:1:1:1::139` | IPv6-Adresse der VM; leer = IPv6 deaktivieren |
 | `VM_IP6_PREFIX` | `64` | IPv6-Präfixlänge |
 | `VM_GW6` | `fd01:1:1:1:de39:6fff:febe:9962` | IPv6-Gateway |
-| `PBS_STORAGE` | `backup-p2d2-kinglui` | PBS-Storage, leer = Backup-Prüfung überspringen |
+| `PBS_STORAGE` | `backup-p2d2-kinglui` | PBS-Storage; leer = Backup-Prüfung überspringen |
 | `CLOUD_IMAGE_URL` | Debian-13-Cloud-Image | Quelle für das Cloud-Image |
+| `CLOUD_IMAGE_CACHE` | `/var/lib/vz/template/qcow` | Cache-Verzeichnis für das Cloud-Image |
 | `SOHO_GATEWAY` | `${VM_GW}` | Gateway für die Phase-0-Netzprüfung |
 
-Für `VM_IP6_STATIC` und `PBS_STORAGE` wird `${VAR-default}` (einfacher
-Bindestrich) statt `${VAR:-default}` verwendet. Ein leerer Wert bleibt leer,
-nur ein unset Wert erhält den Default.
+Unterscheidung „leer = Default" und „leer = deaktiviert":
+
+- Die meisten Host-/VM-Werte verwenden `${VAR:-default}`. Ein leerer Wert
+  erhält den Default, nicht den leeren Wert.
+- `VM_IP6_STATIC` und `PBS_STORAGE` verwenden `${VAR-default}`. Ein leerer Wert
+  bleibt leer und deaktiviert die Funktion (IPv6 bzw. Backup-Prüfung).
+
+### V1s-spezifisch
+
+| Variable | Pflicht | Default | Wirkung |
+|---|---|---|---|
+| `V1S_IMAGE_TAG` | nein | `v1s-local` | Tag des lokal gebauten Portal-Backend-Images |
+
+### RustFS / S3 (nur V1)
+
+| Variable | Pflicht | Default | Wirkung |
+|---|---|---|---|
+| `RUSTFS_ENDPOINT` | nein | leer | S3-Endpoint; leer = s3_backend deaktiviert |
+| `RUSTFS_ACCESS_KEY` | nein | leer | S3-Access-Key |
+| `RUSTFS_SECRET_KEY` | nein | leer | S3-Secret-Key |
+| `RUSTFS_BUCKET_NAME` | nein | `portal-config` | S3-Bucket-Name |
+| `RUSTFS_REGION` | nein | `eu-north-1` | S3-Region |
+| `RUSTFS_FORCE_PATH_STYLE` | nein | `true` | S3 Force-Path-Style |
+| `MC_VERSION` | nein | fest | mc-Client-Version |
+| `MC_ALIAS_NAME` | nein | `civitas-rustfs` | mc-Alias für den Endpoint |
+| `MC_BUCKET_NAME` | nein | `portal-config` | mc-Bucket-Name |
+
+V1s benötigt diese Variablen nicht (statische Masterportal-Konfiguration).
+
+## CHANGEME-Warnung
+
+`warn_changeme_values` läuft zweimal pro Lauf: als „Start" direkt nach der
+Startmeldung und als „Ende" unmittelbar vor der Schlussmeldung (Host- und
+VM-Zweig). Sie warnt nur und bricht nie ab. Bricht das Skript vorher ab,
+erscheint kein „Ende"-Hinweis.
+
+Geprüft werden alle Shell-Variablen, deren Wert `CHANGEME` enthält. `WG_*`
+werden bei `WG_ENABLED!=true` übersprungen. `NAME=Wert` wird nur ausgegeben,
+wenn der Wert aus `A-Za-z0-9._@:/-` besteht, höchstens 64 Zeichen lang ist und
+`CHANGEME` als eigenständiges Token enthält. Sonst erscheint nur der Name mit
+„(enthält CHANGEME)".
 
 ## Beispielprofile
 
@@ -182,8 +264,18 @@ export PBS_STORAGE=""
 export DOMAIN_NAME="projekte-koenig.eu"
 ```
 
+Das Hetzner-Profil ist noch nicht live getestet.
+
+## Bekannte Einschränkungen
+
+- `ROOT_PASSWORD` wird nur auf Vorhandensein geprüft (`:?`) und nirgends
+  weiterverwendet. Es gibt kein Passwort-Login in der VM.
+- `ENVIRONMENT` in `01_config.sh` (hart `cc-prd`) ist ein ungenutzter
+  Duplikat-Name zu `CC_ENVIRONMENT`.
+- `TEST_ID`/`BASE_DOMAIN` werden vom Installer nicht gelesen.
+- Der CHANGEME-„Ende"-Hinweis fehlt, wenn das Skript vorher abbricht.
+
 ## Sicherheitshinweise
 
 Die `.env`-Datei enthält Secrets und wird nicht committet. Die versionierten
-Vorlagen `.env.example` (V1) und `.env-v1s.local.example` (V1s) enthalten nur
-Platzhalter (`CHANGEME`).
+Vorlagen enthalten nur Platzhalter (`CHANGEME`).
