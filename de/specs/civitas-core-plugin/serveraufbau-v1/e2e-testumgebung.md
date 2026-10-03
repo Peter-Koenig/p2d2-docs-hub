@@ -2,7 +2,7 @@
 title: E2E-Testumgebung
 description: Spezifikation der Vorbereitung und Durchführung von End-to-End-Tests (Playwright/Chromium) für das CIVITAS/CORE-Installationsskript.
 status: draft
-lastUpdated: 2026-07-16
+lastUpdated: 2026-10-03
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-e2e-testumgebung
@@ -236,6 +236,7 @@ export BASE_DOMAIN="data-dna.eu"
 |---|---|
 | ✅ | `.env.local` enthält `TEST_ID` und `BASE_DOMAIN`; `DOMAIN` wird aus `DOMAIN_NAME` abgeleitet |
 | ✅ | Entspricht dem Split, den `prefill_env.py --local` später automatisch vornimmt |
+| ⚠️ | `TEST_ID`/`BASE_DOMAIN` werden vom Installer nicht gelesen; eine Verwendung durch das E2E-Testrepo ist nicht belegt |
 | ❌ | Noch nicht in `generate_test_env()` automatisiert |
 | ⚠️ | Muss bei Domain-Änderung manuell konsistent gehalten werden |
 
@@ -261,8 +262,8 @@ export BASE_DOMAIN="data-dna.eu"
 4. Die Test-`.env` wird zukünftig über `prefill_env.py --local`
    generiert, nicht mehr manuell in `generate_test_env()`.
 5. `TEST_ID` und `BASE_DOMAIN` werden aus der produktiven Domain
-   am ersten Punkt gesplittet — dieser Split ist konsistent mit
-   der `.env.local`-Übergangslösung.
+   am ersten Punkt gesplittet. Der Installer liest diese Variablen
+   nicht; eine Verwendung durch das E2E-Testrepo ist nicht belegt.
 6. Ein Fehler in der Testvorbereitung (`setup_tests_env()`) führt
    **nicht** zum Abbruch der Installation (Soft-fail). Die E2E-Tests
    werden in diesem Fall übersprungen.

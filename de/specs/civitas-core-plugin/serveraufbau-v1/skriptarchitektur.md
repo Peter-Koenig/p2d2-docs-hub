@@ -2,7 +2,7 @@
 title: Skriptarchitektur
 description: Modulaufbau, Konventionen, Idempotenz-Strategie und Konfigurationsstruktur des CIVITAS/CORE-Installationsskripts nach dem create_sdt_02-Muster.
 status: draft
-lastUpdated: 2026-07-04
+lastUpdated: 2026-10-03
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-skriptarchitektur
@@ -94,22 +94,24 @@ CIVITAS_CONTEXT="${CIVITAS_CONTEXT:-host}"
 Die Funktion `run_in_vm()` wird auf dem Proxmox-Host nach erfolgreicher
 VM-Provisionierung aufgerufen. Sie:
 
-1. Entfernt den alten SSH-Host-Key der VM (wird bei jedem Scratch-Lauf neu erstellt)
-2. Kopiert das gesamte Installationsskript, alle Module und Templates per scp
-   in die VM unter `${VM_REMOTE_INSTALL_DIR}` (`/root/civitas-install`)
-3. Kopiert die Datei `.env.local` (falls vorhanden) per scp in die VM — diese
+1. Stellt den SSH-Zugang sicher (`ensure_vm_ssh_access`), fallbackfähig für
+   Altbestand-VMs
+2. Kopiert das gesamte Installationsskript, alle Module, das Overlay-Verzeichnis
+   und die Templates per scp in die VM unter `${VM_REMOTE_INSTALL_DIR}`
+   (`/root/civitas-install`)
+3. Kopiert die Datei `.env.local` (falls vorhanden) per scp in die VM; diese
    enthält alle Secrets (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel)
-4. Startet `install_civitas_core.sh` in der VM mit `CIVITAS_CONTEXT=vm`
+4. Startet `install_civitas_core_V1.sh` in der VM mit `CIVITAS_CONTEXT=vm`
    und sourced dabei `.env.local` vor dem Skriptaufruf
 
 ```bash
 run_in_vm() {
-  ssh-keygen -f "${HOME}/.ssh/known_hosts" -R "${VM_IP_STATIC}" 2>/dev/null || true
+  ensure_vm_ssh_access
   log "Kopiere Skript-Dateien in die VM (${VM_IP_STATIC}) …"
-  ssh -o StrictHostKeyChecking=no \
+  ssh "${VM_SSH_OPTS[@]}" \
       "root@${VM_IP_STATIC}" \
       "mkdir -p ${VM_REMOTE_INSTALL_DIR}"
-  scp -o StrictHostKeyChecking=no -r \
+  scp "${VM_SSH_OPTS[@]}" -r \
     "${SCRIPT_DIR}/install_civitas_core_V1.sh" \
     "${SCRIPT_DIR}/modules_V1" \
     "${SCRIPT_DIR}/templates_V1" \
@@ -117,12 +119,12 @@ run_in_vm() {
 
   # .env.local transferieren, falls vorhanden
   if [[ -f "${SCRIPT_DIR}/.env.local" ]]; then
-    scp -o StrictHostKeyChecking=no \
+    scp "${VM_SSH_OPTS[@]}" \
       "${SCRIPT_DIR}/.env.local" \
       "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
   fi
 
-  ssh -o StrictHostKeyChecking=no \
+  ssh "${VM_SSH_OPTS[@]}" \
       "root@${VM_IP_STATIC}" \
       "CIVITAS_CONTEXT=vm bash -lc '
         cd ${VM_REMOTE_INSTALL_DIR}
@@ -165,7 +167,8 @@ fi
   und Aufrufen.
 - **`ROOT_PASSWORD`** muss vor dem Skriptaufruf als Umgebungsvariable gesetzt
   sein. Ohne diesen Wert bricht das Skript bereits beim Laden von `01_config.sh`
-  mit einer Fehlermeldung ab.
+  mit einer Fehlermeldung ab. Geprüft wird nur das Vorhandensein (`:?`); der
+  Wert wird nicht in das Cloud-Init der VM übernommen.
 - **Secrets aus `.env.local`:** Liegt die Datei `.env.local` im Skript-Verzeichnis,
   wird sie beim SSH-Hop automatisch in die VM übertragen und dort vor dem
   Skriptstart gesourct. Alternativ können alle Secrets als Umgebungsvariablen
@@ -245,6 +248,7 @@ ADMIN_PASS="${ADMIN_PASS:?'ADMIN_PASS muss als Umgebungsvariable gesetzt sein'}"
 
 # ── Let's Encrypt (steuert Zertifikatsausstellung) ──────────────────────
 LE_CERT="${LE_CERT:-false}"      # false = nur Staging, true = Staging + Production
+LE_REQUESTS_BLOCKED="${LE_REQUESTS_BLOCKED:-false}"  # true = keine neuen Zertifikatsanforderungen (Safety-Schalter)
 
 # ── Timeouts ─────────────────────────────────────────────────────────────────
 TIMEOUT_CC_CLI_EXEC=600            # Sekunden
@@ -287,7 +291,10 @@ VM_GW="192.168.12.1"                             # IPv4-Gateway
 VM_IP6_STATIC="fd01:1:1:1::139"                 # IPv6-Adresse der VM
 VM_IP6_PREFIX="64"                               # IPv6-Präfixlänge
 VM_GW6="fd01:1:1:1:de39:6fff:febe:9962"         # IPv6-Gateway
-SSH_PUBKEY_PATH="${HOME}/.ssh/authorized_keys"   # SSH-Public-Key für root-Zugang
+# ── SSH-Zugang zur VM ──
+VM_SSH_PUBKEY="${VM_SSH_PUBKEY:-}"                   # optional: Public Key(s) für direkten Login, eine Zeile pro Key
+VM_REMOVE_INSTALL_KEY="${VM_REMOVE_INSTALL_KEY:-false}"  # true = Installations-Key am Ende aus der VM entfernen
+INSTALL_KEY_DIR="${INSTALL_KEY_DIR:-${HOME}/.local/share/civitas-install/${VM_ID}}"
 
 # ── Remote-Ausführung in der VM ────────────────────────────────────────────
 VM_REMOTE_INSTALL_DIR="/root/civitas-install"    # Zielverzeichnis für scp/SSH in der VM
@@ -334,7 +341,7 @@ fehlt. Die `WG_*`-Variablen sind nur bei `WG_ENABLE=true` Pflicht.
 | `ADMIN_PASS` | **ja** | — | Keycloak-Master-Passwort (≥12 Zeichen, Policy-konform) |
 | `LE_CERT` | nein | `false` | `true` = Staging + Production-Zertifikate, `false` = nur Staging |
 | `APISIX_DASHBOARD` | nein | `false` | `true` = APISIX-Dashboard aktivieren |
-| `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
+| `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM (nur Vorhandenseinsprüfung) |
 | `WG_ENABLE` | nein | `true` | `false` deaktiviert WireGuard |
 | `WG_VM_PRIVATE_KEY` | bei `WG_ENABLE=true` | - | WireGuard PrivateKey |
 | `WG_OPN_PUBLIC_KEY` | bei `WG_ENABLE=true` | - | WireGuard PublicKey von OPNsense |
@@ -1171,30 +1178,17 @@ provision_vm() {
     return 0
   fi
 
+  # Storage-/Bridge-Prüfung VOR Download und qm create (kein halbfertiger Zustand)
+  check_proxmox_prereqs
+
   # ── Schritt 1: Cloud-Image lokal cachen (24h-Altersprüfung) ─────────
   local image_name image_path cache_dir
-  image_name="$(basename "${CLOUD_IMAGE_URL}")"
-  cache_dir="/var/lib/vz/template/qcow"
+  image_name="debian-13-genericcloud-amd64-daily.qcow2"
+  cache_dir="${CLOUD_IMAGE_CACHE:-/var/lib/vz/template/qcow}"
   image_path="${cache_dir}/${image_name}"
   mkdir -p "${cache_dir}"
 
-  if [[ -f "${image_path}" ]]; then
-    local file_age
-    file_age=$(( $(date +%s) - $(stat -c %Y "${image_path}" 2>/dev/null || echo 0) ))
-    if [[ $file_age -lt 86400 ]]; then
-      log_ok "Cloud-Image gecached: ${image_name} (${file_age}s alt, < 24h)"
-    else
-      log "Cloud-Image aelter als 24h — lade neu herunter ..."
-      curl -fsSL --retry 3 --retry-delay 10 \
-        "${CLOUD_IMAGE_URL}" -o "${image_path}"
-      log_ok "Cloud-Image aktualisiert: ${image_name}"
-    fi
-  else
-    log "Lade Cloud-Image herunter (${CLOUD_IMAGE_URL}) ..."
-    curl -fsSL --retry 3 --retry-delay 10 \
-      "${CLOUD_IMAGE_URL}" -o "${image_path}"
-    log_ok "Cloud-Image heruntergeladen: ${image_name}"
-  fi
+  # Datei vorhanden und < 24h alt → Cache gültig, sonst neu laden
 
   # ── Schritt 2: VM mit qm create anlegen ────────────────────────────
   log "Erstelle VM ${VM_ID} (${VM_NAME}) ..."
@@ -1207,9 +1201,13 @@ provision_vm() {
     --agent enabled=1 \
     --onboot 1
 
-  # ── Schritt 3: Disk importieren und vergrößern ─────────────────────
+  # ── Schritt 3: Disk importieren (lvmthin raw, zfspool Standard) ────
   log "Importiere Disk von Cloud-Image nach ${PROXMOX_STORAGE} ..."
-  qm importdisk "${VM_ID}" "${image_path}" "${PROXMOX_STORAGE}"
+  if [[ "${PROXMOX_STORAGE_TYPE}" == "lvmthin" ]]; then
+    qm importdisk "${VM_ID}" "${image_path}" "${PROXMOX_STORAGE}" --format raw
+  else
+    qm importdisk "${VM_ID}" "${image_path}" "${PROXMOX_STORAGE}"
+  fi
 
   log "Konfiguriere Hardware (SCSI, Boot-Reihenfolge, Cloud-Init-ISO) ..."
   qm set "${VM_ID}" \
@@ -1222,25 +1220,30 @@ provision_vm() {
 
   log "Vergrößere Disk auf ${VM_DISK_GB} GiB ..."
   qm resize "${VM_ID}" scsi0 "${VM_DISK_GB}G"
-  log_ok "Disk auf ${VM_DISK_GB} GiB vergrößert"
 
-  # ── Schritt 4: Cloud-Init (SSH-Key + statische IP) ─────────────────
-  log "Konfiguriere Cloud-Init (root, SSH-Key, statische IP ${VM_IP_STATIC}) ..."
+  # ── Schritt 4: Cloud-Init (Installations-Key + VM_SSH_PUBKEY + IP) ─
+  init_ssh_access
+  local keyfile ipconfig0
+  keyfile="$(build_sshkeys_file)" || exit 1
+  ipconfig0="ip=${VM_IP_STATIC}/${VM_IP_PREFIX},gw=${VM_GW}"
+  if [[ -n "${VM_IP6_STATIC:-}" ]]; then
+    ipconfig0+=",ip6=${VM_IP6_STATIC}/${VM_IP6_PREFIX},gw6=${VM_GW6}"
+  fi
   qm set "${VM_ID}" \
     --ciuser root \
-    --sshkeys "${SSH_PUBKEY_PATH}" \
-    --ipconfig0 "ip=${VM_IP_STATIC}/${VM_IP_PREFIX},gw=${VM_GW},ip6=${VM_IP6_STATIC}/${VM_IP6_PREFIX},gw6=${VM_GW6}"
+    --sshkeys "${keyfile}" \
+    --ipconfig0 "${ipconfig0}" || { rm -f "${keyfile}"; exit 1; }
+  rm -f "${keyfile}"
 
   # ── Schritt 5: VM starten und auf SSH warten ───────────────────────
+  # Host-Key einer frischen VM entfernen, damit accept-new den neuen Key akzeptiert.
+  ssh-keygen -R "${VM_IP_STATIC}" -f "${VM_SSH_KNOWN_HOSTS}" >/dev/null 2>&1 || true
   log "Starte VM ${VM_ID} ..."
   qm start "${VM_ID}"
   log "Warte auf SSH unter ${VM_IP_STATIC} (max. 120s) ..."
 
   local attempt=0
-  until ssh -o StrictHostKeyChecking=no \
-            -o ConnectTimeout=5 \
-            -o BatchMode=yes \
-            root@"${VM_IP_STATIC}" true 2>/dev/null; do
+  until ssh "${VM_SSH_OPTS[@]}" -o ConnectTimeout=5 root@"${VM_IP_STATIC}" true 2>/dev/null; do
     sleep 5
     (( attempt++ )) || true
     if [[ $attempt -gt 24 ]]; then
@@ -1249,6 +1252,14 @@ provision_vm() {
     fi
   done
   log_ok "VM erreichbar unter ${VM_IP_STATIC}"
+
+  # Cloud-Init-Hostname stabilisieren (preserve_hostname)
+  ssh "${VM_SSH_OPTS[@]}" root@"${VM_IP_STATIC}" \
+    'if grep -q "^preserve_hostname:" /etc/cloud/cloud.cfg 2>/dev/null; then
+       sed -i "s/^preserve_hostname:.*/preserve_hostname: true/" /etc/cloud/cloud.cfg
+     else
+       echo "preserve_hostname: true" >> /etc/cloud/cloud.cfg
+     fi'
 
   log_ok "VM-Provisionierung abgeschlossen"
 }
@@ -1262,16 +1273,15 @@ die VM und startet die Installation dort neu:
 
 ```bash
 run_in_vm() {
-  # Alten SSH-Host-Key entfernen (VM wird bei jedem Scratch-Lauf neu erstellt)
-  ssh-keygen -f "${HOME}/.ssh/known_hosts" -R "${VM_IP_STATIC}" 2>/dev/null || true
+  ensure_vm_ssh_access
   log "Kopiere Skript-Dateien in die VM (${VM_IP_STATIC}) …"
 
   # Zielverzeichnis in der VM anlegen
-  ssh -o StrictHostKeyChecking=no "root@${VM_IP_STATIC}" \
+  ssh "${VM_SSH_OPTS[@]}" "root@${VM_IP_STATIC}" \
     "mkdir -p ${VM_REMOTE_INSTALL_DIR}"
 
   # Skript-Dateien, Module und Templates kopieren
-  scp -o StrictHostKeyChecking=no -r \
+  scp "${VM_SSH_OPTS[@]}" -r \
     "${SCRIPT_DIR}/install_civitas_core_V1.sh" \
     "${SCRIPT_DIR}/modules_V1" \
     "${SCRIPT_DIR}/templates_V1" \
@@ -1279,13 +1289,13 @@ run_in_vm() {
 
   # Secrets aus .env.local übertragen, falls vorhanden
   if [[ -f "${SCRIPT_DIR}/.env.local" ]]; then
-    scp -o StrictHostKeyChecking=no \
+    scp "${VM_SSH_OPTS[@]}" \
       "${SCRIPT_DIR}/.env.local" \
       "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
   fi
 
   # Skript in der VM starten (CIVITAS_CONTEXT=vm)
-  ssh -o StrictHostKeyChecking=no "root@${VM_IP_STATIC}" \
+  ssh "${VM_SSH_OPTS[@]}" "root@${VM_IP_STATIC}" \
     "CIVITAS_CONTEXT=vm bash -lc '
       cd ${VM_REMOTE_INSTALL_DIR}
       if [[ -f .env.local ]]; then
@@ -1296,10 +1306,13 @@ run_in_vm() {
 }
 ```
 
-**Wichtig:** Der SSH-Hop entfernt den alten Host-Key der VM, da die VM
-bei jedem Scratch-Lauf neu erstellt wird (neuer SSH-Host-Key). Die Option
-`StrictHostKeyChecking=no` verhindert eine interaktive Abfrage während
-der Automatisierung.
+**Wichtig:** Der Host-Key der VM wird vor dem Start in
+`${INSTALL_KEY_DIR}/known_hosts` entfernt, da die VM bei jedem Scratch-Lauf
+neu erstellt wird (neuer SSH-Host-Key). Die ssh-/scp-Aufrufe verwenden die
+Opts aus `init_ssh_access` (`-i ${INSTALL_KEY}`, `IdentitiesOnly=yes`,
+`BatchMode=yes`, `StrictHostKeyChecking=accept-new`,
+`UserKnownHostsFile=${INSTALL_KEY_DIR}/known_hosts`) und verhindern so eine
+interaktive Abfrage während der Automatisierung.
 
 ### Secrets aus `.env.local`
 
@@ -1346,7 +1359,9 @@ Das Skript prüft Pflichtvariablen mit `${VAR:?}` und bricht bei Fehlen ab.
 | `VM_IP6_STATIC` | Statische IPv6-Adresse der VM | `fd01:1:1:1::139` |
 | `VM_IP6_PREFIX` | IPv6-Präfixlänge | `64` |
 | `VM_GW6` | IPv6-Gateway | `fd01:1:1:1:de39:6fff:febe:9962` |
-| `SSH_PUBKEY_PATH` | Pfad zum SSH-Public-Key für root-Zugang | `${HOME}/.ssh/authorized_keys` |
+| `VM_SSH_PUBKEY` | optionaler Public Key für direkten Login (eine Zeile pro Key) | leer |
+| `INSTALL_KEY_DIR` | Verzeichnis für Installations-Key und known_hosts | `${HOME}/.local/share/civitas-install/${VM_ID}` |
+| `VM_REMOVE_INSTALL_KEY` | `true` = Installations-Key am Ende entfernen | `false` |
 | `VM_REMOTE_INSTALL_DIR` | Zielverzeichnis in der VM (scp/SSH) | `/root/civitas-install` |
 
 ### Idempotenz
@@ -1588,6 +1603,7 @@ Das Skript prüft in Phase 0, ob der PBS-Storage verfügbar ist.
 |---|---|---|---|
 | `DOMAIN_NAME` | **ja** | — | Basis-Domain (aus .env.local) |
 | `LE_CERT` | nein | `false` | `true` = LE-Production-Zertifikate, `false` = nur Staging |
+| `LE_REQUESTS_BLOCKED` | nein | `false` | `true` = keine neuen Zertifikatsanforderungen |
 | `APISIX_DASHBOARD` | nein | `false` | `true` = APISIX-Dashboard aktivieren |
 | `RUN_TESTS` | nein | `false` | `true` = E2E-Tests nach Installation ausführen |
 | `SMTP_HOST` | ja | — | SMTP-Server |
@@ -1597,7 +1613,7 @@ Das Skript prüft in Phase 0, ob der PBS-Storage verfügbar ist.
 | `SMTP_FROM` | nein | `no-reply@${DOMAIN_NAME}` | SMTP-Absenderadresse |
 | `ADMIN_EMAIL` | nein | `admin@${DOMAIN_NAME}` | Keycloak-Master-Admin |
 | `ADMIN_PASS` | **ja** | — | Keycloak-Master-Passwort |
-| `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM |
+| `ROOT_PASSWORD` | **ja** | — | root-Passwort der VM (nur Vorhandenseinsprüfung) |
 | `WG_ENABLE` | nein | `true` | `false` deaktiviert WireGuard |
 | `WG_VM_PRIVATE_KEY` | bei `WG_ENABLE=true` | - | WireGuard PrivateKey |
 | `WG_OPN_PUBLIC_KEY` | bei `WG_ENABLE=true` | - | WireGuard PublicKey |

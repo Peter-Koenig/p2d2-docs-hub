@@ -2,7 +2,7 @@
 title: Installationsphasen und Abnahme
 description: Phasendefinition, Abnahmekriterien und Fehlerbehandlung für das CIVITAS/CORE-Installationsskript auf dem Proxmox-Knoten civitas.
 status: draft
-lastUpdated: 2026-07-17
+lastUpdated: 2026-10-03
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-installationsphasen-und-abnahme
@@ -81,24 +81,31 @@ Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
 ### Voraussetzungen
 
 - Ausführung auf dem Proxmox-Host (qm, pvesh, pvesm verfügbar)
-- `ROOT_PASSWORD` als Umgebungsvariable gesetzt
+- `ROOT_PASSWORD` als Umgebungsvariable gesetzt (nur Vorhandenseinsprüfung in `01_config.sh`)
 - Internetzugriff für Cloud-Image-Download
 
 ### Schritte
 
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
-| -1.1 | Cloud-Image herunterladen (24h-Cache mit Altersprüfung) | Datei im Cache (`/var/lib/vz/template/qcow/`) vorhanden und < 24h alt |
-| -1.2 | VM mit qm create anlegen (`VM_ID=2010`, 12 vCPU, 40 GiB RAM, Bridge vmbr0, QEMU-GA, serielle Konsole) | `qm status ${VM_ID}` — VM existiert |
-| -1.3 | Storage prüfen (Existenz via `pvesm status`), Disk importieren (Format je nach Typ: lvmthin raw, Verzeichnis qcow2) | `qm config ${VM_ID}` — Disk zugewiesen |
-| -1.4 | Cloud-Init konfigurieren (root, SSH-Key, statische IPv4, IPv6 optional) | `qm config ${VM_ID}` — ciuser, sshkeys, ipconfig0 gesetzt |
-| -1.5 | VM starten | `qm status ${VM_ID}` → running |
-| -1.6 | Warten auf SSH-Erreichbarkeit unter der konfigurierten statischen VM-IP | `ssh root@${VM_IP_STATIC} true` erreichbar |
-| -1.7 | Anleitung für nächste Schritte ausgeben | — |
-| -1.8 | Skript-Dateien, Module und Templates per scp in die VM kopieren (nach `${VM_REMOTE_INSTALL_DIR}`) | Dateien existieren in der VM |
-| -1.9 | Nur `.env.local` (falls vorhanden) per scp in die VM kopieren | Datei `.env.local` im Skript-Verzeichnis |
-| -1.9a | `le-certs-backup.yaml` (falls vorhanden) per scp in die VM kopieren | Datei `${SCRIPT_DIR}/le-certs-backup.yaml` vorhanden |
-| -1.10 | SSH-Hop: Skript in der VM mit `CIVITAS_CONTEXT=vm` neu starten (Secrets aus `.env.local` werden gesourct) | — |
+| -1.0 | SSH-Zugang initialisieren: Installations-Key erzeugen (`ensure_install_key`), `VM_SSH_PUBKEY` validieren (`validate_vm_pubkeys`), ssh-Opts aufbauen | `VM_SSH_INIT_DONE=true` |
+| -1.1 | Storage und Bridge prüfen (`check_proxmox_prereqs`): Typ `zfspool` oder `lvmthin`, Status `active`, Bridge vorhanden; läuft vor Download und `qm create` | `PROXMOX_STORAGE_TYPE` gesetzt |
+| -1.2 | Cloud-Image herunterladen (24h-Cache mit Altersprüfung) | Datei im Cache (`/var/lib/vz/template/qcow/`) vorhanden und < 24h alt |
+| -1.3 | VM mit qm create anlegen (`VM_ID=2010`, 12 vCPU, 40 GiB RAM, Bridge vmbr0, QEMU-GA, serielle Konsole) | `qm status ${VM_ID}` liefert die VM |
+| -1.4 | Disk importieren (lvmthin raw, zfspool Standard) und auf `${VM_DISK_GB}` GiB vergrößern | `qm config ${VM_ID}` zeigt die Disk |
+| -1.5 | Cloud-Init konfigurieren (root, Installations-Key plus `VM_SSH_PUBKEY`, statische IPv4, IPv6 optional) | `qm config ${VM_ID}`: ciuser, sshkeys, ipconfig0 gesetzt |
+| -1.6 | VM starten | `qm status ${VM_ID}` liefert `running` |
+| -1.7 | Warten auf SSH-Erreichbarkeit mit dem Installations-Key unter der statischen VM-IP | `ssh "${VM_SSH_OPTS[@]}" root@${VM_IP_STATIC} true` erreichbar |
+| -1.8 | Cloud-Init-Hostname stabilisieren (`preserve_hostname: true`) | Eintrag in `/etc/cloud/cloud.cfg` vorhanden |
+| -1.9 | Skript-Dateien, Module, Overlay und Templates per scp in die VM kopieren (nach `${VM_REMOTE_INSTALL_DIR}`) | Dateien existieren in der VM |
+| -1.10 | Nur `.env.local` (falls vorhanden) per scp in die VM kopieren | Datei `.env.local` im Skript-Verzeichnis |
+| -1.10a | `le-certs-backup.yaml` (falls vorhanden) per scp in die VM kopieren | Datei `${SCRIPT_DIR}/le-certs-backup.yaml` vorhanden |
+| -1.11 | SSH-Hop: Skript in der VM mit `CIVITAS_CONTEXT=vm` neu starten (Secrets aus `.env.local` werden gesourct), danach Installations-Key entfernen, wenn `VM_REMOVE_INSTALL_KEY=true` | Installation in der VM vollständig |
+
+Der Entry-Point ruft `warn_changeme_values "Start"` vor dem ersten Schritt und
+`warn_changeme_values "Ende"` nach Abschluss aller Phasen auf. Die Funktion
+warnt, wenn ein Pflichtwert noch den Platzhalter `CHANGEME` enthält; `WG_*`-Werte
+werden bei `WG_ENABLED!=true` übersprungen.
 
 ### Abnahmekriterien Phase -1
 
@@ -111,12 +118,12 @@ qm status VM_ID
 qm config VM_ID | grep -E 'memory|cores|name'
 # Erwartung: speicher 40960, cores 12, name civitas-core
 
-# SSH-Zugang funktioniert
-ssh -o StrictHostKeyChecking=no root@VM_IP 'hostnamectl'
+# SSH-Zugang funktioniert (Installations-Key, Opts aus init_ssh_access)
+ssh "${VM_SSH_OPTS[@]}" root@VM_IP 'hostnamectl'
 # Erwartung: Debian GNU/Linux 13 (Trixie)
 
 # Installationsskript in VM verfügbar
-ssh root@VM_IP 'ls -la install_civitas_core.sh'
+ssh "${VM_SSH_OPTS[@]}" root@VM_IP 'ls -la install_civitas_core.sh'
 ```
 
 > **Abnahme Phase -1 bestanden**, wenn die VM läuft, per SSH erreichbar ist
@@ -144,12 +151,18 @@ externalisiert:
 | `VM_IP6_STATIC` | Statische IPv6-Adresse der VM | `fd01:1:1:1::139` |
 | `VM_IP6_PREFIX` | IPv6-Präfixlänge | `64` |
 | `VM_GW6` | IPv6-Gateway | `fd01:1:1:1:de39:6fff:febe:9962` |
-| `SSH_PUBKEY_PATH` | Pfad zum SSH-Public-Key für root-Zugang | `${HOME}/.ssh/authorized_keys` |
+| `VM_SSH_PUBKEY` | optionaler Public Key für direkten Login (eine Zeile pro Key, nur ssh-ed25519/ssh-rsa/ecdsa*/sk-*) | leer |
+| `INSTALL_KEY_DIR` | Verzeichnis für Installations-Key und known_hosts | `${HOME}/.local/share/civitas-install/${VM_ID}` |
+| `VM_REMOVE_INSTALL_KEY` | `true` = Installations-Key am Ende aus der VM entfernen | `false` |
 | `VM_REMOTE_INSTALL_DIR` | Zielverzeichnis in der VM für scp/SSH | `/root/civitas-install` |
 
+Details zum SSH-Zugang (Installations-Key, `VM_SSH_PUBKEY`, Altbestand-Migration)
+in [ssh-zugang-zur-vm.md](./ssh-zugang-zur-vm.md).
+
 > **Hinweis**: `ROOT_PASSWORD` wird ausschließlich als Umgebungsvariable
-> übergeben und nie hartcodiert. Das Skript bricht ab, wenn die Variable
-> nicht gesetzt ist.
+> übergeben und nie hartcodiert. `01_config.sh` prüft mit `${ROOT_PASSWORD:?}`
+> nur das Vorhandensein; der Wert wird nicht in das Cloud-Init der VM übernommen
+> (Cloud-Init erhält ausschließlich den SSH-Key).
 >
 > **Secrets aus `.env.local`:** Liegt die Datei `.env.local` im Skript-Verzeichnis,
 > wird sie beim SSH-Hop (Schritt -1.9) automatisch in die VM übertragen und
@@ -701,7 +714,7 @@ Conflict-Fehler auftritt.
    sofort neu — jetzt mit dem korrekten issuerRef aus der Annotation. cert-manager
    reconcilingt, findet das bereits vorhandene, gültige Secret und markiert das
    Certificate als `Ready` — ohne neue ACME-Anfrage (CertificateRequest/Order/Challenge).
-   (Bei NO_NEW_LE_CERT=true wird die Löschung übersprungen; in diesem Fall reicht
+   (Bei LE_REQUESTS_BLOCKED=true wird die Löschung übersprungen; in diesem Fall reicht
    das Annotation-Update durch ingress-shim aus, da der issuerRef im Certificate-Objekt
    bereits zum Secret passt.)
 

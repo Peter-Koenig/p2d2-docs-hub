@@ -2,7 +2,7 @@
 title: VM-Sizing und Host-Ressourcen für CIVITAS/CORE
 description: Gegenüberstellung der offiziellen CIVITAS/CORE-Systemanforderungen mit den verfügbaren Ressourcen des Proxmox-Knotens civitas sowie Ableitung konkreter VM-Parameter.
 status: draft
-lastUpdated: 2026-06-20
+lastUpdated: 2026-10-03
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-vm-sizing
@@ -21,9 +21,11 @@ quality:
 
 ## Zielplattform
 
-CIVITAS/CORE wird auf einem dedizierten lokalen Proxmox-Knoten ("civitas")
-betrieben. Der Knoten steht exklusiv für diesen Zweck zur Verfügung und ist
-nicht öffentlich erreichbar.
+Im SOHO-Profil wird CIVITAS/CORE auf einem dedizierten lokalen Proxmox-Knoten
+("civitas") betrieben. Der Knoten steht exklusiv für diesen Zweck zur
+Verfügung und ist nicht öffentlich erreichbar. Das Hetzner-Profil (NAT ohne
+WireGuard) ist eine zweite, noch nicht live getestete Betriebsart; siehe
+`umgebungsvariablen-env-datei.md`.
 
 ## Verfügbare Hardware (Proxmox-Knoten "civitas")
 
@@ -96,11 +98,12 @@ Laufzeitanforderungen der CIVITAS/CORE-Komponenten laut Deployment-Doku:
 | RAM | 40 GiB | entspricht ~70 % des verfügbaren RAM; 16 GiB Reserve für Host |
 | Disk | 300 GiB (ZFS thin-provisioned) | deckt Sandbox-Anforderungen; rpool-Reserve bleibt erhalten |
 | Gastbetriebssystem | offen (→ Folgespezifikation Kubernetes-Laufzeit) | Debian 12 oder Ubuntu 24.04 empfohlen |
-| Netzwerk | internes VLAN im SOHO-Cluster | kein öffentlicher Zugang |
+| Netzwerk | internes VLAN im SOHO-Cluster (SOHO-Profil) | kein öffentlicher Zugang (SOHO-Profil) |
 
 Die VM-Parameter (CPU, RAM, Disk, Bridge, Storage) sind per `.env`
 überschreibbar (`VM_CORES`, `VM_BRIDGE`, `PROXMOX_STORAGE`, …).
-`PROXMOX_STORAGE` unterstützt neben ZFS auch lvmthin und Verzeichnis-Storage.
+`PROXMOX_STORAGE` unterstützt `zfspool` und `lvmthin`. Andere Typen (auch
+Verzeichnis-/NFS-Storage) werden vor jeder Änderung abgelehnt.
 Details in `umgebungsvariablen-env-datei.md`.
 
 `VM_CORES` zählt vCPUs (Threads), nicht physische Kerne. Auf einem Host mit
