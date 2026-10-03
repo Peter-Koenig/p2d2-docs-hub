@@ -98,7 +98,7 @@ Proxmox-Host und wird übersprungen, wenn die VM bereits existiert
 | -1.7 | Warten auf SSH-Erreichbarkeit mit dem Installations-Key unter der statischen VM-IP | `ssh "${VM_SSH_OPTS[@]}" root@${VM_IP_STATIC} true` erreichbar |
 | -1.8 | Cloud-Init-Hostname stabilisieren (`preserve_hostname: true`) | Eintrag in `/etc/cloud/cloud.cfg` vorhanden |
 | -1.9 | Skript-Dateien, Module, Overlay und Templates per scp in die VM kopieren (nach `${VM_REMOTE_INSTALL_DIR}`) | Dateien existieren in der VM |
-| -1.10 | Nur `.env.local` (falls vorhanden) per scp in die VM kopieren | Datei `.env.local` im Skript-Verzeichnis |
+| -1.10 | `.env.local`-Datei aus dem Host-Home (`${HOME}`) per scp in die VM kopieren | Datei `${HOME}/.env.local` vorhanden und lesbar |
 | -1.10a | `le-certs-backup.yaml` (falls vorhanden) per scp in die VM kopieren | Datei `${SCRIPT_DIR}/le-certs-backup.yaml` vorhanden |
 | -1.11 | SSH-Hop: Skript in der VM mit `CIVITAS_CONTEXT=vm` neu starten (Secrets aus `.env.local` werden gesourct), danach Installations-Key entfernen, wenn `VM_REMOVE_INSTALL_KEY=true` | Installation in der VM vollständig |
 
@@ -164,10 +164,10 @@ in [ssh-zugang-zur-vm.md](./ssh-zugang-zur-vm.md).
 > nur das Vorhandensein; der Wert wird nicht in das Cloud-Init der VM übernommen
 > (Cloud-Init erhält ausschließlich den SSH-Key).
 >
-> **Secrets aus `.env.local`:** Liegt die Datei `.env.local` im Skript-Verzeichnis,
-> wird sie beim SSH-Hop (Schritt -1.9) automatisch in die VM übertragen und
-> dort vor dem Skriptstart gesourct. Ohne `.env.local` müssen alle Secrets
-> separat als Umgebungsvariablen gesetzt werden.
+> **Secrets aus `.env.local`:** Die Datei liegt im Host-Home (`${HOME}`, bei root
+> `/root`). Der Host-Zweig prüft sie vor der VM-Anlage auf Existenz, Lesbarkeit
+> und fehlende Schreibrechte für group/other und überträgt sie beim SSH-Hop in
+> die VM. Dort wird sie vor dem Skriptstart gesourct.
 
 ***
 

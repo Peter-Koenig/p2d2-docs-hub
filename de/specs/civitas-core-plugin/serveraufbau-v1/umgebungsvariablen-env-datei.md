@@ -27,17 +27,23 @@ Vorlagen sind `.env.example` (V1) und `.env-v1s.local.example` (V1s).
 
 Das Skript lädt die Datei im Host-Kontext nicht selbst. Vor dem Skriptaufruf
 wird sie manuell gesourct oder die Werte sind als Umgebungsvariablen gesetzt.
-`run_in_vm()` kopiert die Datei für den VM-Hop in die VM und sourct sie dort.
+`require_env_file()` prüft die Datei vor der VM-Anlage auf Existenz, Lesbarkeit
+und fehlende Schreibrechte für group/other. `run_in_vm()` kopiert sie für den
+VM-Hop in die VM und sourct sie dort.
 
 | Variante | Dateiname | Ort | Kopie in die VM |
 |---|---|---|---|
-| V1 | `.env.local` | Skript-Verzeichnis (`${SCRIPT_DIR}`) | `/root/civitas-install/.env.local` |
-| V1s | `.env-v1s.local` (Fallback `.env.local`) | Skript-Verzeichnis (`${SCRIPT_DIR}`) | `/root/civitas-install/.env.local` |
+| V1 | `.env.local` | Host-Home (`${HOME}`, bei root `/root`) | `/root/civitas-install/.env.local` |
+| V1s | `.env-v1s.local` (kein Fallback) | Host-Home (`${HOME}`, bei root `/root`) | `/root/civitas-install/.env.local` |
+
+Die Datei liegt bewusst außerhalb von `${SCRIPT_DIR}`: das Installations-Repo
+wird per Synchronisation mit `--delete` gespiegelt, Secrets dürfen deshalb nicht
+darin liegen.
 
 ## Laden
 
 ```bash
-set -a; source .env-v1s.local; set +a
+set -a; source ${HOME}/.env-v1s.local; set +a
 ./install_civitas_core_V1s.sh
 ```
 
@@ -51,9 +57,10 @@ if [[ -f .env.local ]]; then set -a; source .env.local; set +a; fi
 
 Zwei Punkte sind zu beachten:
 
-- Der Installer kopiert nur die Datei aus `${SCRIPT_DIR}` in die VM. Eine Datei
-  außerhalb von `${SCRIPT_DIR}` wird nicht mitkopiert; dann ist ein Symlink oder
-  eine Kopie nötig.
+- Der Installer kopiert nur die Datei aus `${HOME}` in die VM. Die Datei muss
+  als `${HOME}/.env-v1s.local` (V1s) bzw. `${HOME}/.env.local` (V1) vorliegen;
+  `require_env_file()` bricht ab, wenn sie fehlt oder für group/other schreibbar
+  ist.
 - Nur die Werte, die in der Datei stehen, werden mitkopiert. Variablen, die nur
   in der Host-Shell exportiert sind, erreichen die VM nicht.
 

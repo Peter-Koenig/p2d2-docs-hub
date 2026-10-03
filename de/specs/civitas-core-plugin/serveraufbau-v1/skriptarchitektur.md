@@ -99,8 +99,9 @@ VM-Provisionierung aufgerufen. Sie:
 2. Kopiert das gesamte Installationsskript, alle Module, das Overlay-Verzeichnis
    und die Templates per scp in die VM unter `${VM_REMOTE_INSTALL_DIR}`
    (`/root/civitas-install`)
-3. Kopiert die Datei `.env.local` (falls vorhanden) per scp in die VM; diese
-   enthält alle Secrets (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel)
+3. Kopiert die Env-Datei aus `${HOME}` (`.env.local` bei V1, `.env-v1s.local`
+   bei V1s) als `.env.local` per scp in die VM; diese enthält alle Secrets
+   (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel)
 4. Startet `install_civitas_core_V1.sh` in der VM mit `CIVITAS_CONTEXT=vm`
    und sourced dabei `.env.local` vor dem Skriptaufruf
 
@@ -117,12 +118,12 @@ run_in_vm() {
     "${SCRIPT_DIR}/templates_V1" \
     "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/"
 
-  # .env.local transferieren, falls vorhanden
-  if [[ -f "${SCRIPT_DIR}/.env.local" ]]; then
-    scp "${VM_SSH_OPTS[@]}" \
-      "${SCRIPT_DIR}/.env.local" \
-      "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
-  fi
+  # Env-Datei aus ${HOME} transferieren (require_env_file hat sie geprüft)
+  local env_file
+  env_file="$(find_env_file)"
+  scp "${VM_SSH_OPTS[@]}" \
+    "${env_file}" \
+    "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
 
   ssh "${VM_SSH_OPTS[@]}" \
       "root@${VM_IP_STATIC}" \
@@ -169,10 +170,9 @@ fi
   sein. Ohne diesen Wert bricht das Skript bereits beim Laden von `01_config.sh`
   mit einer Fehlermeldung ab. Geprüft wird nur das Vorhandensein (`:?`); der
   Wert wird nicht in das Cloud-Init der VM übernommen.
-- **Secrets aus `.env.local`:** Liegt die Datei `.env.local` im Skript-Verzeichnis,
-  wird sie beim SSH-Hop automatisch in die VM übertragen und dort vor dem
-  Skriptstart gesourct. Alternativ können alle Secrets als Umgebungsvariablen
-  gesetzt werden.
+- **Secrets aus `.env.local`:** Die Datei liegt im Host-Home (`${HOME}`, bei root
+  `/root`). `require_env_file()` prüft sie vor der VM-Anlage und überträgt sie
+  beim SSH-Hop in die VM; dort wird sie vor dem Skriptstart gesourct.
 - **Das Skript wird als `root` ausgeführt** (oder via `sudo`). Der kubeconfig-Pfad
   (`KUBECONFIG_PATH`) bezieht sich auf das Homeverzeichnis des root-Users
   (`/root/.kube/config`). Die Berechtigung der kubeconfig-Datei wird mit
@@ -1287,12 +1287,12 @@ run_in_vm() {
     "${SCRIPT_DIR}/templates_V1" \
     "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/"
 
-  # Secrets aus .env.local übertragen, falls vorhanden
-  if [[ -f "${SCRIPT_DIR}/.env.local" ]]; then
-    scp "${VM_SSH_OPTS[@]}" \
-      "${SCRIPT_DIR}/.env.local" \
-      "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
-  fi
+  # Env-Datei aus ${HOME} übertragen (require_env_file hat sie geprüft)
+  local env_file
+  env_file="$(find_env_file)"
+  scp "${VM_SSH_OPTS[@]}" \
+    "${env_file}" \
+    "root@${VM_IP_STATIC}:${VM_REMOTE_INSTALL_DIR}/.env.local"
 
   # Skript in der VM starten (CIVITAS_CONTEXT=vm)
   ssh "${VM_SSH_OPTS[@]}" "root@${VM_IP_STATIC}" \
@@ -1317,7 +1317,8 @@ interaktive Abfrage während der Automatisierung.
 ### Secrets aus `.env.local`
 
 Secrets (SMTP-Passwort, Admin-Passwort, WireGuard-Schlüssel, Root-Passwort)
-können in einer Datei `.env.local` im Skript-Verzeichnis abgelegt werden:
+liegen in einer Datei im Host-Home (V1: `${HOME}/.env.local`, V1s:
+`${HOME}/.env-v1s.local`):
 
 ```bash
 # .env.local — Beispiel (NIE in Git einchecken!)
@@ -1333,13 +1334,13 @@ WG_OPN_ENDPOINT="1.2.3.4:51820"
 ```
 
 Die Datei wird:
-- Vom Entry-Point auf dem Proxmox-Host erkannt und per scp in die VM übertragen
+- Vom Host-Zweig über `require_env_file()` auf Existenz, Lesbarkeit und fehlende
+  Schreibrechte für group/other geprüft und per scp in die VM übertragen
 - In der VM vor dem Skriptstart per `source .env.local` geladen (mit `set -a`,
   damit alle Variablen als Umgebungsvariablen exportiert werden)
 - **Nicht** in Git eingecheckt (sollte in `.gitignore` stehen)
 
-Fehlt `.env.local`, müssen alle Secrets als Umgebungsvariablen gesetzt sein.
-Das Skript prüft Pflichtvariablen mit `${VAR:?}` und bricht bei Fehlen ab.
+Fehlt die Datei, bricht `require_env_file()` vor der VM-Anlage ab.
 
 ### Konfigurationsvariablen (zusätzlich in `01_config.sh`)
 
