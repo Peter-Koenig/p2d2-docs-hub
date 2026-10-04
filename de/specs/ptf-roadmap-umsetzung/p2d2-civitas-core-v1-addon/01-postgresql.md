@@ -101,12 +101,12 @@ CREATE SCHEMA p2d2_<branch> AUTHORIZATION "P2D2-Admin-Role";
 
 ### 3. DDL je Schema
 
-Die Objektstruktur wird aus dem Template `p2d2-civitas-addon/v1/templates/p2d2-postgresql/schema.sql.j2` je Schema angewendet (Platzhalter `{{ p2d2_instance_schema }}` →
+Die Objektstruktur wird aus dem Template `civitas_einrichtung/supplement/templates/p2d2-postgresql/schema.sql.j2` je Schema angewendet (Platzhalter `{{ p2d2_instance_schema }}` →
 `p2d2_<branch>`, `{{ p2d2_admin_role }}` → `P2D2-Admin-Role`):
 
 ```bash
 sed -e 's/{{ p2d2_instance_schema }}/p2d2_de1/g' -e 's/{{ p2d2_admin_role }}/P2D2-Admin-Role/g' \
-  p2d2-civitas-addon/v1/templates/p2d2-postgresql/schema.sql.j2 \
+  civitas_einrichtung/supplement/templates/p2d2-postgresql/schema.sql.j2 \
   | kubectl -n cc-prd-database-stack exec -i central-db-0 -c postgres -- psql -U postgres -d p2d2 -v ON_ERROR_STOP=1
 ```
 
@@ -245,6 +245,51 @@ Erwartet (manuell verifiziert, Turn 2): 14 Tabellen / 2 Views / 7 Sequenzen / 6 
 4. **Rollen stimmen überein.** 14 App-Rollen (`P2D2-Admin[-Role]`, `P2D2-RO[-Role]`, `P2D2-User-<BRANCH>`/`P2D2-<BRANCH>`) + 6 Zalando-Auto-Rollen (`p2d2_owner[_user]`, `p2d2_reader[_user]`, `p2d2_writer[_user]`), alle `inherit=true` — wie dokumentiert.
 5. **Standalone-Abgleich nicht durchgeführt.** Standalone-DB `192.168.122.110` (Datenbank `data-dna`) ist erreichbar, verlangt aber ein Passwort, das nicht vorliegt — der
    1:1-Vergleich gegen die Standalone-Referenz ist damit offen.
+
+## Supplement-basierte Schema-Bereitstellung (Shell-Installer)
+
+Der Shell-Installer (`civitas_einrichtung`) bezieht die DDL self-contained aus seinem
+`supplement/`-Verzeichnis (der Host→VM-Selbstkopieprozess kopiert `supplement/` rekursiv mit).
+Die fachliche Quelle ist der Standalone-Livebestand (`data-dna`, PostgreSQL 18.6). Historische
+Templates, Dumps und Skripte dienen nur als Vergleichsmaterial.
+
+### Reproduzierbare Extraktion
+
+```bash
+# Lesend aus der Standalone-DB (P2D2-RO), erzeugt das parametrisierte Template:
+python3 supplement/p2d2-extract-db-schema.py
+# Ziel: supplement/templates/p2d2-postgresql/schema.sql.j2
+```
+
+- Mechanismus: `psql`-Katalogabfragen und `pg_get_*`-Funktionen (versionsagnostisch; `pg_dump`
+  17.11 verweigert den neueren Server 18.6).
+- Parametrisierung: `{{ p2d2_instance_schema }}` und `{{ p2d2_admin_role }}` (Rendering per `sed`).
+- Objektklassen: Enums, Tabellen (inkl. UNLOGGED), Sequenzen mit `OWNED BY`, CHECK/PK/UNIQUE/FK-Constraints,
+  Indizes (auch räumliche GiST), Views, Funktionen, Trigger, Eigentümerzuweisungen.
+- Bewusst ausgeschlossen (Standalone-Altlasten): `gt_pk_metadata`, `rheinkassel_gf` mit
+  `rheinkassel_gf_ogc_fid_seq`. Der `de1`-Zusatz `fn_container_mitversionen()` mit
+  `trg_container_mitversionen` ist Teil der dokumentierten Zielstruktur und daher enthalten.
+
+### Statische Kompatibilitätsprüfung gegen die Dumps
+
+```bash
+bash supplement/verify-p2d2-schema-dumps.sh
+```
+
+Rendert das Template je Stage, prüft auf Platzhalterreste und stellt fest, dass jede vom Dump
+referenzierte Tabelle im gerenderten Template vorhanden ist (und umgekehrt).
+
+### Manifest und Fail-Fast
+
+`supplement/p2d2-db-artifacts.sha256` enthält Prüfsummen für Template und die fünf Dumps. Der
+Installer bricht vor jedem Datenbankeingriff ab, wenn Template, Manifest oder ein Dump fehlt
+oder eine Prüfsumme nicht passt.
+
+### Verbleibender Runtime-Test
+
+Auf `sdt` ist keine lokale PostgreSQL- oder Container-Instanz vorhanden; die Kompatibilität ist
+daher nur statisch belegt. Ausstehender Runtime-Test (Wegwerf-DB, danach löschen): Template
+rendern und mit `psql -v ON_ERROR_STOP=1` anwenden, anschließend den jeweiligen Dump importieren.
 
 ## Bekannte Fallstricke
 
