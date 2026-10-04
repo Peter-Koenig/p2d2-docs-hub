@@ -221,8 +221,6 @@ Parallel kann die langfristige Verstetigung vorbereitet werden: offene Governanc
 
 ## Weiterführende Dokumente
 
-- [PTF-Roadmap, AP 1: Startseite, Karten-Onboarding und Navigation](../specs/ptf-roadmap-umsetzung/webauftritt-startseite/)
-- [PTF-Roadmap, AP 4: CIVITAS/CORE V1, Statische Masterportal-Konfiguration](../specs/ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/)
 - [PTF-Roadmap, AP 4: p2d2 als CIVITAS/CORE-V1-AddOn](../specs/ptf-roadmap-umsetzung/p2d2-civitas-core-v1-addon/)
 - [CIVITAS/CORE V1: Serveraufbau](../specs/civitas-core-plugin/serveraufbau-v1/)
 - [CIVITAS/CORE: technische Einordnung](../specs/civitas-core-plugin/)

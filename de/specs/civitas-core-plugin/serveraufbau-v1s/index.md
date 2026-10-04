@@ -21,7 +21,7 @@ quality:
 
 Dieser Bereich spezifiziert den Serveraufbau für die **V1s-Buildvariante**: CIVITAS/CORE V1 mit **statischer statt S3-basierter Masterportal-Konfiguration**. Die Masterportal-Konfiguration wird dabei nicht mehr zur Laufzeit aus RustFS/S3 geladen, sondern als versioniertes Artefakt direkt in das Portal-Backend-Image gebaut.
 
-Grundlage ist das Vorhaben [CIVITAS/CORE V1: Statische Masterportal-Konfiguration](../../ptf-roadmap-umsetzung/civitas-core-v1-statische-masterportal-konfiguration/). Die vorliegende Spezifikation leitet sich weitgehend aus dem bestehenden [Serveraufbau V1](../serveraufbau-v1/) ab und beschreibt ausschließlich die Abweichungen.
+Grundlage ist das Vorhaben „CIVITAS/CORE V1: Statische Masterportal-Konfiguration" (die statische, versionierte und imagebasierte Auslieferung der Masterportal-Konfiguration). Die vorliegende Spezifikation leitet sich weitgehend aus dem bestehenden [Serveraufbau V1](../serveraufbau-v1/) ab und beschreibt ausschließlich die Abweichungen.
 
 ## Unverändert gegenüber V1
 
