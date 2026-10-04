@@ -2,7 +2,7 @@
 title: Netzwerk, DNS und TLS für das CIVITAS/CORE-Plugin
 description: Spezifikation der Netzwerkanbindung, Namensauflösung und Zertifikatsstrategie für die Plugin-VM
 status: draft
-lastUpdated: 2026-07-04
+lastUpdated: 2026-10-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-netzwerk
@@ -52,7 +52,9 @@ bestehen — beide Dienste nutzen dieselbe WireGuard-Strecke zur VM.
 ### Betriebsarten
 
 Die WireGuard-Strecke ist eine von zwei Betriebsarten. `WG_ENABLE` steuert die
-Auswahl.
+Auswahl. Beide Betriebsarten sind in
+[Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben, Fall 1 in
+[Fall 1: hinter HAProxy](../netzwerk-topologie/fall-1-hinter-haproxy.md).
 
 | Modus | `WG_ENABLE` | Erreichbarkeit |
 |---|---|---|
@@ -61,6 +63,13 @@ Auswahl.
 
 Im NAT-Modus entfällt der Tunnel. TLS wird direkt am nginx-Ingress der VM
 terminiert.
+
+Im Direktbetrieb liegt die öffentliche IPv4 auf `<wan-nic>` des Hetzner-Servers.
+Der Proxmox-Knoten leitet Port 80 und 443 per DNAT an die VM im isolierten Netz
+`vmbr1` und stellt Port 8022 auf Port 22 der VM zu. Ausgehender Verkehr der VM
+wird per MASQUERADE über `<wan-nic>` geführt. `udp.<basisdomain>` und
+`*.udp.<basisdomain>` zeigen auf `<oeffentliche-ip>`. Details in
+[Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md).
 
 ## Namensauflösung
 
@@ -103,11 +112,18 @@ Wildcard `*.udp.<DOMAIN>`. Je nach aktivierten Komponenten
 > Auflösung auf die OPNsense-WAN-IP) eingetragen sein. Einträge für
 > deaktivierte Komponenten (`❌`) können weggelassen werden. Optionale
 > Einträge (`⬜`) sollten vorsorglich gesetzt werden, falls die Komponente
-> später aktiviert wird.
+später aktiviert wird.
+
+Im Direktbetrieb zeigen alle Namen `udp.<basisdomain>` und
+`*.udp.<basisdomain>` auf `<oeffentliche-ip>`. Belegt für `udp`, `www.udp`
+und `idm.udp`.
 
 ## Externe Erreichbarkeit
 
-Der HAProxy auf OPNsense ist der zentrale Einstiegspunkt auf Port 443
+Dieser Abschnitt gilt für die Betriebsart mit WireGuard und HAProxy. Für den
+Direktbetrieb siehe [Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md).
+
+Der HAProxy auf OPNsense ist der zentrale Einstiegspunkt auf Port 443
 und routet eingehende Verbindungen per SNI:
 
 | Domain | Proxy | TLS-Terminierung | Ziel |
@@ -122,7 +138,9 @@ in der VM weiter. nginx terminiert TLS mit Zertifikaten von cert-manager
 
 ## Reverse-Proxy-Anbindung
 
-Es existieren zwei parallele Proxy-Muster. HAProxy auf OPNsense (Port 443)
+Dieser Abschnitt gilt für die Betriebsart mit WireGuard und HAProxy.
+
+Es existieren zwei parallele Proxy-Muster. HAProxy auf OPNsense (Port 443)
 ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 
 ### Muster A: HAProxy → Caddy (HTTP-Proxy, für `*.data-dna.eu` und ACME)
@@ -244,6 +262,9 @@ Let's Encrypt → http://<domain>/.well-known/acme-challenge/<token>
              → Ingress (von cert-manager erzeugt, http01.ingress)
              → ACME-Responder-Pod
 ```
+
+Im Standalone-Betrieb erreicht die HTTP-01-Validierung die VM über die
+DNAT-Weiterleitung von Port 80 auf dem Knoten.
 
 **Status:** Die LE-ClusterIssuer (Staging + Production) sind nicht
 automatisch im Playbook aktiviert (`create_letsencrypt_issuer: false`).

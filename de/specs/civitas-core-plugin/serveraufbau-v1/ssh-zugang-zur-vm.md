@@ -2,7 +2,7 @@
 title: SSH-Zugang zur VM
 description: Installations-Key und VM_SSH_PUBKEY für den SSH-Zugang vom Proxmox-Host in die CIVITAS/CORE-VM.
 status: draft
-lastUpdated: 2026-10-03
+lastUpdated: 2026-10-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-ssh-zugang
@@ -48,12 +48,50 @@ Schlüssel für den direkten Login hinterlegen.
   Werte mit `CHANGEME` und Zeilen mit authorized_keys-Optionen (`command=`,
   `from=`). Leer- und `#`-Zeilen werden ignoriert.
 
+## Zugangsregel
+
+Mindestens `VM_SSH_PUBKEY` oder `ROOT_PASSWORD` muss gesetzt sein, sonst
+bricht `init_ssh_access` vor jeder VM-Änderung ab. Der Installations-Key
+zählt dabei nicht. `ROOT_PASSWORD` wirkt auf die Konsole der VM. Beobachtet:
+Der SSH-Dienst der VM bot beim Test von außen nur Public-Key-Authentifizierung
+an.
+
+## Zwei Schlüsselarten
+
+| Aspekt | Installations-Key | Admin-Schlüssel |
+|---|---|---|
+| Erzeuger | Skript auf dem Proxmox-Knoten | Administrator auf seiner Workstation |
+| Ort des privaten Schlüssels | `INSTALL_KEY_DIR` auf dem Knoten | `~/.ssh/` auf der Workstation |
+| Ort des öffentlichen Schlüssels | per `--sshkeys` in die VM injiziert | `VM_SSH_PUBKEY` in `${HOME}/.env-v1s.local` |
+| Zweck | Host-Hop des Installers | direkter Login des Administrators |
+
+## Admin-Schlüsselpaar erzeugen
+
+Der Administrator erzeugt das Paar auf seiner Workstation:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/<schluesselname> -C "<kommentar>"
+```
+
+Der private Schlüssel bleibt unter `~/.ssh/` auf der Workstation. Er verlässt
+sie nicht und steht nie in einer `.env`-Datei. Der öffentliche Schlüssel
+(`<schluesselname>.pub`) wird in `VM_SSH_PUBKEY` eingetragen, eine Zeile pro
+Schlüssel, in der Datei `${HOME}/.env-v1s.local` auf dem Proxmox-Knoten.
+Mehrere Administratoren tragen mehrere Zeilen ein. Die erlaubten Schlüsseltypen
+und die Ablehnungsregeln stehen oben im Abschnitt Konzept.
+
+## Wirkung von `VM_SSH_PUBKEY`
+
+`provision_vm` baut aus dem Installations-Pubkey und den Zeilen aus
+`VM_SSH_PUBKEY` die `--sshkeys`-Datei für Cloud-Init. Der Eintrag wirkt bei der
+Neuanlage der VM. Zur Wirkung bei einer bestehenden VM liegt kein Beleg vor.
+
 ## Ablauf in Phase -1 und im VM-Hop
 
 `init_ssh_access` läuft im Host-Zweig des Installers vor `provision_vm` und ist
-idempotent. Es validiert `VM_SSH_PUBKEY` vor jeder VM-Änderung. Ohne
-`VM_SSH_PUBKEY` erscheint eine Warnung, der Zugang ist dann nur über den
-Installations-Key möglich.
+idempotent. Es validiert `VM_SSH_PUBKEY` vor jeder VM-Änderung. Mindestens
+`VM_SSH_PUBKEY` oder `ROOT_PASSWORD` muss gesetzt sein, sonst bricht
+`init_ssh_access` ab. Der Installations-Key zählt dabei nicht.
 
 In `provision_vm` (Schritt 6) wird die `--sshkeys`-Datei temporär (0600) aus dem
 Installations-Pubkey und den Zeilen aus `VM_SSH_PUBKEY` gebaut, per
@@ -94,6 +132,30 @@ Nicht verifiziert: ob `--sshkeys` nur beim ersten Boot greift und ob ein
 späterer Neustart einen so entfernten Key wieder einträgt. Ein Live-Test auf
 Proxmox steht aus.
 
+## Zugang im Standalone-Betrieb (Fall 2)
+
+Port 8022 des Knotens führt per DNAT zu Port 22 der VM. Verbindung:
+
+```bash
+ssh -p 8022 -i ~/.ssh/<schluesselname> root@<oeffentliche-ip>
+```
+
+Beispiel für `~/.ssh/config`:
+
+```text
+Host civitas-core-hetzner
+    HostName <oeffentliche-ip>
+    Port 8022
+    User root
+    IdentityFile ~/.ssh/<schluesselname>
+    IdentitiesOnly yes
+```
+
+Der Host-Key, den der Client unter `[<oeffentliche-ip>]:8022` speichert, ist
+der Host-Key der VM, nicht der des Knotens. Der SSH-Dienst des Knotens hört
+getrennt auf Port 22. Die Weiterleitung richtet der Administrator manuell ein,
+siehe [Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md).
+
 ## Fehlerbilder
 
 | Symptom | Ursache | Hinweis |
@@ -101,6 +163,7 @@ Proxmox steht aus.
 | Host-Key hat sich geändert | VM neu angelegt oder IP wiederverwendet | `ssh-keygen -R <IP> -f <known_hosts>` |
 | Installations-Key unbekannt | Altbestand | wird automatisch nachgetragen |
 | `VM_SSH_PUBKEY` ungültig | Platzhalter oder privater Schlüssel | Abbruch vor jeder VM-Änderung |
+| `Permission denied (publickey)` | Der verwendete Schlüssel steht nicht in `VM_SSH_PUBKEY` | mit `-i` den richtigen Schlüssel angeben |
 
 ## Sicherheitshinweise
 

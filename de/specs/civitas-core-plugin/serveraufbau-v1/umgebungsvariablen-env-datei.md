@@ -2,7 +2,7 @@
 title: Umgebungsvariablen und .env-Datei
 description: Referenz der Konfigurations- und Secrets-Datei des CIVITAS/CORE-Installationsskripts.
 status: draft
-lastUpdated: 2026-10-03
+lastUpdated: 2026-10-04
 lang: de
 category: spec
 specid: civitas-core-plugin-serveraufbau-umgebungsvariablen
@@ -100,12 +100,15 @@ Bei `WG_ENABLE=false` prüft `03_preflight.sh` das Werkzeug `wg` nicht,
 | `APISIX_DASHBOARD` | nein | `false` | APISIX-Dashboard aktivieren |
 | `RUN_TESTS` | nein | `false` | E2E-Tests nach Installation |
 | `CERT_BACKUP_FILE` | nein | `le-certs-backup.yaml` | Dateiname (relativ) oder Pfad in der VM |
+| `CERT_BACKUP_HOST_FILE` | nein | `${HOME}/le-certs-backup.yaml` | Host-Pfad des Zertifikats-Backups |
+| `CERT_BACKUP_MIN_DAYS` | nein | `30` | Mindest-Restlaufzeit in Tagen, damit ein Backup als brauchbar gilt (1-600) |
 | `LOG_FILE` | nein | leer | optionaler Pfad für File-Logging |
 
-`CERT_BACKUP_FILE` bestimmt den Dateinamen, den `01_config.sh` in der VM
-verwendet. Der Installer kopiert aber nur die feste Datei
-`${SCRIPT_DIR}/le-certs-backup.yaml` in die VM. Ein abweichender Dateiname wird
-nicht mitkopiert.
+`CERT_BACKUP_FILE` bestimmt den Dateinamen oder Pfad in der VM. Der Installer
+liest ein vorhandenes Backup von `CERT_BACKUP_HOST_FILE` auf dem Host und nutzt
+den veralteten Pfad `${SCRIPT_DIR}/le-certs-backup.yaml` als Fallback mit
+Warnung. Nach einer Neuausstellung holt er das Backup nach
+`CERT_BACKUP_HOST_FILE` zurück. Das Backup ist funktionsfähig.
 
 `NO_NEW_LE_CERT` existiert nicht; der Safety-Schalter heißt
 `LE_REQUESTS_BLOCKED`.
@@ -134,7 +137,7 @@ durch das E2E-Testrepo ist nicht belegt. `TEST_ID.BASE_DOMAIN` entspricht
 
 | Variable | Pflicht | Default | Wirkung |
 |---|---|---|---|
-| `ROOT_PASSWORD` | ja | - | wird nur auf Vorhandensein geprüft, nicht weiterverwendet |
+| `ROOT_PASSWORD` | nein | leer | wird per `chpasswd` in der VM gesetzt (Konsole), wenn gesetzt |
 | `SMTP_HOST` | ja | - | SMTP-Server |
 | `SMTP_PORT` | nein | `587` | SMTP-Port |
 | `SMTP_USER` | ja | - | SMTP-Benutzer |
@@ -142,6 +145,10 @@ durch das E2E-Testrepo ist nicht belegt. `TEST_ID.BASE_DOMAIN` entspricht
 | `ADMIN_EMAIL` | nein | `admin@${DOMAIN_NAME}` | E-Mail des Plattform-Administrators |
 | `ADMIN_PASS` | ja | - | master_password und platform_admin-Passwort |
 | `TENANT_ADMIN_PASS` | nein | - | wird von keinem Modul gelesen |
+
+Mindestens `VM_SSH_PUBKEY` oder `ROOT_PASSWORD` muss gesetzt sein, sonst
+bricht `init_ssh_access` vor jeder VM-Änderung ab. Der Installations-Key zählt
+dabei nicht.
 
 ### Netzwerkmodus / WireGuard
 
@@ -179,6 +186,19 @@ Details zum Ablauf, zur Validierung und zur Altbestand-Migration in
 | `CERT_MANAGER_ISSUER` | nein | `selfsigned-issuer` | cert-manager-Issuer |
 | `CREDENTIALS_OUTPUT_PATH` | nein | `/root/civitas-install/credentials.env` | Zielpfad der Dienst-Passwörter |
 
+### Wiederholungen und Zeitsteuerung
+
+| Variable | Pflicht | Default | Wirkung |
+|---|---|---|---|
+| `CC_API_MAX_RETRIES` | nein | `60` | maximale API-Check-Versuche (1-600) |
+| `CC_DEPLOYMENT_MAX_RETRIES` | nein | `30` | maximale Deployment-Check-Versuche (1-600) |
+| `CC_EXEC_ATTEMPTS` | nein | `2` | Versuche für `cc_cli exec` bei vorübergehenden Fehlern (1-600) |
+| `CC_EXEC_RETRY_DELAY` | nein | `30` | Sekunden zwischen den `cc_cli exec`-Versuchen (1-600) |
+| `IDM_TOKEN_RETRIES` | nein | `6` | Versuche für den Keycloak-Master-Token (1-600) |
+| `IDM_TOKEN_RETRY_DELAY` | nein | `10` | Sekunden zwischen den Token-Versuchen (1-600) |
+
+Die Zahlenvariablen werden auf 1 bis 600 geprüft.
+
 ### Host / VM (Proxmox)
 
 | Variable | Default | Wirkung |
@@ -193,9 +213,9 @@ Details zum Ablauf, zur Validierung und zur Altbestand-Migration in
 | `VM_IP_STATIC` | `192.168.12.139` | IPv4-Adresse der VM |
 | `VM_IP_PREFIX` | `24` | IPv4-Präfixlänge |
 | `VM_GW` | `192.168.12.1` | IPv4-Gateway |
-| `VM_IP6_STATIC` | `fd01:1:1:1::139` | IPv6-Adresse der VM; leer = IPv6 deaktivieren |
+| `VM_IP6_STATIC` | leer | IPv6-Adresse der VM; leer = IPv6 aus |
 | `VM_IP6_PREFIX` | `64` | IPv6-Präfixlänge |
-| `VM_GW6` | `fd01:1:1:1:de39:6fff:febe:9962` | IPv6-Gateway |
+| `VM_GW6` | leer | IPv6-Gateway (Pflicht, wenn `VM_IP6_STATIC` gesetzt) |
 | `PBS_STORAGE` | `backup-p2d2-kinglui` | PBS-Storage; leer = Backup-Prüfung überspringen |
 | `CLOUD_IMAGE_URL` | Debian-13-Cloud-Image | Quelle für das Cloud-Image |
 | `CLOUD_IMAGE_CACHE` | `/var/lib/vz/template/qcow` | Cache-Verzeichnis für das Cloud-Image |
@@ -205,8 +225,10 @@ Unterscheidung „leer = Default" und „leer = deaktiviert":
 
 - Die meisten Host-/VM-Werte verwenden `${VAR:-default}`. Ein leerer Wert
   erhält den Default, nicht den leeren Wert.
-- `VM_IP6_STATIC` und `PBS_STORAGE` verwenden `${VAR-default}`. Ein leerer Wert
-  bleibt leer und deaktiviert die Funktion (IPv6 bzw. Backup-Prüfung).
+- `PBS_STORAGE` verwendet `${VAR-default}`. Ein leerer Wert bleibt leer und
+  deaktiviert die Backup-Prüfung.
+- `VM_IP6_STATIC` und `VM_GW6` sind standardmäßig leer. IPv6 ist damit aus.
+  Wer IPv6 nutzt, setzt beide Variablen ausdrücklich.
 
 ### V1s-spezifisch
 
@@ -243,6 +265,18 @@ wenn der Wert aus `A-Za-z0-9._@:/-` besteht, höchstens 64 Zeichen lang ist und
 `CHANGEME` als eigenständiges Token enthält. Sonst erscheint nur der Name mit
 „(enthält CHANGEME)".
 
+## Umgebungen
+
+Die beiden Profile unterscheiden sich in Netzwerkmodus, Storage und VM-Größe.
+
+| Profil | `WG_ENABLE` | `PROXMOX_STORAGE` | `VM_BRIDGE` | `VM_CORES` | `PBS_STORAGE` |
+|---|---|---|---|---|---|
+| A (SOHO) | `true` | `local-zfs-civitas` | `vmbr0` | `12` | gesetzt |
+| B (Hetzner) | `false` | `local-lvm` | `vmbr1` | `10` | leer |
+
+Die Betriebsarten sind in
+[Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben.
+
 ## Beispielprofile
 
 ### SOHO mit HAProxy/WireGuard (`WG_ENABLE=true`)
@@ -255,6 +289,8 @@ export VM_CORES="12"
 export WG_VM_PRIVATE_KEY="…"
 export WG_OPN_PUBLIC_KEY="…"
 export WG_OPN_ENDPOINT="…:51820"
+export VM_IP6_STATIC="fd01:1:1:1::139"
+export VM_GW6="fd01:1:1:1:de39:6fff:febe:9962"
 ```
 
 ### Hetzner NAT ohne WireGuard (`WG_ENABLE=false`)
@@ -269,14 +305,17 @@ export VM_IP6_STATIC="fd01:1:1:1::139"
 export VM_GW6="fd01:1:1:1::1"
 export PBS_STORAGE=""
 export DOMAIN_NAME="projekte-koenig.eu"
+export CC_API_MAX_RETRIES="60"
+export VM_SSH_PUBKEY="<public-key>"
 ```
 
-Das Hetzner-Profil ist noch nicht live getestet.
+Das Hetzner-Profil setzt `VM_SSH_PUBKEY` für den direkten Login.
 
 ## Bekannte Einschränkungen
 
-- `ROOT_PASSWORD` wird nur auf Vorhandensein geprüft (`:?`) und nirgends
-  weiterverwendet. Es gibt kein Passwort-Login in der VM.
+- `ROOT_PASSWORD` ist optional. Gesetzt wird es nach dem SSH-Zugang per
+  `chpasswd` in der VM angewendet. Beobachtet: Der SSH-Dienst der VM bot beim
+  Test von außen nur `publickey` an.
 - `ENVIRONMENT` in `01_config.sh` (hart `cc-prd`) ist ein ungenutzter
   Duplikat-Name zu `CC_ENVIRONMENT`.
 - `TEST_ID`/`BASE_DOMAIN` werden vom Installer nicht gelesen.
