@@ -53,23 +53,25 @@ bestehen — beide Dienste nutzen dieselbe WireGuard-Strecke zur VM.
 
 Die WireGuard-Strecke ist eine von zwei Betriebsarten. `WG_ENABLE` steuert die
 Auswahl. Beide Betriebsarten sind in
-[Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben, Fall 1 in
-[Fall 1: hinter HAProxy](../netzwerk-topologie/fall-1-hinter-haproxy.md).
+[Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben, die
+Betriebsart Hinter HAProxy in
+[Hinter HAProxy](../netzwerk-topologie/hinter-haproxy.md).
 
 | Modus | `WG_ENABLE` | Erreichbarkeit |
 |---|---|---|
-| WireGuard + HAProxy (SOHO) | `true` | OPNsense leitet TLS per HAProxy TCP-Passthrough über den Tunnel |
-| Direktbetrieb / NAT (z. B. Hetzner) | `false` | Der Host leitet TCP 80/443 per DNAT (inkl. Hairpin-NAT) an die VM |
+| Hinter HAProxy (WireGuard) | `true` | OPNsense leitet TLS per HAProxy TCP-Passthrough über den Tunnel |
+| Standalone (NAT) | `false` | Der Host leitet TCP 80/443 per DNAT (inkl. Hairpin-NAT) an die VM |
 
-Im NAT-Modus entfällt der Tunnel. TLS wird direkt am nginx-Ingress der VM
-terminiert.
+Im Standalone-Betrieb entfällt der Tunnel. TLS wird direkt am nginx-Ingress
+der VM terminiert.
 
-Im Direktbetrieb liegt die öffentliche IPv4 auf `<wan-nic>` des Hetzner-Servers.
-Der Proxmox-Knoten leitet Port 80 und 443 per DNAT an die VM im isolierten Netz
+Im Standalone-Betrieb liegt die öffentliche IPv4 auf `<wan-nic>` des Servers
+von [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/). Der
+Proxmox-Knoten leitet Port 80 und 443 per DNAT an die VM im isolierten Netz
 `vmbr1` und stellt Port 8022 auf Port 22 der VM zu. Ausgehender Verkehr der VM
 wird per MASQUERADE über `<wan-nic>` geführt. `udp.<basisdomain>` und
 `*.udp.<basisdomain>` zeigen auf `<oeffentliche-ip>`. Details in
-[Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md).
+[Standalone](../netzwerk-topologie/standalone.md).
 
 ## Namensauflösung
 
@@ -112,16 +114,15 @@ Wildcard `*.udp.<DOMAIN>`. Je nach aktivierten Komponenten
 > Auflösung auf die OPNsense-WAN-IP) eingetragen sein. Einträge für
 > deaktivierte Komponenten (`❌`) können weggelassen werden. Optionale
 > Einträge (`⬜`) sollten vorsorglich gesetzt werden, falls die Komponente
-später aktiviert wird.
+> später aktiviert wird.
 
-Im Direktbetrieb zeigen alle Namen `udp.<basisdomain>` und
-`*.udp.<basisdomain>` auf `<oeffentliche-ip>`. Belegt für `udp`, `www.udp`
-und `idm.udp`.
+Im Standalone-Betrieb zeigen alle Namen `udp.<basisdomain>` und
+`*.udp.<basisdomain>` auf `<oeffentliche-ip>`.
 
 ## Externe Erreichbarkeit
 
 Dieser Abschnitt gilt für die Betriebsart mit WireGuard und HAProxy. Für den
-Direktbetrieb siehe [Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md).
+Standalone-Betrieb siehe [Standalone](../netzwerk-topologie/standalone.md).
 
 Der HAProxy auf OPNsense ist der zentrale Einstiegspunkt auf Port 443
 und routet eingehende Verbindungen per SNI:
@@ -133,7 +134,7 @@ und routet eingehende Verbindungen per SNI:
 
 Der HAProxy TCP-Passthrough leitet den TLS-Handshake 1:1 an den nginx-Ingress
 in der VM weiter. nginx terminiert TLS mit Zertifikaten von cert-manager
-(Variante E: Gateway API HTTP-01). Caddy ist hinter HAProxy auf Port 8443
+(Variante E: ingress-nginx HTTP-01). Caddy ist hinter HAProxy auf Port 8443
 (HTTPS) und 8080 (HTTP für Let's-Encrypt-HTTP-01-Challenges) erreichbar.
 
 ## Reverse-Proxy-Anbindung
@@ -160,7 +161,7 @@ ist der zentrale Einstiegspunkt und routet eingehende Verbindungen per SNI.
 2. Bei SNI `*.udp.data-dna.eu` wird der TCP-Strom 1:1 an `10.10.10.5:443`
    weitergeleitet (via WireGuard).
 3. nginx in der VM terminiert TLS mit Zertifikaten von cert-manager
-   (Variante E: Gateway API HTTP-01).
+   (Variante E: ingress-nginx HTTP-01).
 4. Der 308-Redirect entfällt, da nginx die TLS-Verbindung vollständig
    selbst handhabt. `ssl-redirect=true` (Default) ist korrekt.
 
@@ -568,7 +569,7 @@ Die folgenden Entscheidungen sind gefallen und verbindlich:
   Die Weiterleitung erfolgt durch HAProxy.
 - **TLS in der VM (CIVITAS/CORE)**: F&uuml;r `*.udp.data-dna.eu` terminiert nginx
   in der VM das TLS selbstst&auml;ndig mit Zertifikaten von cert-manager
-  (Variante E: Gateway API HTTP-01). Der HAProxy leitet den TCP-Strom
+  (Variante E: ingress-nginx HTTP-01). Der HAProxy leitet den TCP-Strom
   1:1 durch (Layer 4, kein TLS-Eingriff).
 - **Caddy-TLS (bestehende Dienste)**: F&uuml;r `*.data-dna.eu` terminiert Caddy
   weiterhin TLS mit Let's-Encrypt-Zertifikaten. Die ACME-HTTP-01-Challenge
@@ -651,7 +652,7 @@ und kann das von cert-manager ausgestellte Zertifikat präsentieren:
   selbst handhabt.
 - cc_cli-Health-Checks erhalten HTTP-200, da der Pfad über nginx
   direkt zur Ziel-Komponente führt.
-- cert-manager stellt Zertifikate per Gateway API HTTP-01 (Variante E) aus.
+- cert-manager stellt Zertifikate per ingress-nginx HTTP-01 (Variante E) aus.
 - Der ConfigMap-Patch `ssl-redirect=false` entfällt.
 - `inv_checks.enable: true` im Inventory kann gesetzt werden.
 
@@ -697,7 +698,7 @@ Port 443 ──→ HAProxy (OPNsense)
 ### Nächste Schritte
 
 1. `inv_checks.enable: true` im Inventory-Template setzen (nach erfolgreichem Testlauf)
-2. Let's-Encrypt-Produktions-Issuer (letsencrypt-prod) gemäß Variante E (Gateway API HTTP-01) aktivieren, nachdem die Staging-vor-Produktion-Pflicht für den jeweiligen Hostnamen erfüllt ist
+2. Let's-Encrypt-Produktions-Issuer (letsencrypt-prod) gemäß Variante E (ingress-nginx HTTP-01) aktivieren, nachdem die Staging-vor-Produktion-Pflicht für den jeweiligen Hostnamen erfüllt ist
 
 ***
 

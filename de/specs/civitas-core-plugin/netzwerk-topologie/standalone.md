@@ -1,11 +1,11 @@
 ---
-title: "Fall 2: direkt im Netz"
-description: Paketwege der CIVITAS/CORE-Plattform auf einem öffentlich erreichbaren Hetzner-Server mit NAT.
+title: "Standalone"
+description: Paketwege der CIVITAS/CORE-Plattform auf einem öffentlich erreichbaren Hetzner AX41-1-LTD mit NAT.
 status: draft
 lastUpdated: 2026-10-04
 lang: de
 category: spec
-specid: civitas-core-plugin-netzwerk-topologie-fall-2
+specid: civitas-core-plugin-netzwerk-topologie-standalone
 parent: civitas-core-plugin-netzwerk-topologie-index
 dependencies:
   - civitas-core-plugin-serveraufbau-netzwerk
@@ -17,11 +17,11 @@ quality:
   reviewDate:
 ---
 
-# Fall 2: direkt im Netz
+# Standalone
 
-Die Plattform läuft auf einem öffentlich erreichbaren Hetzner-Server mit einer
-IPv4. Der Proxmox-Knoten leitet eingehenden Verkehr per NAT an die VM weiter.
-Diese Betriebsart dient dem schnellen Test auf einem separaten Server.
+Die Plattform [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/) läuft
+auf einem öffentlich erreichbaren Hetzner AX41-1-LTD in Nürnberg. Der
+Proxmox-Knoten leitet eingehenden Verkehr per NAT an die VM.
 
 ## Paketweg
 
@@ -38,7 +38,7 @@ flowchart LR
 | Komponente | Rolle |
 |---|---|
 | Client im Internet | löst `udp.<basisdomain>`, `www.udp.<basisdomain>` und `idm.udp.<basisdomain>` auf `<oeffentliche-ip>` auf |
-| Server | trägt die öffentliche IPv4 und IPv6 auf `<wan-nic>` |
+| Server in Nürnberg | trägt die öffentliche IPv4 und IPv6 auf `<wan-nic>` |
 | Proxmox-Knoten | Router und NAT-Gerät |
 | Bridge `vmbr1` | isoliertes Netz `<vm-netz>` ohne physischen Port |
 | VM mit ingress-nginx | terminiert TLS, öffnet Port 80 und 443 |
@@ -63,8 +63,8 @@ Die FORWARD-Policy ist ACCEPT, zusätzlich bestehen zwei ACCEPT-Regeln für TCP
 
 ## Regelsatz auf dem Knoten
 
-Die folgenden Befehle wurden in dieser Form nicht ausgeführt. Die beobachteten
-Regeln auf dem Knoten sind die Referenz.
+Die folgenden Befehle wurden in dieser Form nicht ausgeführt. Die auf dem
+Knoten vorhandenen Regeln sind die Referenz.
 
 ```bash
 iptables -t nat -A PREROUTING -d <oeffentliche-ip>/32 -i <wan-nic> -p tcp -m multiport --dports 80,443 -j DNAT --to-destination <vm-ip>
@@ -137,5 +137,5 @@ die VM über die Weiterleitung von Port 80.
 
 ## Zusammenhang mit dem Installer
 
-Der Installer läuft mit `WG_ENABLE=false` und richtet die NAT-Regeln nicht
-ein. Der Administrator richtet sie manuell ein.
+Der Installer läuft in der Betriebsart Standalone mit `WG_ENABLE=false` und
+richtet die NAT-Regeln nicht ein. Der Administrator richtet sie manuell ein.

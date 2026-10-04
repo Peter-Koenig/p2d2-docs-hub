@@ -52,9 +52,7 @@ Schlüssel für den direkten Login hinterlegen.
 
 Mindestens `VM_SSH_PUBKEY` oder `ROOT_PASSWORD` muss gesetzt sein, sonst
 bricht `init_ssh_access` vor jeder VM-Änderung ab. Der Installations-Key
-zählt dabei nicht. `ROOT_PASSWORD` wirkt auf die Konsole der VM. Beobachtet:
-Der SSH-Dienst der VM bot beim Test von außen nur Public-Key-Authentifizierung
-an.
+zählt dabei nicht. `ROOT_PASSWORD` wirkt auf die Konsole der VM.
 
 ## Zwei Schlüsselarten
 
@@ -132,29 +130,31 @@ Nicht verifiziert: ob `--sshkeys` nur beim ersten Boot greift und ob ein
 späterer Neustart einen so entfernten Key wieder einträgt. Ein Live-Test auf
 Proxmox steht aus.
 
-## Zugang im Standalone-Betrieb (Fall 2)
+## Zugang im Standalone-Betrieb
 
-Port 8022 des Knotens führt per DNAT zu Port 22 der VM. Verbindung:
+Port 8022 des Knotens von
+[udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/) führt per DNAT zu
+Port 22 der VM. Verbindung:
 
 ```bash
-ssh -p 8022 -i ~/.ssh/<schluesselname> root@<oeffentliche-ip>
+ssh -p 8022 -i ~/.ssh/<schluesselname> root@udp.projekte-koenig.eu
 ```
 
 Beispiel für `~/.ssh/config`:
 
 ```text
-Host civitas-core-hetzner
-    HostName <oeffentliche-ip>
+Host udp.projekte-koenig.eu
+    HostName udp.projekte-koenig.eu
     Port 8022
     User root
     IdentityFile ~/.ssh/<schluesselname>
     IdentitiesOnly yes
 ```
 
-Der Host-Key, den der Client unter `[<oeffentliche-ip>]:8022` speichert, ist
-der Host-Key der VM, nicht der des Knotens. Der SSH-Dienst des Knotens hört
-getrennt auf Port 22. Die Weiterleitung richtet der Administrator manuell ein,
-siehe [Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md).
+Der Host-Key, den der Client unter `[udp.projekte-koenig.eu]:8022` speichert,
+ist der Host-Key der VM, nicht der des Knotens. Der SSH-Dienst des Knotens
+hört getrennt auf Port 22. Die Weiterleitung richtet der Administrator
+manuell ein, siehe [Standalone](../netzwerk-topologie/standalone.md).
 
 ## Fehlerbilder
 

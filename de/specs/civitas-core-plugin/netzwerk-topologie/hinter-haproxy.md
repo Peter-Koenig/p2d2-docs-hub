@@ -1,11 +1,11 @@
 ---
-title: "Fall 1: hinter HAProxy"
+title: "Hinter HAProxy"
 description: Paketweg der CIVITAS/CORE-Plattform im Verwaltungsnetz über HAProxy und WireGuard.
 status: draft
 lastUpdated: 2026-10-04
 lang: de
 category: spec
-specid: civitas-core-plugin-netzwerk-topologie-fall-1
+specid: civitas-core-plugin-netzwerk-topologie-hinter-haproxy
 parent: civitas-core-plugin-netzwerk-topologie-index
 dependencies:
   - civitas-core-plugin-serveraufbau-netzwerk
@@ -17,11 +17,12 @@ quality:
   reviewDate:
 ---
 
-# Fall 1: hinter HAProxy
+# Hinter HAProxy
 
-Die Plattform läuft im Verwaltungsnetz hinter einer OPNsense-VM. Ein HAProxy
-leitet eingehenden HTTPS-Verkehr für `*.udp.<basisdomain>` per SNI als
-TCP-Passthrough über einen WireGuard-Tunnel an die VM.
+Die Plattform [udp.data-dna.eu](https://udp.data-dna.eu/) läuft im
+Verwaltungsnetz hinter einer OPNsense-VM. Ein HAProxy leitet eingehenden
+HTTPS-Verkehr für `*.udp.<basisdomain>` per SNI als TCP-Passthrough über einen
+WireGuard-Tunnel an die VM.
 
 ## Paketweg
 
@@ -38,11 +39,11 @@ flowchart LR
 | Komponente | Rolle | Ort |
 |---|---|---|
 | Client im Internet | löst `udp.<basisdomain>` und `*.udp.<basisdomain>` auf `<edge-ip>` auf | außerhalb |
-| Edge-Server | öffentlich erreichbarer Proxmox-Server | Standort des Betreibers |
+| Edge-Server | öffentlich erreichbarer Proxmox-Server | Helsinki |
 | OPNsense-VM | trägt `<edge-ip>` an der WAN-Schnittstelle | auf dem Edge-Server |
 | HAProxy | wertet den SNI-Namen aus und leitet den TCP-Strom weiter, terminiert kein TLS | in der OPNsense-VM |
 | WireGuard-Tunnel | verbindet OPNsense und VM | zwischen OPNsense und VM |
-| Proxmox-Knoten `civitas` | Bridge-Host, leitet nicht weiter | internes Netz |
+| Proxmox-Knoten von [udp.data-dna.eu](https://udp.data-dna.eu/) | Bridge-Host, leitet nicht weiter | internes Netz |
 | VM mit ingress-nginx | terminiert TLS, öffnet Port 80 und 443 | internes Netz |
 | cert-manager | stellt Zertifikate per HTTP-01 aus | in der VM |
 
@@ -59,11 +60,12 @@ flowchart LR
 
 ## Netzwerkeinrichtung des Proxmox-Knotens
 
-Der Knoten `civitas` ist ein reiner Bridge-Host. Die Bridge enthält die
-physische Schnittstelle des Knotens. Die VM hängt per `net0` an dieser Bridge
-und liegt im selben Layer-2-Segment wie das Gateway `<gateway-ip>`. Der Knoten
-leitet nichts weiter: `net.ipv4.ip_forward = 0`, keine NAT-Regeln, keine
-nftables-Regeln, `pve-firewall` deaktiviert.
+Der Proxmox-Knoten von [udp.data-dna.eu](https://udp.data-dna.eu/) ist ein
+reiner Bridge-Host. Die Bridge enthält die physische Schnittstelle des Knotens.
+Die VM hängt per `net0` an dieser Bridge und liegt im selben Layer-2-Segment
+wie das Gateway `<gateway-ip>`. Der Knoten leitet nichts weiter:
+`net.ipv4.ip_forward = 0`, keine NAT-Regeln, keine nftables-Regeln,
+`pve-firewall` deaktiviert.
 
 ## Netzwerk der VM
 
@@ -80,9 +82,9 @@ nftables-Regeln, `pve-firewall` deaktiviert.
 ## Voraussetzungen am Installer bei `WG_ENABLE=true`
 
 Pflichtvariablen sind `WG_VM_PRIVATE_KEY`, `WG_OPN_PUBLIC_KEY` und
-`WG_OPN_ENDPOINT`, optional ist `WG_PRESHARED_KEY`. Die Abnahme prüft
-`wg-quick@wg0`, einen Ping auf `WG_OPN_IP` und die Erreichbarkeit von
-`https://idm.udp.<basisdomain>/realms/master` und `https://udp.<basisdomain>/`.
+`WG_OPN_ENDPOINT`, optional ist `WG_PRESHARED_KEY`. Die Abnahme prüft die
+Erreichbarkeit des WireGuard-Tunnels, der OPNsense, von Keycloak und vom
+Portal.
 
 ## DNS
 
@@ -90,3 +92,12 @@ Im lokalen DNS des internen Netzes zeigen `udp.<basisdomain>` und
 `idm.udp.<basisdomain>` auf `<vm-ip>`, `www.udp.<basisdomain>` auf die
 öffentliche Adresse. Interne Clients erreichen die VM unter diesen Namen
 direkt und nicht über HAProxy und Tunnel.
+
+## Verweise
+
+Details zu HAProxy, Port 80 und den Zertifikaten stehen in
+[Netzwerk, DNS und TLS](../serveraufbau-v1/netzwerk-dns-tls.md). Die Abschnitte
+[Externe Erreichbarkeit](../serveraufbau-v1/netzwerk-dns-tls.md#externe-erreichbarkeit),
+[Reverse-Proxy-Anbindung](../serveraufbau-v1/netzwerk-dns-tls.md#reverse-proxy-anbindung) und
+[Variante E](../serveraufbau-v1/netzwerk-dns-tls.md#variante-e-—-let-s-encrypt-mit-ingress-nginx-http-01-verifiziert)
+behandeln die Details.

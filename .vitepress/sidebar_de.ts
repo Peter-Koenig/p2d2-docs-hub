@@ -784,12 +784,12 @@ export const sidebar_de = {
                                     link: "/de/specs/civitas-core-plugin/netzwerk-topologie/",
                                 },
                                 {
-                                    text: "Fall 1: hinter HAProxy",
-                                    link: "/de/specs/civitas-core-plugin/netzwerk-topologie/fall-1-hinter-haproxy",
+                                    text: "Hinter HAProxy",
+                                    link: "/de/specs/civitas-core-plugin/netzwerk-topologie/hinter-haproxy",
                                 },
                                 {
-                                    text: "Fall 2: direkt im Netz",
-                                    link: "/de/specs/civitas-core-plugin/netzwerk-topologie/fall-2-direkt-im-netz",
+                                    text: "Standalone",
+                                    link: "/de/specs/civitas-core-plugin/netzwerk-topologie/standalone",
                                 },
                             ],
                         },

@@ -1,6 +1,6 @@
 ---
 title: VM-Sizing und Host-Ressourcen für CIVITAS/CORE
-description: Gegenüberstellung der offiziellen CIVITAS/CORE-Systemanforderungen mit den Ressourcen der beiden Proxmox-Knoten civitas und Hetzner sowie Ableitung konkreter VM-Parameter.
+description: Gegenüberstellung der offiziellen CIVITAS/CORE-Systemanforderungen mit den Ressourcen der beiden Server udp.data-dna.eu und udp.projekte-koenig.eu sowie Ableitung konkreter VM-Parameter.
 status: draft
 lastUpdated: 2026-10-04
 lang: de
@@ -21,21 +21,17 @@ quality:
 
 ## Zielplattform
 
-CIVITAS/CORE wird auf zwei Proxmox-Knoten betrieben. Im SOHO-Profil läuft die
-Plattform auf dem lokalen Knoten `civitas`, der nicht öffentlich erreichbar
-ist. Im Hetzner-Profil läuft sie auf einem öffentlich erreichbaren
-Hetzner-Server. Belegt ist: Die VM ist installiert,
-`https://udp.<basisdomain>/` liefert HTTP 200 mit einem Let's-Encrypt-Zertifikat,
-SSH über Port 8022 funktioniert. Die Betriebsarten sind in
-[Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben.
+CIVITAS/CORE wird auf zwei Servern betrieben. Hinter HAProxy läuft die
+Plattform auf [udp.data-dna.eu](https://udp.data-dna.eu/), Standalone auf
+[udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/). Die Betriebsarten
+sind in [Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben.
 
 ## Verfügbare Hardware
 
-| Komponente | civitas | Hetzner-Server |
+| Komponente | [udp.data-dna.eu](https://udp.data-dna.eu/) | [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/) (Hetzner AX41-1-LTD) |
 |---|---|---|
 | CPU | AMD Ryzen 7 H 255, 8 Kerne / 16 Threads | AMD Ryzen 5 3600, 6 Kerne / 12 Threads |
 | RAM physisch | 64 GiB | 64 GB laut Anbieter, 62 GiB sichtbar |
-| RAM verfügbar | ~56 GiB (Proxmox-Host belegt ~3,7 GiB) | entfällt |
 | Storage raw | 2 × 476 GiB NVMe | 2 × 476,9 GiB NVMe als RAID1 |
 | Storage-Pool für die VM | zfspool, rpool (~455 GiB verfügbar) | lvmthin, 390 GiB |
 | Swap | keiner konfiguriert | 6 GiB als logisches Volume |
@@ -85,16 +81,16 @@ Laufzeitanforderungen der CIVITAS/CORE-Komponenten laut Deployment-Doku:
 
 ## Abgleich: Anforderungen vs. verfügbare Ressourcen
 
-| Ressource | CIVITAS/CORE Sandbox-Minimum | Verfügbar auf civitas | Verfügbar für VM | Bewertung |
+| Ressource | CIVITAS/CORE Sandbox-Minimum | Verfügbar auf [udp.data-dna.eu](https://udp.data-dna.eu/) | Verfügbar für VM | Bewertung |
 |---|---|---|---|---|
 | vCPU | 8–10 | 16 Threads | 12 (4 Reserve Host) | ausreichend |
 | RAM | 32 GiB | 56 GiB verfügbar | 40 GiB (16 GiB Reserve) | ausreichend |
 | Storage | 600 GiB | 455 GiB frei in rpool | 300 GiB ZFS-Volume | knapp – Begründung unten |
 | Swap | empfohlen | nicht konfiguriert | — | Risiko |
 
-Für den Hetzner-Server:
+Für [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/):
 
-| Ressource | CIVITAS/CORE Sandbox-Minimum | Verfügbar auf Hetzner-Server | Verfügbar für VM | Bewertung |
+| Ressource | CIVITAS/CORE Sandbox-Minimum | Verfügbar auf [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/) | Verfügbar für VM | Bewertung |
 |---|---|---|---|---|
 | vCPU | 8-10 | 12 Threads | 10 (2 Reserve Host) | ausreichend |
 | RAM | 32 GiB | 62 GiB sichtbar | 40 GiB (22 GiB Reserve) | ausreichend |
@@ -103,13 +99,13 @@ Für den Hetzner-Server:
 
 ## Empfohlenes VM-Sizing (erste Ausbaustufe)
 
-| Parameter | civitas | Hetzner-Profil | Begründung |
+| Parameter | [udp.data-dna.eu](https://udp.data-dna.eu/) | [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/) | Begründung |
 |---|---|---|---|
 | vCPU | 12 | 10 | 12 von 16 Threads bzw. 10 von 12 Threads; Reserve für den Host |
 | RAM | 40 GiB | 40 GiB | rund 70 % des verfügbaren RAM; Reserve für den Host |
 | Disk | 300 GiB (ZFS thin-provisioned) | 300 GiB (LVM-thin, `raw`) | deckt Sandbox-Anforderungen; liegt unter der Empfehlung von 600 GiB |
 | Gastbetriebssystem | offen (→ Folgespezifikation Kubernetes-Laufzeit) | offen | Debian 12 oder Ubuntu 24.04 empfohlen |
-| Netzwerk | internes VLAN im SOHO-Cluster | `vmbr1` als isoliertes Netz mit NAT durch den Knoten (siehe [Fall 2](../netzwerk-topologie/fall-2-direkt-im-netz.md)) | kein öffentlicher Zugang (civitas) bzw. öffentlich erreichbar (Hetzner) |
+| Netzwerk | internes VLAN im SOHO-Cluster | `vmbr1` als isoliertes Netz mit NAT durch den Knoten (siehe [Standalone](../netzwerk-topologie/standalone.md)) | Hinter HAProxy nicht öffentlich, Standalone öffentlich erreichbar |
 
 Die VM-Parameter (CPU, RAM, Disk, Bridge, Storage) sind per `.env`
 überschreibbar (`VM_CORES`, `VM_BRIDGE`, `PROXMOX_STORAGE`, …).
@@ -118,12 +114,12 @@ Verzeichnis-/NFS-Storage) werden vor jeder Änderung abgelehnt.
 Details in `umgebungsvariablen-env-datei.md`.
 
 `VM_CORES` zählt vCPUs (Threads), nicht physische Kerne. Auf einem Host mit
-SMT (6 Kerne / 12 Threads) wird im Hetzner-Profil `VM_CORES=10` gesetzt, um
+SMT (6 Kerne / 12 Threads) wird auf [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/) `VM_CORES=10` gesetzt, um
 zwei Threads für den Host zu belassen.
 
 ## Risiken und Einschränkungen
 
-### civitas
+### [udp.data-dna.eu](https://udp.data-dna.eu/)
 
 - **Kein Swap:** Kubernetes empfiehlt zwar deaktivierten Swap, der
   Proxmox-Host selbst hat keinen Swap konfiguriert. Bei RAM-Druck des
@@ -137,7 +133,7 @@ zwei Threads für den Host zu belassen.
   Ausfall der gesamten Plattform. Kein automatisches Failover möglich.
   Knoten ist in Backup über Proxmox eingebunden und wird täglich gesichert.
 
-### Hetzner-Server
+### [udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/)
 
 - Es ist ein einzelner Server ohne Failover.
 - Die beiden NVMe sind per mdadm als RAID1 gespiegelt. Ein Plattenausfall

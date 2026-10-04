@@ -271,15 +271,15 @@ Die beiden Profile unterscheiden sich in Netzwerkmodus, Storage und VM-Größe.
 
 | Profil | `WG_ENABLE` | `PROXMOX_STORAGE` | `VM_BRIDGE` | `VM_CORES` | `PBS_STORAGE` |
 |---|---|---|---|---|---|
-| A (SOHO) | `true` | `local-zfs-civitas` | `vmbr0` | `12` | gesetzt |
-| B (Hetzner) | `false` | `local-lvm` | `vmbr1` | `10` | leer |
+| Hinter HAProxy ([udp.data-dna.eu](https://udp.data-dna.eu/)) | `true` | `local-zfs-civitas` | `vmbr0` | `12` | gesetzt |
+| Standalone ([udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/)) | `false` | `local-lvm` | `vmbr1` | `10` | leer |
 
 Die Betriebsarten sind in
 [Netzwerk-Topologie](../netzwerk-topologie/index.md) beschrieben.
 
 ## Beispielprofile
 
-### SOHO mit HAProxy/WireGuard (`WG_ENABLE=true`)
+### Hinter HAProxy mit WireGuard (`WG_ENABLE=true`)
 
 ```bash
 export WG_ENABLE="true"
@@ -293,7 +293,7 @@ export VM_IP6_STATIC="fd01:1:1:1::139"
 export VM_GW6="fd01:1:1:1:de39:6fff:febe:9962"
 ```
 
-### Hetzner NAT ohne WireGuard (`WG_ENABLE=false`)
+### Standalone ohne WireGuard (`WG_ENABLE=false`)
 
 ```bash
 export WG_ENABLE="false"
@@ -309,13 +309,12 @@ export CC_API_MAX_RETRIES="60"
 export VM_SSH_PUBKEY="<public-key>"
 ```
 
-Das Hetzner-Profil setzt `VM_SSH_PUBKEY` für den direkten Login.
+Das Profil Standalone setzt `VM_SSH_PUBKEY` für den direkten Login.
 
 ## Bekannte Einschränkungen
 
 - `ROOT_PASSWORD` ist optional. Gesetzt wird es nach dem SSH-Zugang per
-  `chpasswd` in der VM angewendet. Beobachtet: Der SSH-Dienst der VM bot beim
-  Test von außen nur `publickey` an.
+  `chpasswd` in der VM.
 - `ENVIRONMENT` in `01_config.sh` (hart `cc-prd`) ist ein ungenutzter
   Duplikat-Name zu `CC_ENVIRONMENT`.
 - `TEST_ID`/`BASE_DOMAIN` werden vom Installer nicht gelesen.

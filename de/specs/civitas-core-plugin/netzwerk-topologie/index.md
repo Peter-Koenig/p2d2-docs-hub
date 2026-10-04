@@ -1,6 +1,6 @@
 ---
 title: Netzwerk-Topologie
-description: Vergleich der beiden Betriebsarten des CIVITAS/CORE-Plugins (hinter HAProxy und direkt im Netz) und ihrer Paketwege.
+description: Vergleich der beiden Betriebsarten des CIVITAS/CORE-Plugins (hinter HAProxy und Standalone) und ihrer Paketwege.
 status: draft
 lastUpdated: 2026-10-04
 lang: de
@@ -19,16 +19,17 @@ quality:
 
 # Netzwerk-Topologie
 
-Die Plattform wird in zwei Betriebsarten betrieben. Fall 1 läuft hinter einem
-HAProxy in einer OPNsense-VM, Fall 2 direkt auf einem öffentlich erreichbaren
-Hetzner-Server. Beide Fälle führen eingehenden HTTPS-Verkehr zum ingress-nginx
+Die Plattform wird in zwei Betriebsarten betrieben. Hinter HAProxy läuft sie
+hinter einer OPNsense-VM, Standalone direkt auf einem öffentlich erreichbaren
+Server. Beide Betriebsarten führen eingehenden HTTPS-Verkehr zum ingress-nginx
 in der CIVITAS/CORE-VM.
 
 ## Vergleich
 
-| Aspekt | Fall 1: hinter HAProxy | Fall 2: direkt im Netz |
+| Aspekt | Hinter HAProxy ([udp.data-dna.eu](https://udp.data-dna.eu/)) | Standalone ([udp.projekte-koenig.eu](https://udp.projekte-koenig.eu/)) |
 |---|---|---|
-| Öffentliche Adresse liegt auf | `<edge-ip>` (OPNsense-VM auf dem Edge-Server) | `<oeffentliche-ip>` (`<wan-nic>` des Hetzner-Servers) |
+| Standort des öffentlichen Servers | Helsinki (Edge-Server) | Nürnberg (Standalone-Server) |
+| Öffentliche Adresse liegt auf | `<edge-ip>` (OPNsense-VM auf dem Edge-Server) | `<oeffentliche-ip>` (`<wan-nic>` des Servers) |
 | Rolle des Proxmox-Knotens | Bridge-Host, leitet nicht weiter | Router und NAT-Gerät |
 | VM-Netz | internes Netz mit `<gateway-ip>` als Gateway | isoliertes Netz `<vm-netz>` auf Bridge `vmbr1` |
 | Weg des Datenstroms | Client, HAProxy, WireGuard-Tunnel, VM | Client, DNAT auf dem Knoten, VM |
@@ -40,6 +41,6 @@ in der CIVITAS/CORE-VM.
 
 ## Weiterführende Seiten
 
-- [Fall 1: hinter HAProxy](./fall-1-hinter-haproxy.md)
-- [Fall 2: direkt im Netz](./fall-2-direkt-im-netz.md)
+- [Hinter HAProxy](./hinter-haproxy.md)
+- [Standalone](./standalone.md)
 - [Netzwerk, DNS und TLS](../serveraufbau-v1/netzwerk-dns-tls.md)
