@@ -1388,7 +1388,8 @@ Wichtige Rollen für die Administration:
 Einen definierten Ablauf für das saubere Herunterfahren der CIVITAS/CORE-VM
 festlegen, der Pods ordentlich terminiert (kubectl drain), bevor k3s gestoppt
 wird, sowie die automatische Wiederherstellung der Schedulability nach dem
-Neustart.
+Neustart. Der Installer aktualisiert die Skripte bei jedem Lauf (Update-Regel),
+damit bestehende VMs Änderungen übernehmen.
 
 ### Shutdown-Ablauf (`cico-shutdown`)
 
@@ -1396,26 +1397,40 @@ Das Skript `/usr/local/bin/cico-shutdown` führt folgende Schritte aus:
 
 | Schritt | Aktion | Beschreibung |
 |---|---|---|
-| 1 | `kubectl drain civitas-core --ignore-daemonsets --delete-emptydir-data --grace-period=60 --disable-eviction` | Node cordonen und Pods evicten; DaemonSets bleiben laufen, leere Verzeichnisse werden gelöscht |
-| 2 | Polling Loop: `kubectl get pods -A --field-selector=spec.nodeName=civitas-core` | Warten bis alle Pods terminiert sind (max. `TIMEOUT` Sekunden, Default 120) |
-| 3 | `systemctl stop k3s` | Kubernetes-Dienst beenden |
-| 4 | `sync && shutdown -h now` | Dateisysteme synchronisieren und VM herunterfahren |
-
-**Fehlerverhalten:**
-
-| Szenario | Reaktion |
-|---|---|
-| `kubectl drain` schlägt fehl | Warnung, Ausführung der Folgeschritte (force-Eviction vermeiden) |
-| Pods terminieren nicht innerhalb des Timeouts | Warnung mit Liste der verbleibenden Pods, Shutdown wird trotzdem fortgesetzt |
-| `systemctl stop k3s` schlägt fehl | Warnung, Shutdown wird trotzdem fortgesetzt |
+| 1 | `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --disable-eviction --timeout=<wait>` | Node cordonen und Pods evicten; jeder Pod nutzt seine eigene Grace Period, DaemonSets bleiben laufen |
+| 2 | Polling Loop: `kubectl get pods -A --field-selector=spec.nodeName=<node>` | Warten bis keine Nicht-DaemonSet-Pods mehr laufen |
+| 3 | `systemctl stop k3s`, danach `k3s-killall.sh` | Kubernetes-Dienst beenden und Container-Shims aufräumen |
+| 4 | `sync`, `systemctl poweroff` | Dateisysteme synchronisieren und VM herunterfahren |
 
 **Konfigurationsvariablen:**
 
 | Variable | Beschreibung | Default |
 |---|---|---|
-| `K3S_NODE` | Kubernetes-Node-Name | `civitas-core` |
-| `TIMEOUT` | Maximale Wartezeit auf Pod-Terminierung (Sekunden) | `120` |
-| `POLL_INTERVAL` | Polling-Intervall (Sekunden) | `5` |
+| `K3S_NODE` | Kubernetes-Node-Name | der einzige Node im Cluster |
+| `MARGIN` | Aufschlag auf die längste Pod-Grace (Sekunden) | `30` |
+| `MAX_WAIT` | Obergrenze für den Drain-Timeout (Sekunden) | `900` |
+| `FORCE` | Bei Timeout trotzdem herunterfahren | `0` |
+| `DRY_RUN` | Nur Plan anzeigen, nichts ausführen | `0` |
+| `NO_POWEROFF` | Alles außer dem abschließenden poweroff | `0` |
+
+**Exit-Codes:**
+
+| Code | Bedeutung |
+|---|---|
+| `0` | Erfolgreich |
+| `1` | Fehler oder fehlende Vorbedingung |
+| `2` | Pods nicht rechtzeitig beendet (ohne `FORCE=1`) |
+
+**Logdatei:** `/var/log/cico-shutdown.log`
+
+**Fehlerverhalten:**
+
+| Szenario | Reaktion |
+|---|---|
+| `kubectl drain` läuft nicht vollständig durch | Warnung, Folgeschritte werden fortgesetzt |
+| Pods laufen nach dem Wartezeitraum noch | Abbruch mit Exit 2 (ohne `FORCE=1`); mit `FORCE=1` wird trotzdem heruntergefahren |
+| `systemctl stop k3s` schlägt fehl | Warnung, Folgeschritte werden fortgesetzt |
+| Node-Name nicht eindeutig | Abbruch mit Exit 1 |
 
 **Abnahmekriterium:**
 
@@ -1448,15 +1463,22 @@ Der systemd-Dienst `cico-uncordon.service` hebt diese Sperre auf.
 
 | Schritt | Aktion | Idempotenz-Prüfung |
 |---|---|---|
-| 1 | Warten auf k3s-API: `kubectl get nodes civitas-core` (max. 180s) | Polling loop bis API antwortet |
-| 2 | Prüfen ob Node cordoniert ist: `kubectl get node civitas-core -o jsonpath='{.spec.unschedulable}'` | Wenn `unschedulable != true` → nichts tun, log_ok |
-| 3 | Uncordon: `kubectl uncordon civitas-core` | Nur ausgeführt wenn Schritt 2 `true` ergab |
+| 1 | Warten auf k3s-API: `kubectl get nodes` (max. 180s) | Polling loop bis API antwortet |
+| 2 | Node-Name ermitteln: `K3S_NODE` oder der einzige Node im Cluster | Fehler bei keinem oder mehreren Nodes |
+| 3 | Prüfen ob Node cordoniert ist: `kubectl get node <node> -o jsonpath='{.spec.unschedulable}'` | Wenn nicht `true` → nichts tun |
+| 4 | Uncordon: `kubectl uncordon <node>` | Nur ausgeführt wenn Schritt 3 `true` ergab |
 
 **Fehlerverhalten:**
 
 | Szenario | Reaktion |
 |---|---|
-| k3s-API nach 180s nicht verfügbar | **Abbruch mit Exit 1** — systemd markiert Service als failed, nächster Boot-Versuch wiederholt den Vorgang |
+| k3s-API nach 180s nicht verfügbar | Abbruch mit Exit 1 |
+| Node-Name nicht eindeutig (keiner oder mehrere Nodes) | Abbruch mit Exit 1, Auflistung der Nodes |
+
+> **Hinweis:** Nach einem manuellen `systemctl start k3s` startet
+> `cico-uncordon.service` wegen `Requires=k3s.service` nicht von selbst.
+> In dem Fall `systemctl start cico-uncordon` ausführen oder den Node mit
+> `kubectl uncordon <node>` manuell freigeben.
 
 **Abnahmekriterium:**
 
@@ -1466,20 +1488,24 @@ systemctl is-enabled cico-uncordon.service
 systemctl status cico-uncordon.service
 
 # Node ist schedulable
-kubectl get node civitas-core -o jsonpath='{.spec.unschedulable}'
-# Erwartung: kein Output (oder "false") — Node ist nicht cordoniert
+kubectl get node <node> -o jsonpath='{.spec.unschedulable}'
+# Erwartung: kein Output (oder "false") - Node ist nicht cordoniert
 ```
 
 ### Bereitstellung
 
-Die Skripte und der systemd-Dienst werden in Phase 1b (Modul `05_addons.sh`)
+Die Skripte und der systemd-Dienst werden in Phase 1b (Modul `05_addons.sh`)
 durch die Funktion `install_cico_utils()` bereitgestellt. Die Skriptinhalte
-sind als Here-Docs innerhalb der Funktion hinterlegt — kein separates
-`bin/`-Verzeichnis erforderlich:
+sind als Here-Docs innerhalb der Funktion hinterlegt. Jede Datei wird zuerst
+in eine Temp-Datei im Zielverzeichnis geschrieben und per `cmp -s` mit der
+vorhandenen Datei verglichen:
 
-| Schritt | Aktion | Idempotenz-Prüfung |
+| Schritt | Aktion | Ergebnis bei identischem Inhalt |
 |---|---|---|
-| 1 | Here-Doc erzeugt `/usr/local/bin/cico-shutdown` (chmod +x) | `command -v cico-shutdown` |
-| 2 | Here-Doc erzeugt `/usr/local/bin/cico-uncordon` (chmod +x) | `command -v cico-uncordon` |
-| 3 | Here-Doc erzeugt `/etc/systemd/system/cico-uncordon.service` | `systemctl is-enabled cico-uncordon.service` |
-| 4 | `systemctl daemon-reload && systemctl enable cico-uncordon.service` | Dienst ist `active (exited)` |
+| 1 | `/usr/local/bin/cico-shutdown` (0755) | „bereits aktuell" |
+| 2 | `/usr/local/bin/cico-uncordon` (0755) | „bereits aktuell" |
+| 3 | `/etc/systemd/system/cico-uncordon.service` (0644) | „bereits aktuell" |
+| 4 | `systemctl daemon-reload` und `enable cico-uncordon.service` | Dienst ist aktiviert |
+
+Bei abweichendem Inhalt wird ein Backup `<datei>.bak-<YYYYMMDD-HHMMSS>`
+angelegt und die Datei ersetzt.
